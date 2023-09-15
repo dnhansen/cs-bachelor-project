@@ -1,0 +1,156 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{framedtheorems}[2023/04/03 Framed theorems]
+
+\RequirePackage[amsmath,thmmarks,hyperref]{ntheorem}
+\RequirePackage{thmtools}
+\RequirePackage[capitalize,nameinlink,noabbrev]{cleveref}
+\RequirePackage{enumitem}
+\RequirePackage{etoolbox}
+\RequirePackage{csquotes}
+\RequirePackage{pifont}
+
+%==============================================================
+%  THEOREMS
+%==============================================================
+
+% Fonts and typography
+\newcommand{\@headerfont}{\normalfont\scshape\bfseries}
+\newcommand{\theorem@titlefont}{\normalfont\bfseries\itshape}
+\newcommand{\proof@headerfont}{\itshape\bfseries}
+
+\newcommand{\definition@symbol}{\ensuremath{\blacktriangle}}
+\newcommand{\example@symbol}{\ensuremath{\lrcorner}}
+\newcommand{\remark@symbol}{\example@symbol}
+\newcommand{\proof@symbol}{\ensuremath{\blacksquare}}
+
+\newcommand{\theorembullet}{{\footnotesize\textbullet}}
+
+
+% Theorem styles
+\newtheoremstyle{changedot}%
+  {\item[\hskip\labelsep \theorem@headerfont ##2~~\theorembullet~~##1\theorem@separator]}%
+  {\item[\rlap{\vbox{\hbox{\hskip\labelsep \theorem@headerfont
+          ##2~~\theorembullet~~##1:\ \theorem@titlefont##3\theorem@separator}\hbox{\strut}}}]}
+\newtheoremstyle{changedotbreak}%
+  {\item[\rlap{\vbox{\hbox{\hskip\labelsep \theorem@headerfont
+          ##2~~\theorembullet~~##1\theorem@separator}\hbox{\strut}}}]}
+  {\item[\rlap{\vbox{\hbox{\hskip\labelsep \theorem@headerfont
+          ##2~~\theorembullet~~##1:\ \theorem@titlefont##3\theorem@separator}\hbox{\strut}}}]}
+
+\theoremseparator{.}
+
+
+% Theorems
+\theoremheaderfont{\@headerfont}
+\theoremnumbering{alph}
+
+\theoremstyle{changedot}
+\newtheorem{theorem}{\protect\@theorem}[chapter]
+\theoremstyle{changedot}
+\newtheorem{proposition}[theorem]{\protect\@proposition}
+\theoremstyle{changedot}
+\newtheorem{lemma}[theorem]{\protect\@lemma}
+\theoremstyle{changedot}
+\newtheorem{corollary}[theorem]{\protect\@corollary}
+
+
+% Theorems without proofs
+\theoremheaderfont{\@headerfont}
+\theoremsymbol{\proof@symbol}
+
+\theoremstyle{changedot}
+\newtheorem{theoremnoproof}[theorem]{\protect\@theorem}
+\theoremstyle{changedot}
+\newtheorem{propositionnoproof}[theorem]{\protect\@proposition}
+\theoremstyle{changedot}
+\newtheorem{lemmanoproof}[theorem]{\protect\@lemma}
+\theoremstyle{changedot}
+\newtheorem{corollarynoproof}[theorem]{\protect\@corollary}
+
+
+% Definitions
+\theoremheaderfont{\@headerfont}
+\theorembodyfont{\normalfont}
+\theoremsymbol{\definition@symbol}
+
+\theoremstyle{changedot}
+\newtheorem{definition}[theorem]{\protect\@definition}
+
+% https://tex.stackexchange.com/questions/55863/how-to-detect-if-in-an-exercise-environment
+\newbool{indefinition}
+\AtBeginEnvironment{definition}{\booltrue{indefinition}}
+
+% \newcommand{\keyword}[1]{{\itshape\bfseries #1}}
+\newcommand{\keyword}[1]{\ifbool{indefinition}{{\itshape #1}}{{\itshape\bfseries #1}}}
+
+
+% Examples and remarks
+\theoremheaderfont{\@headerfont}
+\theorembodyfont{\normalfont}
+\theoremsymbol{\example@symbol}
+
+\theoremstyle{changedot}
+\newtheorem{remark}[theorem]{\protect\@remark}
+\theoremstyle{changedot}
+\newtheorem{example}[theorem]{\protect\@example}
+
+
+% Examples and remarks with breaks
+\theoremheaderfont{\@headerfont}
+\theorembodyfont{\normalfont}
+\theoremsymbol{\example@symbol}
+
+\theoremstyle{changedotbreak}
+\newtheorem{remarkbreak}[theorem]{\protect\@remark}
+\theoremstyle{changedotbreak}
+\newtheorem{examplebreak}[theorem]{\protect\@example}
+
+
+% Proofs
+\theoremheaderfont{\proof@headerfont}
+\theoremstyle{nonumberplain}
+\theoremsymbol{\proof@symbol}
+\newtheorem{proof}{\protect\@proof}
+
+
+% Proof of
+\newtheoremstyle{MyNonumberplain}%
+  {\item[\theorem@headerfont\hskip\labelsep ##1\theorem@separator]}%
+  {\item[\theorem@headerfont\hskip\labelsep ##3\theorem@separator]}
+\theoremstyle{MyNonumberplain}
+\theorembodyfont{\upshape}
+\newtheorem{proofof}{Proof}
+% https://tex.stackexchange.com/questions/106072/proof-titles-with-ntheorem
+
+
+% Assumption
+\theoremheaderfont{\@headerfont}
+\theoremstyle{nonumberplain}
+\theoremsymbol{\ding{102}}
+\newtheorem{assumption@theorem}{\protect\@assumption}
+
+\newenvironment{assumption}{%
+    \begin{displayquote}\begin{assumption@theorem}\noindent%
+}{%
+    \end{assumption@theorem}\end{displayquote}%
+}
+
+
+% Sectioned proofs
+\newcommand{\mylistlabelfont}[1]{{\normalfont\unboldmath\textit{#1}:}}
+\newlist{proofsec}{description}{1}
+\setlist[proofsec]{leftmargin=0pt, parsep=0pt, listparindent=\parindent, font=\mylistlabelfont, labelindent=\parindent}
+
+% https://tex.stackexchange.com/questions/431859/making-the-only-first-label-of-a-list-itemize-empty-on-preamble
+\newbool{firstitem}
+\newlist{proofsec*}{description}{1}
+\setlist[proofsec*]{leftmargin=0pt, parsep=0pt, listparindent=\parindent, font={\ifbool{firstitem}{\global\boolfalse{firstitem}\hspace{-\parindent}}{}\mylistlabelfont}, labelindent=\parindent, before=\booltrue{firstitem}}
+
+\endinput
+
+% Issues:
+% - Make it possible to give parameter to change between chapter and section numbering.
+% - Make it independent of memoir?
+% - Script to automatically generate LaTeX code.
+% - Theorem lists: Customisable label style.
+% - Factor out lists into separable .sty?
