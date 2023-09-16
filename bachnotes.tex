@@ -76,6 +76,8 @@
 \DeclarePairedDelimiter{\auxdelimbracket}{[}{]}
 \DeclarePairedDelimiterX{\auxdelimbracketcomma}[2]{[}{]}{#1,#2}
 \newcommand{\powerset}[2][]{\calP\auxdelimparen[#1]{#2}}
+\newcommand{\powersetcard}[3][]{\calP_{#2}\auxdelimparen[#1]{#3}}
+\newcommand{\powersetfin}[2][]{\powersetcard[#1]{\omega}{#2}}
 \newcommand{\borel}[2][]{\calB\auxdelimparen[#1]{#2}}
 \newcommand{\meas}[2][]{\calM\auxdelimparen[#1]{#2}}
 \newcommand{\measC}[2][]{\calM_\complex\auxdelimparen[#1]{#2}}
@@ -304,18 +306,18 @@
 \newcommand{\typeUnit}{\textsf{Unit}}
 \newcommand{\freevar}[1]{\mathit{FV}(#1)}
 \newcommand{\freeTvar}[1]{\mathit{FTV}(#1)}
-\newcommand{\powersetfin}[1]{\calP_\omega(#1)}
+% \newcommand{\powersetcard}[2]{\calP_\omega(#1)}
 \newcommand{\pmaps}[3][]{#2 \pto_{#1} #3}
 \newcommand{\typeForall}[2]{\forall #1. #2}
 \newcommand{\typeExists}[2]{\exists #1. #2}
-\newcommand{\typeRef}[1]{\mathrm{ref}(#1)}
+\newcommand{\typeRef}[1]{\textsf{ref(}#1\textsf{)}}
 \newcommand{\objTapp}[2]{\objApp{#1}{\textcolor{objlangcolor}{\_}}}
 \newcommand{\objPack}[1]{\objOp{pack}#1}
-\newcommand{\objUnpack}[3]{\objOp{unpack}#1\,\objOp{as}#2\,\objOp{in}#3}
+\newcommand{\objUnpack}[3]{\objlang{unpack}\,#1\,\objlang{as}\,#2\,\objlang{in}\,#3}
 \newcommand{\objRef}[1]{\objOp{ref}#1}
 \newcommand{\objLoad}[1]{\objOp{!}#1}
 
-If $X$ is a set, then we denote the power set of $X$ by $\powerset{X}$. The subset of $\powerset{X}$ of finite sets is denoted $\powersetfin{X}$. If $Y$ is another set, then we denote the set of partial maps from $X$ to $Y$ by $\pmaps{X}{Y}$. For $f \in \pmaps{X}{Y}$ we let $\dom f$ and $\ran f$ denote the domain and range of $f$, respectively. For $x_0 \in X$ and $y_0 \in Y$ we denote by $f[x_0 \mapsto y_0]$ the partial map given by
+If $X$ and $A$ are sets, then we write $A \subseteq_\kappa X$ if $A$ is a subset of $X$ with cardinality strictly less than $\kappa$. We denote the power set of $X$ by $\powerset{X}$, and we furthermore write $\powersetcard{\kappa}{X}$ for the collection of sets $A$ with $A \subseteq_\kappa X$. We do not distinguish between the ordinal $\omega$ and the cardinal $\aleph_0$, so we write $A \subseteq_\omega X$ if $A$ is a finite subset of $X$, and $\powersetfin{X}$ similarly denotes the set of finite subsets of $X$. If $Y$ is another set, then we denote the set of partial maps from $X$ to $Y$ by $\pmaps{X}{Y}$. For $f \in \pmaps{X}{Y}$ we let $\dom f$ and $\ran f$ denote the domain and range of $f$, respectively. We also write $\pmaps[\kappa]{X}{Y}$ for the subset of $\pmaps{X}{Y}$ of partial maps whose domain has cardinality strictly less than $\kappa$, and elements in $\pmaps[\omega]{X}{Y}$ will be called \keyword{finite partial maps}. For $x_0 \in X$ and $y_0 \in Y$ we denote by $f[x_0 \mapsto y_0]$ the partial map given by
 %
 \begin{equation*}
     f[x_0 \mapsto y_0](x) =
@@ -325,9 +327,9 @@ If $X$ is a set, then we denote the power set of $X$ by $\powerset{X}$. The subs
     \end{cases}
 \end{equation*}
 %
-Notice in particular that $\dom f[x_0 \mapsto y_0] = \dom f \union \{x_0\}$. For a cardinal $\kappa$ we denote by $\pmaps[\kappa]{X}{Y}$ the subset of $\pmaps{X}{Y}$ of partial maps whose domain has cardinality strictly less than $\kappa$. Note that if $f \in \pmaps[\omega]{X}{Y}$, then also $f[x_0 \mapsto y_0] \in \pmaps[\omega]{X}{Y}$.
+Notice in particular that $\dom f[x_0 \mapsto y_0] = \dom f \union \{x_0\}$, so that if $f \in \pmaps[\omega]{X}{Y}$, then also $f[x_0 \mapsto y_0] \in \pmaps[\omega]{X}{Y}$.
 
-If $\Xi \subseteq_\omega \setTVar$ [TODO finite subset notation], $\Gamma$ is a type context and $\Sigma$ is a store typing, then we say that a store $\sigma$ is \keyword{well-typed} with respect to $\Xi$, $\Gamma$ and $\Sigma$ if $\dom \sigma = \dom \Sigma$ and $\hastype{\Xi}{\Gamma}{\Sigma}{\sigma(l)}{\Sigma(l)}$ for all $l \in \dom \sigma$. In this case we write $\stotype{\Xi}{\Gamma}{\Sigma}{\sigma}$, and if $\Xi$ and $\Gamma$ are both empty we simply write $\stotype{}{}{\Sigma}{\sigma}$.
+If $\Xi \subseteq_\omega \setTVar$, $\Gamma$ is a type context and $\Sigma$ is a store typing, then we say that a store $\sigma$ is \keyword{well-typed} with respect to $\Xi$, $\Gamma$ and $\Sigma$ if $\dom \sigma = \dom \Sigma$ and $\hastype{\Xi}{\Gamma}{\Sigma}{\sigma(l)}{\Sigma(l)}$ for all $l \in \dom \sigma$. In this case we write $\stotype{\Xi}{\Gamma}{\Sigma}{\sigma}$, and if $\Xi$ and $\Gamma$ are both empty we simply write $\stotype{}{}{\Sigma}{\sigma}$.
 
 \begin{theorem}[Progress]
     Let $e$ be an expression and $\tau$ a type of $\STLC$.\footnote{TODO note different versions of STLC with and without products/sums etc., see wikipedia} If $\hastype{}{}{\Sigma}{e}{\tau}$, then either $e$ is a value or else, for any store $\sigma$ with $\stotype{}{}{\Sigma}{\sigma}$, there exists an expression $e'$ and a store $\sigma'$ such that $(\sigma,e) \step (\sigma',e')$.
@@ -554,30 +556,69 @@ We are of course used to these kinds of results in computer science, and we rare
 \end{theorem}
 
 \begin{proof}
-    By definition of the one-step relation, there exist an evaluation context $K$ and subexpressions $d$ of $e$ and $d'$ of $e'$ such that $e = K[d]$, $e' = K[d']$, and $d \headstep d'$. By [TODO lemma] $d$ must be well-typed in $\Xi, \Gamma$ with some type $\sigma$. Next it follows from [TODO lemma] that $\hastype{\Xi}{\Gamma}{\Sigma}{d'}{\sigma}$, so it follows from [TODO lemma] that $K[d']$ is well-typed in $\Gamma$ with type $\tau$.
+    By definition of the one-step relation, there exist an evaluation context $K$ and subexpressions $d$ of $e$ and $d'$ of $e'$ such that $e = K[d]$, $e' = K[d']$, and $(\sigma,d) \headstep (\sigma',d')$. By \cref{lem:subexp-well-typed} there is some type $\rho$ such that $\hastype{\Xi}{\Gamma}{\Sigma}{d}{\rho}$. Next it follows from \cref{lem:preservation-head-steps} that $\hastype{\Xi}{\Gamma}{\Sigma'}{d'}{\rho}$ for some store typing $\Sigma'$ with $\Sigma \subseteq \Sigma'$ and $\stotype{\Xi}{\Gamma}{\Sigma'}{\sigma'}$. By \cref{lem:store-typing-weakening} we also have $\hastype{\Xi}{\Gamma}{\Sigma'}{d}{\rho}$, so it follows from \cref{lem:evaluation-contexts-respect-types} that $\hastype{\Xi}{\Gamma}{\Sigma'}{K[d']}{\tau}$ as desired.
 \end{proof}
 
 
 \begin{lemma}
+    \label{lem:subexp-well-typed}
     If $K$ is an evaluation context, $e$ is an expression and $\hastype{\Xi}{\Gamma}{\Sigma}{K[e]}{\tau}$, then $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\rho}$ for some type $\rho$.
 \end{lemma}
 
 \begin{proof}
-Every evaluation context is obtained from the hole $\hole$ by finitely many applications of the productions in the grammar [TODO prove this?]. We prove the claim by induction on the length of such a sequence of productions. If $K = \hole$, then the claim is obvious, since then $K[e] = e$. Hence we assume that $K$ is obtained from some evaluation context $K'$ by some application of a production, so that the induction hypothesis holds for $K'$.
+Every evaluation context is obtained from the hole \enquote{$\hole$} by finitely many applications of the productions in the grammar [TODO prove this?]. We prove the claim by induction on the length of such a sequence of productions. If $K = \hole$, then the claim is obvious, since then $K[e] = e$. Hence we assume that $K$ is obtained from some evaluation context $K'$ by some application of a production, so that the induction hypothesis holds for $K'$.
 %
 \begin{proofsec}
     \item[$K = \objPair{K'}{e'}$]
     Then $K[e] = \objPair{K'[e]}{e'}$, and since this is well-typed with type $\tau$, the inversion lemma [TODO proof] implies that $\hastype{\Xi}{\Gamma}{\Sigma}{K'[e]}{\tau_1}$ for some type $\tau_1$. By induction applied to $K'$ we have $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\rho}$ for some type $\rho$.
 
+    \item[$K = \objPair{v}{K'}$]
+    Similar to the above.
+
+    \item[$K = \objFst{K'}$]
+    Then $K[e] = \objFst{K'[e]$}, so the inversion lemma implies that $\hastype{\Xi}{\Gamma}{\Sigma}{K'[e]}{\tau \prod \tau_2}$ for some $\tau_2$. By induction we have $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\rho}$ for some type $\rho$.
+
+    \item[$K \in \{\objSnd{K'}, \objInl{K'}, \objInr{K'}\}$]
+    Similar to the above.
+
     \item[$K = \objMatch{K'}{x}{e_1}{e_2}$]
     The inversion lemma here implies that $\hastype{\Xi}{\Gamma}{\Sigma}{K'[e]}{\tau_1 + \tau_2}$, so the claim follows by induction.
+
+    \item[$K = \objApp{K'}{e'}$]
+    Then $K[e] = \objApp{K'[e]}{e'}$, so the inversion lemma implies that $\hastype{\Xi}{\Gamma}{\Sigma}{K'[e]}{\tau_1 \to \tau}$ for some type $\tau_1$. The claim follows by induction as before.
+
+    \item[$K = \objApp{v}{K'}$]
+    Similar to the above.
+
+    \item[$K = \objTapp{K'}{X}$]
+    The inversion lemma implies that $\hastype{\Xi}{\Gamma}{\Sigma}{K'[e]}{\tau_1}$ for some type $\tau_1$, so the claim follows by induction.
+
+    \item[$K = $]
+    TODO
+
+    \item[$K = \objRef{K'}$]
+    Then $K[e] = \objRef{K'[e]}$, so the inversion lemma implies that $\hastype{\Xi}{\Gamma}{\Sigma}{K'[e]}{\tau'}$. The claim follows by induction.
+
+    \item[$K = \objAss{K'}{e'}$]
+    Then $K[e] = \objAss{K'[e]}{e'}$, so the inversion lemma implies that $\hastype{\Xi}{\Gamma}{\Sigma}{K'[e]}{\tau'}$ ... TODO
 \end{proofsec}
 
-TODO rest
+TODO rest -- but they are all the same, so maybe just do one?
 \end{proof}
 
 
 \begin{lemma}
+    \label{lem:store-typing-weakening}
+    If $\Sigma$ and $\Sigma'$ are store typings with $\Sigma \subseteq \Sigma'$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\tau}$, then $\hastype{\Xi}{\Gamma}{\Sigma'}{e}{\tau}$.
+\end{lemma}
+
+\begin{proof}
+    TODO
+\end{proof}
+
+
+\begin{lemma}
+    \label{lem:evaluation-contexts-respect-types}
     If $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\tau}$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e'}{\tau}$ for the same type $\tau$, then $\hastype{\Xi}{\Gamma}{\Sigma}{K[e]}{\rho}$ and $\hastype{\Xi}{\Gamma}{\Sigma}{K[e']}{\rho}$ for the same type $\rho$.
 \end{lemma}
 
@@ -597,11 +638,12 @@ TODO rest
 
 
 \begin{lemma}
-    If $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\tau}$ and $e \headstep e'$, then $e'$ is an expression [TODO i.e. $\headstep$ is well-defined] and $\hastype{\Xi}{\Gamma}{\Sigma}{e'}{\tau}$.
+    \label{lem:preservation-head-steps}
+    If $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\tau}$ and $\stotype{\Xi}{\Gamma}{\Sigma}{\sigma}$ and $(\sigma,e) \headstep (\sigma',e')$, then there exists a store typing $\Sigma'$ such that $\Sigma \subseteq \Sigma'$, $\hastype{\Xi}{\Gamma}{\Sigma'}{e'}{\tau}$, and $\stotype{\Xi}{\Gamma}{\Sigma'}{\sigma'}$.
 \end{lemma}
 
 \begin{proof}
-We simply check all cases.
+We simply check all cases. [TODO mention pure cases]
 %
 \begin{proofsec}
     \item[\infrule{E-fst}]
@@ -609,6 +651,17 @@ We simply check all cases.
 
     \item[\infrule{E-tapp-tlam}]
     Write the type of $\objTapp{\objForall{X}{e}}{\tau'}$ as $\tau[\tau'/X]$. By inversion we have $\hastype{\Xi}{\Gamma}{\Sigma}{\objForall{X}{e}}{\typeForall{X}{\tau}}$, and again by inversion this implies that $\hastype{\Xi,X}{\Gamma}{\Sigma}{e}{\tau}$. But then it follows from [TODO lemma 0] that $\hastype{\Xi}{\Gamma[\tau'/X]}{\Sigma}{e}{\tau[\tau'/X]}$, and since $\Gamma$ does not contain $X$ (since $\Xi$ does not) we have $\Gamma[\tau'/X] = \Gamma$, so the claim follows.
+
+    \item[\infrule{E-alloc}]
+    In this case $e = \objRef{v}$, $e' = l$, $\sigma' = \sigma[l \mapsto v]$, and $l \not\in \dom \sigma$. By inversion we have $\hastype{\Xi}{\Gamma}{\Sigma}{\objRef{v}}{\typeRef{\tau'}}$ for some $\tau'$, and we further have $\hastype{\Xi}{\Gamma}{\Sigma}{v}{\tau'}$. Now letting $\Sigma' = \Sigma[l \mapsto \tau']$, it follows from \infrule{T-loc} that $\hastype{\Xi}{\Gamma}{\Sigma'}{l}{\typeRef{\Sigma'(l)}}$, so we have both $\stotype{\Xi}{\Gamma}{\Sigma'}{\sigma'}$ and $\hastype{\Xi}{\Gamma}{\Sigma'}{l}{\typeRef{\tau'}}$.
+
+    \item[\infrule{E-store}]
+    Here $e = \objAss{l}{v}$, $e' = \objUnit$ and $\sigma' = \sigma[l \mapsto v]$ with $l \in \dom \sigma$. Notice first that $\objAss{l}{v}$ and $\objUnit$ both have type $\typeUnit$ by inversion, so that $\hastype{\Xi}{\Gamma}{\Sigma}{\objUnit}{\typeUnit}$ as required.
+
+    By inversion we also have $\hastype{\Xi}{\Gamma}{\Sigma}{l}{\typeRef{\tau'}}$ and $\hastype{\Xi}{\Gamma}{\Sigma}{v}{\tau'}$ for some type $\tau'$, and another application of inversion (TODO via \infrule{T-loc}, or canonical forms?) implies that $\tau' = \Sigma(l)$. Furthermore, since $\stotype{\Xi}{\Gamma}{\Sigma}{\sigma}$, we have $\hastype{\Xi}{\Gamma}{\Sigma}{\sigma(l)}{\Sigma(l)}$. Since $v = \sigma'(l)$ it thus follows that $\hastype{\Xi}{\Gamma}{\Sigma}{\sigma'(l)}{\Sigma(l)}$, so $\stotype{\Xi}{\Gamma}{\Sigma}{\sigma'}$.
+
+    \item[\infrule{E-load}]
+    Here $e = \objLoad{l}$, $e' = v$ and $\sigma = \sigma'$ with $\sigma(l) = v$. By inversion we have $\hastype{\Xi}{\Gamma}{\Sigma}{l}{\typeRef{\tau}}$, so $\tau = \Sigma(l)$ [TODO again]. But since $\stotype{\Xi}{\Gamma}{\Sigma}{\sigma}$ we have $\hastype{\Xi}{\Gamma}{\Sigma}{\sigma(l)}{\Sigma(l)}$, or in other words, $\hastype{\Xi}{\Gamma}{\Sigma}{v}{\tau}$.
 \end{proofsec}
 
 TODO rest
