@@ -317,6 +317,9 @@
 \newcommand{\objRef}[1]{\objOp{ref}#1}
 \newcommand{\objLoad}[1]{\objOp{!}#1}
 
+
+\chapter{Preliminaries}
+
 If $X$ and $A$ are sets, then we write $A \subseteq_\kappa X$ if $A$ is a subset of $X$ with cardinality strictly less than $\kappa$. We denote the power set of $X$ by $\powerset{X}$, and we furthermore write $\powersetcard{\kappa}{X}$ for the collection of sets $A$ with $A \subseteq_\kappa X$. We do not distinguish between the ordinal $\omega$ and the cardinal $\aleph_0$, so we write $A \subseteq_\omega X$ if $A$ is a finite subset of $X$, and $\powersetfin{X}$ similarly denotes the set of finite subsets of $X$. If $Y$ is another set, then we denote the set of partial maps from $X$ to $Y$ by $\pmaps{X}{Y}$. For $f \in \pmaps{X}{Y}$ we let $\dom f$ and $\ran f$ denote the domain and range of $f$, respectively. We also write $\pmaps[\kappa]{X}{Y}$ for the subset of $\pmaps{X}{Y}$ of partial maps whose domain has cardinality strictly less than $\kappa$, and elements in $\pmaps[\omega]{X}{Y}$ will be called \keyword{finite partial maps}. For $x_0 \in X$ and $y_0 \in Y$ we denote by $f[x_0 \mapsto y_0]$ the partial map given by
 %
 \begin{equation*}
@@ -330,94 +333,6 @@ If $X$ and $A$ are sets, then we write $A \subseteq_\kappa X$ if $A$ is a subset
 Notice in particular that $\dom f[x_0 \mapsto y_0] = \dom f \union \{x_0\}$, so that if $f \in \pmaps[\omega]{X}{Y}$, then also $f[x_0 \mapsto y_0] \in \pmaps[\omega]{X}{Y}$.
 
 If $\Xi \subseteq_\omega \setTVar$, $\Gamma$ is a type context and $\Sigma$ is a store typing, then we say that a store $\sigma$ is \keyword{well-typed} with respect to $\Xi$, $\Gamma$ and $\Sigma$ if $\dom \sigma = \dom \Sigma$ and $\hastype{\Xi}{\Gamma}{\Sigma}{\sigma(l)}{\Sigma(l)}$ for all $l \in \dom \sigma$. In this case we write $\stotype{\Xi}{\Gamma}{\Sigma}{\sigma}$, and if $\Xi$ and $\Gamma$ are both empty we simply write $\stotype{}{}{\Sigma}{\sigma}$.
-
-\begin{theorem}[Progress]
-    Let $e$ be an expression and $\tau$ a type of $\STLC$.\footnote{TODO note different versions of STLC with and without products/sums etc., see wikipedia} If $\hastype{}{}{\Sigma}{e}{\tau}$, then either $e$ is a value or else, for any store $\sigma$ with $\stotype{}{}{\Sigma}{\sigma}$, there exists an expression $e'$ and a store $\sigma'$ such that $(\sigma,e) \step (\sigma',e')$.
-\end{theorem}
-
-\begin{proof}
-The proof is by induction on the typing relation $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\tau}$, but the claim to be proved is augmented by \textquote{or either $\Gamma$ or $\Xi$ is non-empty}.\footnote{This ensures that we can perform the induction on the entire $4$-ary relation, which is important since this relation is the one that is defined by the inference rules, \emph{not} the corresponding binary relation obtained by restricting the ternary relation to the subset where $\Xi$ and $\Gamma$ are empty.} Notice that the induction step for each inference rule is trivial if $\Xi$ or $\Gamma$ is non-empty, so we need only prove each case when $\Xi$ and $\Gamma$ are empty. [TODO mention store]
-%
-\begin{proofsec}
-    \item[\infrule{T-unit}]
-    Since $\objUnit$ is a value, this follows.
-
-    \item[\infrule{T-var}]
-    Since we may assume that $\Gamma$ is empty, this implication is vacuously true.\footnote{In the formalism of TODO ref \infrule{T-var} would not be an inference rule, it would instead be an axiom requiring the relation to include all quadruples $(\Xi, \Gamma, e, \tau)$ such that $(e : \tau) \in \Gamma$ and all type variables in $\tau$ occur in $\Xi$. This is of course also vacuously true when $\Gamma$ is empty.}
-
-    \item[\infrule{T-pair}]
-    Assume that the claim holds for $\hastype{}{}{\Sigma}{e_1}{\tau_1}$ and $\hastype{}{}{\Sigma}{e_2}{\tau_2}$. If both $e_1$ and $e_2$ are values, then $\objPair{e_1}{e_2}$ is also a value, so assume that only $e_1 = v_1$ is a value and that $e_2 \step e_2'$. Since the only rule that generates instances of the one-step relation $\to$ is \infrule{head-step-step}, it follows that $e_2$ is on the form $K[d_2]$ and $e_2'$ is on the form $K[d_2']$, where $K$ is an evaluation context and $d_2$ and $d_2'$ are subexpressions of $e_2$ and $e_2'$ respectively such that $d_2 \headstep d_2'$. Letting $K' = \objPair{v_1}{K}$ it follows that $\objPair{v_1}{e_2} = K'[d_2]$ and $\objPair{v_1}{e_2'} = K'[d_2']$, and so
-    %
-    \begin{equation*}
-        \objPair{v_1}{e_2}
-            = K'[d_2]
-            \step K'[d_2']
-            = \objPair{v_1}{e_2'}
-    \end{equation*}
-    %
-    by \infrule{head-step-step}. If instead $e_1$ is not a value, then the same argument (using the evaluation context $\objPair{K}{e_2}$) yields the same result.
-
-    \item[\infrule{T-fst}]
-    Assume that the claim holds for $\hastype{}{}{\Sigma}{e}{\tau_1 \prod \tau_2}$. If $e$ is a value, then it is on the form $\objPair{v_1}{v_2}$ [TODO canonical forms], where $v_1$ and $v_2$ are values. Hence $\objFst{e} = \objFst{\objPair{v_1}{v_2}}$, and this reduces via a head-step to $v_1$. Choosing the evaluation context $K = \hole$, \infrule{head-step-step} implies that $\objFst{\objPair{v_1}{v_2}} \step v_1$. If instead $e$ is not a value, then by induction there is some $e'$ such that $e \to e'$. Hence there are subexpressions $d$ and $d'$ and an evaluation context $K$ such that $e = K[d]$, $e' = K[d']$ and $d \headstep d'$. Letting $K' = \objFst{K}$ we have
-    %
-    \begin{equation*}
-        \objFst{e}
-            = K'[d]
-            \step K'[d']
-            = \objFst{e'},
-    \end{equation*}
-    %
-    as desired.
-
-    \item[\infrule{T-snd}]
-    Similar to \infrule{T-fst}.
-
-    \item[\infrule{T-inj1}]
-    Assume that the claim holds for $\hastype{}{}{\Sigma}{e}{\tau_1}$. If $e$ is a value $v$, then so is $\objInl{v}$. If instead $e \step e'$, then as before $e = K[d]$, $e' = K[d']$ and $d \headstep d'$. Letting $K' = \objInl{K}$ we get $\objInl{e} = K'[d]$ and $\objInl{e'} = K'[d']$, so $\objInl{e} \step \objInl{e'}$.
-
-    \item[\infrule{T-inj2}]
-    Similar to \infrule{T-inj1}.
-
-    \item[\infrule{T-match}]
-    Assume that the claim holds for $\hastype{}{}{\Sigma}{e_1}{\tau_1 + \tau_2}$. If $e_1$ is a value, then by [TODO canonical forms] it must be on the form $\objInl{v}$ or $\objInr{v}$ for a value $v$. Hence the expression $\objMatch{e_1}{x}{e_2}{e_3}$ can reduce via a head step by either \infrule{E-match-inj1} or \infrule{E-match-inj2}, so it reduces by \infrule{head-step-step} (using the evaluation context $K = \hole$). If instead $e_1 \step e_1'$, then by the same argument as in previous cases with $K' = \objMatch{K}{x}{e_2}{e_3}$, it follows that $\objMatch{e_1}{x}{e_2}{e_3}$ reduces.
-
-    \item[\infrule{T-rec}]
-    This is obvious since $\objRec{f}{x}{e}$ is a value.
-
-    \item[\infrule{T-app}]
-    Assume that the claim holds for $\hastype{}{}{\Sigma}{e_1}{\tau_1 \to \tau_2}$ and $\hastype{}{}{\Sigma}{e_2}{\tau_1}$. If $e_1$ is a value, then by [TODO canonical forms] it must be on the form $\objRec{f}{x}{e}$. If also $e_2$ is a value, then the claim follows by \infrule{E-rec-app}. If $e_1 = v$ is a value but $e_2$ is not, then $e_2 \to e_2'$. The same argument as in previous cases with $K' = \objApp{v}{K}$ shows that $\objApp{v}{e_2}$ reduces. Finally, if $e_1$ is not a value, then $e_1 \to e_1'$, and choosing $K' = \objApp{K}{e_2}$ proves the claim.
-
-    \item[\infrule{T-Tlam}]
-    This is obvious since $\objForall{X}{e}$ is a value.
-
-    \item[\infrule{T-Tapp}]
-    Assume that the claim holds for $\hastype{}{}{\Sigma}{e}{\typeForall{X}{\tau}}$. If $e$ is a value, then by [TODO canonical forms] it must be on the form $\objForall{X}{e'}$, so the claim follows from \infrule{E-tapp-tlam} (via \infrule{head-step-step} using the evaluation context $K = \hole$). If $e$ is not a value, then $e \to e'$ for some expression $e'$ by induction. These expressions then have subexpressions $d$ and $d'$ respectively such that $d \headstep d'$, and such that $e = K[d]$ and $e' = K[d']$ for some evaluation context $K$. Letting $K' = \objTapp{K}{\tau'}$ we thus have $\objTapp{e}{\tau'} = K'[d]$ and $\objTapp{e'}{\tau'} = K'[d']$, proving the claim.
-
-    \item[\infrule{T-pack}]
-    Assume that the claim holds for $\hastype{}{}{\Sigma}{e}{\tau[\tau'/X]}$. If $e$ is a value, then so is $\objPack{e}$. Otherwise $e \step e'$ for some expression $e'$. The same argument as before using the evaluation context $\objPack{K}$ for an appropriate $K$ yields the claim.
-
-    \item[\infrule{T-unpack}]
-    Assume that the claim holds for $\hastype{}{}{\Sigma}{e_1}{\typeExists{X}{\tau}}$. If $e_1$ is a value, then it must be on the form $\objPack{v}$ [TODO canonical forms], so an application of \infrule{E-unpack-pack} yields the claim. Otherwise $e \step e'$ for some $e'$, and we use the evaluation context $\objUnpack{K}{x}{e_2}$ for an appropriate $K$.
-
-    \item[\infrule{T-fold}]
-    TODO
-
-    \item[\infrule{T-unfold}]
-    TODO
-
-    \item[\infrule{T-loc}]
-    Locations are values, so this is obvious.
-
-    \item[\infrule{T-alloc}]
-    Assume that the claim holds for $\hastype{}{}{\Sigma}{e}{\tau}$. If $e$ is a value, then the claim follows by applying \infrule{E-alloc}, noting that there always exists a location $l \not\in \dom \sigma$. Otherwise given an appropriate [TODO well-typed] store $\sigma$ there is an expression $e'$ and a store $\sigma'$ such that $(\sigma,e) \step (\sigma',e')$. But then there is some evaluation context $K$ and subexpressions $d$ and $d'$ of $e$ and $e'$ respectively, such that $e = K[d]$, $e' = K[d']$ and $(\sigma,d) \headstep (\sigma',d')$. Letting $K' = \objRef{K}$ we have $\objRef{e} = K'[d]$ and $\objRef{e'} = K'[d']$, so \infrule{head-step-step} implies that $(\sigma,\objRef{e}) \step (\sigma',\objRef{e'})$.
-
-    \item[\infrule{T-store}]
-    Assume that the claim holds for $\hastype{}{}{\Sigma}{e_1}{\typeRef{\tau}}$ and $\hastype{}{}{\Sigma}{e_2}{\tau}$, and let $\sigma$ be a store with $\stotype{}{}{\Sigma}{\sigma}$. If $e_1$ is a value, then by [TODO canonical forms] it is a location $l$, and by [TODO lemma] we have $l \in \dom \Sigma = \dom \sigma$. If $e_2$ is also a value, then the claim follows from \infrule{E-store}. If $e_1 = l$ is a value but $e_2$ is not, then there is some $e_2'$ and $\sigma'$ such that $(\sigma,e_2) \step (\sigma',e_2')$. Again writing $e_2 = K[d_2]$ and $e_2' = K[d_2']$ with $(\sigma,d) \headstep (\sigma',d')$, we use the evaluation context $\objAss{l}{K}$. Finally, if $e_1$ is not a value, then the same argument using instead $\objAss{K}{e_2}$ yields the claim.
-
-    \item[\infrule{T-load}]
-    Assume that the claim holds for $\hastype{}{}{\Sigma}{e}{\typeRef{\tau}}$, and let $\sigma$ be a store with $\stotype{}{}{\Sigma}{\sigma}$. If $e$ is a value, then as before it is a location $l$, and $l \in \dom \sigma$. It then follows from \infrule{E-load} that $(\sigma, \objLoad{l}) \headstep (\sigma,v)$, where $v = \sigma(l)$. If instead $(\sigma,e) \step (\sigma',e')$ for an expression $e'$ and a store $\sigma'$, then we simply use the evaluation context $\objLoad{K}$ for an appropriate $K$.
-\end{proofsec}
-\end{proof}
 
 % OLD
 % Progress: Let $e$ be an expression and $\tau$ a type. If $\hastype{}{}[\Sigma}{e}{\tau}$, then either $e$ is a value or there exists an expression $e'$ such that $e \step e'$ and $\hastype{}{}{e'}{\tau}$. TODO the type of $e'$ is part of preservation, isn't it??
@@ -535,183 +450,6 @@ We are of course used to these kinds of results in computer science, and we rare
 % \end{equation*}
 
 % Preservation: If $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\tau}$ and $e \step e'$, then $\hastype{\Xi}{\Gamma}{\Sigma}{e'}{\tau}$.
-
-\begin{theorem}[Preservation]
-    If
-    %
-    \begin{equation*}
-        \hastype{\Xi}{\Gamma}{\Sigma}{e}{\tau},
-        \quad
-        \stotype{\Xi}{\Gamma}{\Sigma}{\sigma}
-        \quad \text{and} \quad
-        (\sigma,e) \step (\sigma',e'),
-    \end{equation*}
-    %
-    then there exists some store typing $\Sigma'$ with $\Sigma \subseteq \Sigma'$ such that
-    %
-    \begin{equation*}
-        \hastype{\Xi}{\Gamma}{\Sigma'}{e'}{\tau}
-        \quad \text{and} \quad
-        \stotype{\Xi}{\Gamma}{\Sigma'}{\sigma'}.
-    \end{equation*}
-\end{theorem}
-
-\begin{proof}
-    By definition of the one-step relation, there exist an evaluation context $K$ and subexpressions $d$ of $e$ and $d'$ of $e'$ such that $e = K[d]$, $e' = K[d']$, and $(\sigma,d) \headstep (\sigma',d')$. By \cref{lem:subexp-well-typed} there is some type $\rho$ such that $\hastype{\Xi}{\Gamma}{\Sigma}{d}{\rho}$. Next it follows from \cref{lem:preservation-head-steps} that $\hastype{\Xi}{\Gamma}{\Sigma'}{d'}{\rho}$ for some store typing $\Sigma'$ with $\Sigma \subseteq \Sigma'$ and $\stotype{\Xi}{\Gamma}{\Sigma'}{\sigma'}$. By \cref{lem:store-typing-weakening} we also have $\hastype{\Xi}{\Gamma}{\Sigma'}{d}{\rho}$, so it follows from \cref{lem:evaluation-contexts-respect-types} that $\hastype{\Xi}{\Gamma}{\Sigma'}{K[d']}{\tau}$ as desired.
-\end{proof}
-
-
-\begin{lemma}
-    \label{lem:subexp-well-typed}
-    If $K$ is an evaluation context, $e$ is an expression and $\hastype{\Xi}{\Gamma}{\Sigma}{K[e]}{\tau}$, then $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\rho}$ for some type $\rho$.
-\end{lemma}
-
-\begin{proof}
-Every evaluation context is obtained from the hole \enquote{$\hole$} by finitely many applications of the productions in the grammar [TODO prove this?]. We prove the claim by induction on the length of such a sequence of productions. If $K = \hole$, then the claim is obvious, since then $K[e] = e$. Hence we assume that $K$ is obtained from some evaluation context $K'$ by some application of a production, so that the induction hypothesis holds for $K'$.
-%
-\begin{proofsec}
-    \item[$K = \objPair{K'}{e'}$]
-    Then $K[e] = \objPair{K'[e]}{e'}$, and since this is well-typed with type $\tau$, the inversion lemma [TODO proof] implies that $\hastype{\Xi}{\Gamma}{\Sigma}{K'[e]}{\tau_1}$ for some type $\tau_1$. By induction applied to $K'$ we have $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\rho}$ for some type $\rho$.
-
-    \item[$K = \objPair{v}{K'}$]
-    Similar to the above.
-
-    \item[$K = \objFst{K'}$]
-    Then $K[e] = \objFst{K'[e]$}, so the inversion lemma implies that $\hastype{\Xi}{\Gamma}{\Sigma}{K'[e]}{\tau \prod \tau_2}$ for some $\tau_2$. By induction we have $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\rho}$ for some type $\rho$.
-
-    \item[$K \in \{\objSnd{K'}, \objInl{K'}, \objInr{K'}\}$]
-    Similar to the above.
-
-    \item[$K = \objMatch{K'}{x}{e_1}{e_2}$]
-    The inversion lemma here implies that $\hastype{\Xi}{\Gamma}{\Sigma}{K'[e]}{\tau_1 + \tau_2}$, so the claim follows by induction.
-
-    \item[$K = \objApp{K'}{e'}$]
-    Then $K[e] = \objApp{K'[e]}{e'}$, so the inversion lemma implies that $\hastype{\Xi}{\Gamma}{\Sigma}{K'[e]}{\tau_1 \to \tau}$ for some type $\tau_1$. The claim follows by induction as before.
-
-    \item[$K = \objApp{v}{K'}$]
-    Similar to the above.
-
-    \item[$K = \objTapp{K'}{X}$]
-    The inversion lemma implies that $\hastype{\Xi}{\Gamma}{\Sigma}{K'[e]}{\tau_1}$ for some type $\tau_1$, so the claim follows by induction.
-
-    \item[$K = $]
-    TODO
-
-    \item[$K = \objRef{K'}$]
-    Then $K[e] = \objRef{K'[e]}$, so the inversion lemma implies that $\hastype{\Xi}{\Gamma}{\Sigma}{K'[e]}{\tau'}$. The claim follows by induction.
-
-    \item[$K = \objAss{K'}{e'}$]
-    Then $K[e] = \objAss{K'[e]}{e'}$, so the inversion lemma implies that $\hastype{\Xi}{\Gamma}{\Sigma}{K'[e]}{\tau'}$ ... TODO
-\end{proofsec}
-
-TODO rest -- but they are all the same, so maybe just do one?
-\end{proof}
-
-
-\begin{lemma}
-    \label{lem:store-typing-weakening}
-    If $\Sigma$ and $\Sigma'$ are store typings with $\Sigma \subseteq \Sigma'$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\tau}$, then $\hastype{\Xi}{\Gamma}{\Sigma'}{e}{\tau}$.
-\end{lemma}
-
-\begin{proof}
-    TODO
-\end{proof}
-
-
-\begin{lemma}
-    \label{lem:evaluation-contexts-respect-types}
-    If $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\tau}$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e'}{\tau}$ for the same type $\tau$, then $\hastype{\Xi}{\Gamma}{\Sigma}{K[e]}{\rho}$ and $\hastype{\Xi}{\Gamma}{\Sigma}{K[e']}{\rho}$ for the same type $\rho$.
-\end{lemma}
-
-\begin{proof}
-The proof is by induction on $K$. If $K = \hole$, then this is obvious.
-%
-\begin{proofsec}
-    \item[$K = \objPair{K'}{e''}$]
-    Then $K'[e]$ and $K'[e']$ have the same type, so by \infrule{T-pair}, so do $K[e]$ and $K[e']$.
-
-    \item[$K = \objTapp{K'}{\tau'}$]
-    Then $K'[e]$ and $K'[e']$ have the same type by induction, and so do $K[e] = \objTapp{K'[e]}{\tau'}$ and $K[e'] = \objTapp{K'[e']}{\tau'}$ by \infrule{T-Tapp}.\footnote{TODO since we just apply it to underscore, it actually has a lot of different types. But we can find one type that works for both.} [TODO need lemma saying that $\tau[\tau'/X]$ is a type! Need another production that says that $X$ is a type?]
-\end{proofsec}
-
-TODO rest
-\end{proof}
-
-
-\begin{lemma}
-    \label{lem:preservation-head-steps}
-    If $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\tau}$ and $\stotype{\Xi}{\Gamma}{\Sigma}{\sigma}$ and $(\sigma,e) \headstep (\sigma',e')$, then there exists a store typing $\Sigma'$ such that $\Sigma \subseteq \Sigma'$, $\hastype{\Xi}{\Gamma}{\Sigma'}{e'}{\tau}$, and $\stotype{\Xi}{\Gamma}{\Sigma'}{\sigma'}$.
-\end{lemma}
-
-\begin{proof}
-We simply check all cases. [TODO mention pure cases]
-%
-\begin{proofsec}
-    \item[\infrule{E-fst}]
-    In this case $e = \objFst{\objPair{v_1}{v_2}}$ and $e' = v_1$ for values $v_1,v_2$. Then $e$ is a value, so [TODO canonical forms] implies first that $\hastype{\Xi}{\Gamma}{\Sigma}{\objPair{v_1}{v_2}}{\tau \prod \tau'}$ for some type $\tau'$, and then that $\hastype{\Xi}{\Gamma}{\Sigma}{v_1}{\tau}$.
-
-    \item[\infrule{E-tapp-tlam}]
-    Write the type of $\objTapp{\objForall{X}{e}}{\tau'}$ as $\tau[\tau'/X]$. By inversion we have $\hastype{\Xi}{\Gamma}{\Sigma}{\objForall{X}{e}}{\typeForall{X}{\tau}}$, and again by inversion this implies that $\hastype{\Xi,X}{\Gamma}{\Sigma}{e}{\tau}$. But then it follows from [TODO lemma 0] that $\hastype{\Xi}{\Gamma[\tau'/X]}{\Sigma}{e}{\tau[\tau'/X]}$, and since $\Gamma$ does not contain $X$ (since $\Xi$ does not) we have $\Gamma[\tau'/X] = \Gamma$, so the claim follows.
-
-    \item[\infrule{E-alloc}]
-    In this case $e = \objRef{v}$, $e' = l$, $\sigma' = \sigma[l \mapsto v]$, and $l \not\in \dom \sigma$. By inversion we have $\hastype{\Xi}{\Gamma}{\Sigma}{\objRef{v}}{\typeRef{\tau'}}$ for some $\tau'$, and we further have $\hastype{\Xi}{\Gamma}{\Sigma}{v}{\tau'}$. Now letting $\Sigma' = \Sigma[l \mapsto \tau']$, it follows from \infrule{T-loc} that $\hastype{\Xi}{\Gamma}{\Sigma'}{l}{\typeRef{\Sigma'(l)}}$, so we have both $\stotype{\Xi}{\Gamma}{\Sigma'}{\sigma'}$ and $\hastype{\Xi}{\Gamma}{\Sigma'}{l}{\typeRef{\tau'}}$.
-
-    \item[\infrule{E-store}]
-    Here $e = \objAss{l}{v}$, $e' = \objUnit$ and $\sigma' = \sigma[l \mapsto v]$ with $l \in \dom \sigma$. Notice first that $\objAss{l}{v}$ and $\objUnit$ both have type $\typeUnit$ by inversion, so that $\hastype{\Xi}{\Gamma}{\Sigma}{\objUnit}{\typeUnit}$ as required.
-
-    By inversion we also have $\hastype{\Xi}{\Gamma}{\Sigma}{l}{\typeRef{\tau'}}$ and $\hastype{\Xi}{\Gamma}{\Sigma}{v}{\tau'}$ for some type $\tau'$, and another application of inversion (TODO via \infrule{T-loc}, or canonical forms?) implies that $\tau' = \Sigma(l)$. Furthermore, since $\stotype{\Xi}{\Gamma}{\Sigma}{\sigma}$, we have $\hastype{\Xi}{\Gamma}{\Sigma}{\sigma(l)}{\Sigma(l)}$. Since $v = \sigma'(l)$ it thus follows that $\hastype{\Xi}{\Gamma}{\Sigma}{\sigma'(l)}{\Sigma(l)}$, so $\stotype{\Xi}{\Gamma}{\Sigma}{\sigma'}$.
-
-    \item[\infrule{E-load}]
-    Here $e = \objLoad{l}$, $e' = v$ and $\sigma = \sigma'$ with $\sigma(l) = v$. By inversion we have $\hastype{\Xi}{\Gamma}{\Sigma}{l}{\typeRef{\tau}}$, so $\tau = \Sigma(l)$ [TODO again]. But since $\stotype{\Xi}{\Gamma}{\Sigma}{\sigma}$ we have $\hastype{\Xi}{\Gamma}{\Sigma}{\sigma(l)}{\Sigma(l)}$, or in other words, $\hastype{\Xi}{\Gamma}{\Sigma}{v}{\tau}$.
-\end{proofsec}
-
-TODO rest
-\end{proof}
-
-
---- TODO substitution lemma
-
-
-\begin{lemma}
-    If $\hastype{\Xi,X}{\Gamma}{\Sigma}{e}{\tau}$, then $\hastype{\Xi}{\Gamma[\tau'/X]}{\Sigma}{e}{\tau[\tau'/X]}$.
-\end{lemma}
-
-\begin{proof}
-\begin{proofsec*}
-    \item[\infrule{T-var}]
-    Assume that $\hastype{\Xi,X}{\Gamma}{\Sigma}{x}{\tau}$. By inversion [TODO ish] we thus have $(x : \tau) \in \Gamma$, so $(x : \tau[\tau'/X]) \in \Gamma[\tau'/X]$ by definition of substitution. But then \infrule{T-var} implies that $\hastype{\Xi}{\Gamma[\tau'/X]}{\Sigma}{x}{\tau[\tau'/X]}$ (where we use that $X$ does not occur in the context or type, so it doesn't need to appear in $\Xi$).
-
-    \item[\infrule{T-rec}]
-    Assume that $\hastype{\Xi,X}{\Gamma}{\Sigma}{\objRec{f}{x}{e}}{\tau_1 \to \tau_2}$. By the inversion lemma [TODO ref -- also can't we just do induction??] we have $\hastype{\Xi,X}{\Gamma, f : \tau_1 \to \tau_2, x : \tau_1}{\Sigma}{e}{\tau_2}$, so by induction it follows that $\hastype{\Xi}{\Gamma[\tau'/X], f : \tau_1[\tau'/X] \to \tau_2[\tau'/X], x : \tau_1[\tau'/X]}{\Sigma}{e}{\tau_2[\tau'/X]}$ [TODO by substitution on envs, function types etc.]. Applying \infrule{T-rec} we obtain the desired claim.
-\end{proofsec*}
-
-TODO rest
-
-% Antag Ξ, X | Γ ⊢ rec f(x) := e : τ₁ → τ₂ og vis Ξ | Γ[τ'/X] ⊢ rec f(x) := e : (τ₁ → τ₂)[τ'\X]
-% Per inversion i antagelsen ved vi, at Ξ, X | Γ, f : τ₁ → τ₂, x : τ₁ ⊢ e : τ₂. Fra induktionshypotesen konkludrer vi så Ξ | Γ[τ'\X], f : τ₁[τ'\X] → τ₂[τ'\X], x : τ₁[τ'\X] ⊢ e : τ₂[τ'\X] idet (τ₁ → τ₂)[τ'\X] = τ₁[τ'\X] → τ₂[τ'\X] og da definitionen af substitution på miljøjer giver os, at (Γ, x : τ)[τ'\X] = Γ[τ'\X], x : τ[τ'\X]. Dernæst følger udsagnet, som vi vil vise direkte af T-rec.
-
-% De interessante tilfælde er (surprise, surprise) derimod for T-Tlam og T-Ttapp.
-
-% T-Tlam 
-% Antag Ξ, X | Γ ⊢ Λ e : ∀ Y . τ og vis at Ξ | Γ[τ'\X] ⊢ Λ e : (∀ Y . τ)[τ'/X]
-% Vær spids på, at jeg her udnytter, at vi ræsonnerer modulo "alpha-ækvivalens", dvs. at vi kan omnavngive (type)variable frit. Det gør jeg ved at gøre brug en frisk variabel Y og ræsonere med en implicit antagelse om at X ≠ Y.
-% Per inversion i antagelsen får vi, at Ξ, X, Y | Γ ⊢ e : τ. Husk, at typemiljøer er mængder, dvs Ξ, X, Y = Ξ, Y, X, og dermed gælder (Ξ, Y), X | Γ ⊢ e : τ også. Brug nu induktionshypotesen med (Ξ, Y) som miljø, og vi får Ξ, Y | Γ[τ'\X] ⊢ e : τ[τ'\X]. Vi kan nu konkludere vha. T-Tlam og da (∀ Y . τ)[τ'/X] = ∀ Y . τ[τ'\X].
-
-% T-Ttapp
-% Antag Ξ, X | Γ ⊢ e _ : τ[τ''\Y] og vis at Ξ | Γ[τ'\X] ⊢ e _ : τ[τ''\Y][τ'\X]. Igen, vær opmærksom på, at jeg er meget påpasselig med variabelnavnene!
-% Per inversion i antagelsen får vi, at Ξ, X | Γ ⊢ e : ∀ Y . τ. Fra induktionhypotesen følger at Ξ | Γ[τ'\X] ⊢ e : (∀ Y . τ)[τ'\X]. Vi bruger nu igen, at (∀ Y . τ)[τ'/X] = ∀ Y . τ[τ'\X] og konkludrerer, at Ξ | Γ[τ'\X] ⊢ e : ∀ Y . τ[τ'\X]. Fra T-Tapp følger nu, at Ξ | Γ[τ'\X] ⊢ e _ : τ[τ'\X][τ''\Y]. Vi er færdige antaget τ[τ'\X][τ''\Y] = τ[τ'\Y][τ''\X], hvilket er tilfældet da X ≠ Y.
-
-% Som I kan se er det altså forholdvist ligetil at vise, givet et par egenskaber omkring substitution, som afhænger lidt af, hvordan vi helt præcist formaliserer denne (som diskuteret i TAPL). Men det er helt fint at ræsonnere, som jeg gør ovenfor.
-
-% For at opresumere er planen for næste gang dermed:
-% - Færdiggør preservation for System F (vha typesubstitutionslemmaet ovenfor)
-% - Vis progress + preservation for System F + rekursive typer (dette burde være rimeligt ligetil vha. ovenstående)
-% - Kig på referencer og kom så langt I kan med progress + preservation for denne udvidelse.
-\end{proof}
-
-
-
--------------------
 
 
 \chapter{Statics in general}
@@ -845,49 +583,52 @@ TODO all type variables in tau also in Xi? All locations in e also in Sigma?
 TODO lemma weakening?
 
 
+\section{Lemmas}
+
 \begin{lemma}[Inversion]
+    \label{lem:inversion}
     Assume that $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\tau}$.
     %
-    \begin{enumlem}[label={(\alph*)}]
-        \item If $e = x$ is a variable, then $(x : \tau) \in \Gamma$.
+    \begin{enumlem}
+        \item\label{enum:inversion-variable} If $e = x$ is a variable, then $(x : \tau) \in \Gamma$.
         
-        \item If $e = \objUnit$, then $\tau = \typeUnit$.
+        \item\label{enum:inversion-unit} If $e = \objUnit$, then $\tau = \typeUnit$.
 
-        \item If $e = \objPair{e_1}{e_2}$, then $\tau = \tau_1 \prod \tau_1$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e_1}{\tau_1}$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e_2}{\tau_2}$.
+        \item\label{enum:inversion-pair} If $e = \objPair{e_1}{e_2}$, then $\tau = \tau_1 \prod \tau_1$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e_1}{\tau_1}$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e_2}{\tau_2}$.
 
-        \item If $e = \objFst{e'}$, then $\hastype{\Xi}{\Gamma}{\Sigma}{e'}{\tau \prod \tau_2}$.
+        \item\label{enum:inversion-fst} If $e = \objFst{e'}$, then $\hastype{\Xi}{\Gamma}{\Sigma}{e'}{\tau \prod \tau_2}$.
         
-        \item If $e = \objSnd{e'}$, then $\hastype{\Xi}{\Gamma}{\Sigma}{e'}{\tau_1 \prod \tau}$.
+        \item\label{enum:inversion-snd} If $e = \objSnd{e'}$, then $\hastype{\Xi}{\Gamma}{\Sigma}{e'}{\tau_1 \prod \tau}$.
         
-        \item If $e = \objInl{e'}$, then $\tau = \tau_1 + \tau_2$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e'}{\tau_1}$.
+        \item\label{enum:inversion-inl} If $e = \objInl{e'}$, then $\tau = \tau_1 + \tau_2$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e'}{\tau_1}$.
         
-        \item If $e = \objInr{e'}$, then $\tau = \tau_1 + \tau_2$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e'}{\tau_2}$.
+        \item\label{enum:inversion-inr} If $e = \objInr{e'}$, then $\tau = \tau_1 + \tau_2$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e'}{\tau_2}$.
 
-        \item If $e = \objMatch{e_1}{x}{e_2}{e_3}$, then $\hastype{\Xi}{\Gamma}{\Sigma}{e_1}{\tau_1 + \tau_2}$ and $\hastype{\Xi}{\Gamma, x : \tau_1}{\Sigma}{e_2}{\tau}$ and $\hastype{\Xi}{\Gamma, x : \tau_2}{\Sigma}{e_3}{\tau}$.
+        \item\label{enum:inversion-match} If $e = \objMatch{e_1}{x}{e_2}{e_3}$, then $\hastype{\Xi}{\Gamma}{\Sigma}{e_1}{\tau_1 + \tau_2}$ and $\hastype{\Xi}{\Gamma, x : \tau_1}{\Sigma}{e_2}{\tau}$ and $\hastype{\Xi}{\Gamma, x : \tau_2}{\Sigma}{e_3}{\tau}$.
 
-        \item If $e = \objRec{f}{x}{e'}$, then $\tau = \tau_1 \to \tau_2$ and $\hastype{\Xi}{\Gamma, f : \tau_1 \to \tau_2, x : \tau_1}{\Sigma}{e'}{\tau_2}$.
+        \item\label{enum:inversion-rec} If $e = \objRec{f}{x}{e'}$, then $\tau = \tau_1 \to \tau_2$ and $\hastype{\Xi}{\Gamma, f : \tau_1 \to \tau_2, x : \tau_1}{\Sigma}{e'}{\tau_2}$.
 
-        \item If $e = \objApp{e_1}{e_2}$, then $\hastype{\Xi}{\Gamma}{\Sigma}{e_1}{\tau_1 \to \tau}$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e_2}{\tau}$.
+        \item\label{enum:inversion-app} If $e = \objApp{e_1}{e_2}$, then $\hastype{\Xi}{\Gamma}{\Sigma}{e_1}{\tau_1 \to \tau}$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e_2}{\tau}$.
 
-        \item If $e = \objForall{X}{e'}$, then $\tau = \typeForall{X}{\tau'}$ and $\hastype{\Xi,X}{\Gamma}{\Sigma}{e'}{\tau'}$.
+        \item\label{enum:inversion-forall} If $e = \objForall{X}{e'}$, then $\tau = \typeForall{X}{\tau'}$ and $\hastype{\Xi,X}{\Gamma}{\Sigma}{e'}{\tau'}$.
         
-        \item If $e = \objApp{e'}{X}$, then $\tau = \tau'[\tau''/X]$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e'}{\typeForall{X}{\tau'}}$.
+        \item\label{enum:inversion-tapp} If $e = \objTapp{e'}{X}$, then $\tau = \tau'[\tau''/X]$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e'}{\typeForall{X}{\tau'}}$.
 
-        \item If $e = \objPack{e'}$, then $\tau = \typeExists{X}{\tau'}$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e'}{\tau'[\tau''/X]}$.
+        \item\label{enum:inversion-pack} If $e = \objPack{e'}$, then $\tau = \typeExists{X}{\tau'}$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e'}{\tau'[\tau''/X]}$.
 
-        \item If $e = \objUnpack{e_1}{x}{e_2}$, then $\hastype{\Xi}{\Gamma}{\Sigma}{e_1}{\typeExists{X}{\tau'}}$ and $\hastype{\Xi,X}{\Gamma, x \colon \tau'}{\Sigma}{e_2}{\tau}$.
+        \item\label{enum:inversion-unpack} If $e = \objUnpack{e_1}{x}{e_2}$, then $\hastype{\Xi}{\Gamma}{\Sigma}{e_1}{\typeExists{X}{\tau'}}$ and $\hastype{\Xi,X}{\Gamma, x \colon \tau'}{\Sigma}{e_2}{\tau}$.
 
-        \item fold TODO
+        \item\label{enum:inversion-fold} fold TODO
 
-        \item unfold TODO
+        \item\label{enum:inversion-unfold} unfold TODO
 
-        \item If $e = l$ is a location, then $\tau = \typeRef{\Sigma(l)}$.
+        \item\label{enum:inversion-location} If $e = l$ is a location, then $\tau = \typeRef{\Sigma(l)}$.
 
-        \item If $e = \objRef{e'}$, then $\tau = \typeRef{\tau'}$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e'}{\tau'}$.
+        \item\label{enum:inversion-ref} If $e = \objRef{e'}$, then $\tau = \typeRef{\tau'}$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e'}{\tau'}$.
 
-        \item If $e = \objAss{e_1}{e_2}$, then $\tau = \typeUnit$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e_1}{\typeRef{\tau'}}$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e_2}{\tau'}$.
+        \item\label{enum:inversion-ass} If $e = \objAss{e_1}{e_2}$, then $\tau = \typeUnit$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e_1}{\typeRef{\tau'}}$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e_2}{\tau'}$.
 
-        \item If $e = \objLoad{e'}$, then $\hastype{\Xi}{\Gamma}{\Sigma}{e'}{\typeRef{\tau}}$.
+        \item\label{enum:inversion-load} If $e = \objLoad{e'}$, then $\hastype{\Xi}{\Gamma}{\Sigma}{e'}{\typeRef{\tau}}$.
     \end{enumlem}
 \end{lemma}
 
@@ -901,32 +642,298 @@ Notice the significance of the inversion lemma: While an expression can generall
 
 
 \begin{lemma}[Canonical forms]
+    \label{lem:canonical}
     Assume that $\hastype{\Xi}{\Gamma}{\Sigma}{v}{\tau}$ where $v$ is a value.
     %
-    \begin{enumlem}[label={(\alph*)}]
-        \item If $\tau = \typeUnit$, then $v = \objUnit$.
+    \begin{enumlem}
+        \item\label{enum:canonical-unit} If $\tau = \typeUnit$, then $v = \objUnit$.
 
-        \item If $\tau = \tau_1 \prod \tau_2$, then $v = (v_1,v_2)$.
+        \item\label{enum:canonical-product} If $\tau = \tau_1 \prod \tau_2$, then $v = (v_1,v_2)$.
         
-        \item If $\tau = \tau_1 + \tau_2$, then either $v = \objInl{v'}$ or $v = \objInr{v'}$.
+        \item\label{enum:canonical-sum} If $\tau = \tau_1 + \tau_2$, then either $v = \objInl{v'}$ or $v = \objInr{v'}$.
 
-        \item If $\tau = \tau_1 \to \tau_2$, then $v = \objRec{f}{x}{e}$.
+        \item\label{enum:canonical-function} If $\tau = \tau_1 \to \tau_2$, then $v = \objRec{f}{x}{e}$.
 
-        \item If $\tau = \typeForall{X}{\tau'}$, then $v = \objForall{X}{e}$.
+        \item\label{enum:canonical-forall} If $\tau = \typeForall{X}{\tau'}$, then $v = \objForall{X}{e}$.
 
-        \item If $\tau = \typeExists{X}{\tau'}$, then $v = \objPack{e}$.
+        \item\label{enum:canonical-exists} If $\tau = \typeExists{X}{\tau'}$, then $v = \objPack{e}$.
 
-        \item TODO fold
+        \item\label{enum:canonical-recursive} TODO fold
 
-        \item If $\tau = \typeRef{\tau'}$, then $v$ is a location.
+        \item\label{enum:canonical-ref} If $\tau = \typeRef{\tau'}$, then $v$ is a location.
     \end{enumlem}
 \end{lemma}
 
 \begin{proof}
-    We assume that $\tau = \tau_1 \prod \tau_2$ for concreteness; the other cases are identical. In this case we simply check for each production of the grammar with non-terminal $v$ whether the relevant value can have type $\tau_1 \prod \tau_2$. For instance, the inversion lemma implies that a value $\objInl{v'}$ can only be of sum type, and hence $v$ cannot be of this form. The only possibility is that $v$ is in fact a pair.
+    We assume that $\tau = \tau_1 \prod \tau_2$ for concreteness; the other cases are identical. In this case we simply check for each production of the grammar with non-terminal $v$ whether the relevant value can have type $\tau_1 \prod \tau_2$. For instance, \cref{enum:inversion-inl} implies that a value $\objInl{v'}$ can only be of sum type, and hence $v$ cannot be of this form. The only possibility is that $v$ is in fact a pair.
 \end{proof}
 
 
+--- TODO substitution lemma
+
+
+\begin{lemma}
+    If $\hastype{\Xi,X}{\Gamma}{\Sigma}{e}{\tau}$, then $\hastype{\Xi}{\Gamma[\tau'/X]}{\Sigma}{e}{\tau[\tau'/X]}$.
+\end{lemma}
+
+\begin{proof}
+\begin{proofsec*}
+    \item[\infrule{T-var}]
+    Assume that $\hastype{\Xi,X}{\Gamma}{\Sigma}{x}{\tau}$. By \cref{enum:inversion-variable} we thus have $(x : \tau) \in \Gamma$, so $(x : \tau[\tau'/X]) \in \Gamma[\tau'/X]$ by definition of substitution. But then \infrule{T-var} implies that $\hastype{\Xi}{\Gamma[\tau'/X]}{\Sigma}{x}{\tau[\tau'/X]}$ (where we use that $X$ does not occur in the context or type, so it doesn't need to appear in $\Xi$).
+
+    \item[\infrule{T-rec}]
+    Assume that $\hastype{\Xi,X}{\Gamma}{\Sigma}{\objRec{f}{x}{e}}{\tau_1 \to \tau_2}$. By the inversion lemma [TODO ref -- also can't we just do induction??] we have $\hastype{\Xi,X}{\Gamma, f : \tau_1 \to \tau_2, x : \tau_1}{\Sigma}{e}{\tau_2}$, so by induction it follows that $\hastype{\Xi}{\Gamma[\tau'/X], f : \tau_1[\tau'/X] \to \tau_2[\tau'/X], x : \tau_1[\tau'/X]}{\Sigma}{e}{\tau_2[\tau'/X]}$ [TODO by substitution on envs, function types etc.]. Applying \infrule{T-rec} we obtain the desired claim.
+\end{proofsec*}
+
+TODO rest
+
+% Antag Ξ, X | Γ ⊢ rec f(x) := e : τ₁ → τ₂ og vis Ξ | Γ[τ'/X] ⊢ rec f(x) := e : (τ₁ → τ₂)[τ'\X]
+% Per inversion i antagelsen ved vi, at Ξ, X | Γ, f : τ₁ → τ₂, x : τ₁ ⊢ e : τ₂. Fra induktionshypotesen konkludrer vi så Ξ | Γ[τ'\X], f : τ₁[τ'\X] → τ₂[τ'\X], x : τ₁[τ'\X] ⊢ e : τ₂[τ'\X] idet (τ₁ → τ₂)[τ'\X] = τ₁[τ'\X] → τ₂[τ'\X] og da definitionen af substitution på miljøjer giver os, at (Γ, x : τ)[τ'\X] = Γ[τ'\X], x : τ[τ'\X]. Dernæst følger udsagnet, som vi vil vise direkte af T-rec.
+
+% De interessante tilfælde er (surprise, surprise) derimod for T-Tlam og T-Ttapp.
+
+% T-Tlam 
+% Antag Ξ, X | Γ ⊢ Λ e : ∀ Y . τ og vis at Ξ | Γ[τ'\X] ⊢ Λ e : (∀ Y . τ)[τ'/X]
+% Vær spids på, at jeg her udnytter, at vi ræsonnerer modulo "alpha-ækvivalens", dvs. at vi kan omnavngive (type)variable frit. Det gør jeg ved at gøre brug en frisk variabel Y og ræsonere med en implicit antagelse om at X ≠ Y.
+% Per inversion i antagelsen får vi, at Ξ, X, Y | Γ ⊢ e : τ. Husk, at typemiljøer er mængder, dvs Ξ, X, Y = Ξ, Y, X, og dermed gælder (Ξ, Y), X | Γ ⊢ e : τ også. Brug nu induktionshypotesen med (Ξ, Y) som miljø, og vi får Ξ, Y | Γ[τ'\X] ⊢ e : τ[τ'\X]. Vi kan nu konkludere vha. T-Tlam og da (∀ Y . τ)[τ'/X] = ∀ Y . τ[τ'\X].
+
+% T-Ttapp
+% Antag Ξ, X | Γ ⊢ e _ : τ[τ''\Y] og vis at Ξ | Γ[τ'\X] ⊢ e _ : τ[τ''\Y][τ'\X]. Igen, vær opmærksom på, at jeg er meget påpasselig med variabelnavnene!
+% Per inversion i antagelsen får vi, at Ξ, X | Γ ⊢ e : ∀ Y . τ. Fra induktionhypotesen følger at Ξ | Γ[τ'\X] ⊢ e : (∀ Y . τ)[τ'\X]. Vi bruger nu igen, at (∀ Y . τ)[τ'/X] = ∀ Y . τ[τ'\X] og konkludrerer, at Ξ | Γ[τ'\X] ⊢ e : ∀ Y . τ[τ'\X]. Fra T-Tapp følger nu, at Ξ | Γ[τ'\X] ⊢ e _ : τ[τ'\X][τ''\Y]. Vi er færdige antaget τ[τ'\X][τ''\Y] = τ[τ'\Y][τ''\X], hvilket er tilfældet da X ≠ Y.
+
+% Som I kan se er det altså forholdvist ligetil at vise, givet et par egenskaber omkring substitution, som afhænger lidt af, hvordan vi helt præcist formaliserer denne (som diskuteret i TAPL). Men det er helt fint at ræsonnere, som jeg gør ovenfor.
+
+% For at opresumere er planen for næste gang dermed:
+% - Færdiggør preservation for System F (vha typesubstitutionslemmaet ovenfor)
+% - Vis progress + preservation for System F + rekursive typer (dette burde være rimeligt ligetil vha. ovenstående)
+% - Kig på referencer og kom så langt I kan med progress + preservation for denne udvidelse.
+\end{proof}
+
+
+\section{Progress}
+
+\begin{theorem}[Progress]
+    If $\hastype{}{}{\Sigma}{e}{\tau}$, then either $e$ is a value or else, for any store $\sigma$ with $\stotype{}{}{\Sigma}{\sigma}$, there exists an expression $e'$ and a store $\sigma'$ such that $(\sigma,e) \step (\sigma',e')$.
+\end{theorem}
+
+\begin{proof}
+The proof is by induction on the typing relation $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\tau}$, but the claim to be proved is augmented by \textquote{or either $\Xi$ or $\Gamma$ is non-empty}.\footnote{This ensures that we can perform the induction on the entire $4$-ary relation, which is important since this relation is the one that is defined by the inference rules, \emph{not} the corresponding binary relation obtained by restricting the ternary relation to the subset where $\Xi$ and $\Gamma$ are empty.} Notice that the induction step for each inference rule is trivial if $\Xi$ or $\Gamma$ is non-empty, so we need only prove each case when $\Xi$ and $\Gamma$ are empty. Furthermore, since the store is relevant for only a few reductions, we suppress it from the notation in most of the cases below, simply taking about expressions reducing to other expressions.
+%
+\begin{proofsec}
+    \item[\infrule{T-unit}]
+    Since $\objUnit$ is a value, this follows.
+
+    \item[\infrule{T-var}]
+    Since we may assume that $\Gamma$ is empty, this implication is vacuously true.\footnote{In the formalism of TODO ref \infrule{T-var} would not be an inference rule, it would instead be an axiom requiring the relation to include all quadruples $(\Xi, \Gamma, e, \tau)$ such that $(e : \tau) \in \Gamma$ and all type variables in $\tau$ occur in $\Xi$. This is of course also vacuously true when $\Gamma$ is empty.}
+
+    \item[\infrule{T-pair}]
+    Assume that the claim holds for $\hastype{}{}{\Sigma}{e_1}{\tau_1}$ and $\hastype{}{}{\Sigma}{e_2}{\tau_2}$. If both $e_1$ and $e_2$ are values, then $\objPair{e_1}{e_2}$ is also a value, so assume that only $e_1 = v_1$ is a value and that $e_2 \step e_2'$. Since the only rule that generates instances of the one-step relation $\to$ is \infrule{head-step-step}, it follows that $e_2$ is on the form $K[d_2]$ and $e_2'$ is on the form $K[d_2']$, where $K$ is an evaluation context and $d_2$ and $d_2'$ are subexpressions of $e_2$ and $e_2'$ respectively such that $d_2 \headstep d_2'$. Letting $K' = \objPair{v_1}{K}$ it follows that $\objPair{v_1}{e_2} = K'[d_2]$ and $\objPair{v_1}{e_2'} = K'[d_2']$, and so
+    %
+    \begin{equation*}
+        \objPair{v_1}{e_2}
+            = K'[d_2]
+            \step K'[d_2']
+            = \objPair{v_1}{e_2'}
+    \end{equation*}
+    %
+    by \infrule{head-step-step}. If instead $e_1$ is not a value, then the same argument (using the evaluation context $\objPair{K}{e_2}$) yields the same result.
+
+    \item[\infrule{T-fst}]
+    Assume that the claim holds for $\hastype{}{}{\Sigma}{e}{\tau_1 \prod \tau_2}$. If $e$ is a value, then it is on the form $\objPair{v_1}{v_2}$ by \cref{enum:canonical-product}, where $v_1$ and $v_2$ are values. Hence $\objFst{e} = \objFst{\objPair{v_1}{v_2}}$, and this reduces via a head-step to $v_1$. Choosing the evaluation context $K = \hole$, \infrule{head-step-step} implies that $\objFst{\objPair{v_1}{v_2}} \step v_1$. If instead $e$ is not a value, then by induction there is some $e'$ such that $e \to e'$. Hence there are subexpressions $d$ and $d'$ and an evaluation context $K$ such that $e = K[d]$, $e' = K[d']$ and $d \headstep d'$. Letting $K' = \objFst{K}$ we have
+    %
+    \begin{equation*}
+        \objFst{e}
+            = K'[d]
+            \step K'[d']
+            = \objFst{e'},
+    \end{equation*}
+    %
+    as desired.
+
+    \item[\infrule{T-snd}]
+    Similar to \infrule{T-fst}.
+
+    \item[\infrule{T-inj1}]
+    Assume that the claim holds for $\hastype{}{}{\Sigma}{e}{\tau_1}$. If $e$ is a value $v$, then so is $\objInl{v}$. If instead $e \step e'$, then as before $e = K[d]$, $e' = K[d']$ and $d \headstep d'$. Letting $K' = \objInl{K}$ we get $\objInl{e} = K'[d]$ and $\objInl{e'} = K'[d']$, so $\objInl{e} \step \objInl{e'}$.
+
+    \item[\infrule{T-inj2}]
+    Similar to \infrule{T-inj1}.
+
+    \item[\infrule{T-match}]
+    Assume that the claim holds for $\hastype{}{}{\Sigma}{e_1}{\tau_1 + \tau_2}$. If $e_1$ is a value, then by [TODO canonical forms] it must be on the form $\objInl{v}$ or $\objInr{v}$ for a value $v$. Hence the expression $\objMatch{e_1}{x}{e_2}{e_3}$ can reduce via a head step by either \infrule{E-match-inj1} or \infrule{E-match-inj2}, so it reduces by \infrule{head-step-step} (using the evaluation context $K = \hole$). If instead $e_1 \step e_1'$, then by the same argument as in previous cases with $K' = \objMatch{K}{x}{e_2}{e_3}$, it follows that $\objMatch{e_1}{x}{e_2}{e_3}$ reduces.
+
+    \item[\infrule{T-rec}]
+    This is obvious since $\objRec{f}{x}{e}$ is a value.
+
+    \item[\infrule{T-app}]
+    Assume that the claim holds for $\hastype{}{}{\Sigma}{e_1}{\tau_1 \to \tau_2}$ and $\hastype{}{}{\Sigma}{e_2}{\tau_1}$. If $e_1$ is a value, then by [TODO canonical forms] it must be on the form $\objRec{f}{x}{e}$. If also $e_2$ is a value, then the claim follows by \infrule{E-rec-app}. If $e_1 = v$ is a value but $e_2$ is not, then $e_2 \to e_2'$. The same argument as in previous cases with $K' = \objApp{v}{K}$ shows that $\objApp{v}{e_2}$ reduces. Finally, if $e_1$ is not a value, then $e_1 \to e_1'$, and choosing $K' = \objApp{K}{e_2}$ proves the claim.
+
+    \item[\infrule{T-Tlam}]
+    This is obvious since $\objForall{X}{e}$ is a value.
+
+    \item[\infrule{T-Tapp}]
+    Assume that the claim holds for $\hastype{}{}{\Sigma}{e}{\typeForall{X}{\tau}}$. If $e$ is a value, then by [TODO canonical forms] it must be on the form $\objForall{X}{e'}$, so the claim follows from \infrule{E-tapp-tlam} (via \infrule{head-step-step} using the evaluation context $K = \hole$). If $e$ is not a value, then $e \to e'$ for some expression $e'$ by induction. These expressions then have subexpressions $d$ and $d'$ respectively such that $d \headstep d'$, and such that $e = K[d]$ and $e' = K[d']$ for some evaluation context $K$. Letting $K' = \objTapp{K}{\tau'}$ we thus have $\objTapp{e}{\tau'} = K'[d]$ and $\objTapp{e'}{\tau'} = K'[d']$, proving the claim.
+
+    \item[\infrule{T-pack}]
+    Assume that the claim holds for $\hastype{}{}{\Sigma}{e}{\tau[\tau'/X]}$. If $e$ is a value, then so is $\objPack{e}$. Otherwise $e \step e'$ for some expression $e'$. The same argument as before using the evaluation context $\objPack{K}$ for an appropriate $K$ yields the claim.
+
+    \item[\infrule{T-unpack}]
+    Assume that the claim holds for $\hastype{}{}{\Sigma}{e_1}{\typeExists{X}{\tau}}$. If $e_1$ is a value, then it must be on the form $\objPack{v}$ [TODO canonical forms], so an application of \infrule{E-unpack-pack} yields the claim. Otherwise $e \step e'$ for some $e'$, and we use the evaluation context $\objUnpack{K}{x}{e_2}$ for an appropriate $K$.
+
+    \item[\infrule{T-fold}]
+    TODO
+
+    \item[\infrule{T-unfold}]
+    TODO
+
+    \item[\infrule{T-loc}]
+    Locations are values, so this is obvious.
+
+    \item[\infrule{T-alloc}]
+    Assume that the claim holds for $\hastype{}{}{\Sigma}{e}{\tau}$. If $e$ is a value, then the claim follows by applying \infrule{E-alloc}, noting that there always exists a location $l \not\in \dom \sigma$. Otherwise given an appropriate [TODO well-typed] store $\sigma$ there is an expression $e'$ and a store $\sigma'$ such that $(\sigma,e) \step (\sigma',e')$. But then there is some evaluation context $K$ and subexpressions $d$ and $d'$ of $e$ and $e'$ respectively, such that $e = K[d]$, $e' = K[d']$ and $(\sigma,d) \headstep (\sigma',d')$. Letting $K' = \objRef{K}$ we have $\objRef{e} = K'[d]$ and $\objRef{e'} = K'[d']$, so \infrule{head-step-step} implies that $(\sigma,\objRef{e}) \step (\sigma',\objRef{e'})$.
+
+    \item[\infrule{T-store}]
+    Assume that the claim holds for $\hastype{}{}{\Sigma}{e_1}{\typeRef{\tau}}$ and $\hastype{}{}{\Sigma}{e_2}{\tau}$, and let $\sigma$ be a store with $\stotype{}{}{\Sigma}{\sigma}$. If $e_1$ is a value, then by [TODO canonical forms] it is a location $l$, and by [TODO lemma] we have $l \in \dom \Sigma = \dom \sigma$. If $e_2$ is also a value, then the claim follows from \infrule{E-store}. If $e_1 = l$ is a value but $e_2$ is not, then there is some $e_2'$ and $\sigma'$ such that $(\sigma,e_2) \step (\sigma',e_2')$. Again writing $e_2 = K[d_2]$ and $e_2' = K[d_2']$ with $(\sigma,d) \headstep (\sigma',d')$, we use the evaluation context $\objAss{l}{K}$. Finally, if $e_1$ is not a value, then the same argument using instead $\objAss{K}{e_2}$ yields the claim.
+
+    \item[\infrule{T-load}]
+    Assume that the claim holds for $\hastype{}{}{\Sigma}{e}{\typeRef{\tau}}$, and let $\sigma$ be a store with $\stotype{}{}{\Sigma}{\sigma}$. If $e$ is a value, then as before it is a location $l$, and $l \in \dom \sigma$. It then follows from \infrule{E-load} that $(\sigma, \objLoad{l}) \headstep (\sigma,v)$, where $v = \sigma(l)$. If instead $(\sigma,e) \step (\sigma',e')$ for an expression $e'$ and a store $\sigma'$, then we simply use the evaluation context $\objLoad{K}$ for an appropriate $K$.
+\end{proofsec}
+\end{proof}
+
+
+\section{Preservation}
+
+\begin{theorem}[Preservation]
+    If
+    %
+    \begin{equation*}
+        \hastype{\Xi}{\Gamma}{\Sigma}{e}{\tau},
+        \quad
+        \stotype{\Xi}{\Gamma}{\Sigma}{\sigma}
+        \quad \text{and} \quad
+        (\sigma,e) \step (\sigma',e'),
+    \end{equation*}
+    %
+    then there exists some store typing $\Sigma'$ with $\Sigma \subseteq \Sigma'$ such that
+    %
+    \begin{equation*}
+        \hastype{\Xi}{\Gamma}{\Sigma'}{e'}{\tau}
+        \quad \text{and} \quad
+        \stotype{\Xi}{\Gamma}{\Sigma'}{\sigma'}.
+    \end{equation*}
+\end{theorem}
+
+\begin{proof}
+    By definition of the one-step relation, there exist an evaluation context $K$ and subexpressions $d$ of $e$ and $d'$ of $e'$ such that $e = K[d]$, $e' = K[d']$, and $(\sigma,d) \headstep (\sigma',d')$. By \cref{lem:subexp-well-typed} there is some type $\rho$ such that $\hastype{\Xi}{\Gamma}{\Sigma}{d}{\rho}$. Next it follows from \cref{lem:preservation-head-steps} that $\hastype{\Xi}{\Gamma}{\Sigma'}{d'}{\rho}$ for some store typing $\Sigma'$ with $\Sigma \subseteq \Sigma'$ and $\stotype{\Xi}{\Gamma}{\Sigma'}{\sigma'}$. By \cref{lem:store-typing-weakening} we also have $\hastype{\Xi}{\Gamma}{\Sigma'}{d}{\rho}$, so it follows from \cref{lem:evaluation-contexts-respect-types} that $\hastype{\Xi}{\Gamma}{\Sigma'}{K[d']}{\tau}$ as desired.
+\end{proof}
+
+
+\begin{lemma}
+    \label{lem:subexp-well-typed}
+    If $K$ is an evaluation context, $e$ is an expression and $\hastype{\Xi}{\Gamma}{\Sigma}{K[e]}{\tau}$, then $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\rho}$ for some type $\rho$.
+\end{lemma}
+
+\begin{proof}
+Every evaluation context is obtained from the hole \enquote{$\hole$} by finitely many applications of the productions in the grammar [TODO prove this?]. We prove the claim by induction on the length of such a sequence of productions. If $K = \hole$, then the claim is obvious, since then $K[e] = e$. Hence we assume that $K$ is obtained from some evaluation context $K'$ by some application of a production, so that the induction hypothesis holds for $K'$.
+%
+\begin{proofsec}
+    \item[$K = \objPair{K'}{e'}$]
+    Then $K[e] = \objPair{K'[e]}{e'}$, and since this is well-typed with type $\tau$, the inversion lemma [TODO proof] implies that $\hastype{\Xi}{\Gamma}{\Sigma}{K'[e]}{\tau_1}$ for some type $\tau_1$. By induction applied to $K'$ we have $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\rho}$ for some type $\rho$.
+
+    \item[$K = \objPair{v}{K'}$]
+    Similar to the above.
+
+    \item[$K = \objFst{K'}$]
+    Then $K[e] = \objFst{K'[e]$}, so the inversion lemma implies that $\hastype{\Xi}{\Gamma}{\Sigma}{K'[e]}{\tau \prod \tau_2}$ for some $\tau_2$. By induction we have $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\rho}$ for some type $\rho$.
+
+    \item[$K \in \{\objSnd{K'}, \objInl{K'}, \objInr{K'}\}$]
+    Similar to the above.
+
+    \item[$K = \objMatch{K'}{x}{e_1}{e_2}$]
+    The inversion lemma here implies that $\hastype{\Xi}{\Gamma}{\Sigma}{K'[e]}{\tau_1 + \tau_2}$, so the claim follows by induction.
+
+    \item[$K = \objApp{K'}{e'}$]
+    Then $K[e] = \objApp{K'[e]}{e'}$, so the inversion lemma implies that $\hastype{\Xi}{\Gamma}{\Sigma}{K'[e]}{\tau_1 \to \tau}$ for some type $\tau_1$. The claim follows by induction as before.
+
+    \item[$K = \objApp{v}{K'}$]
+    Similar to the above.
+
+    \item[$K = \objTapp{K'}{X}$]
+    The inversion lemma implies that $\hastype{\Xi}{\Gamma}{\Sigma}{K'[e]}{\tau_1}$ for some type $\tau_1$, so the claim follows by induction.
+
+    \item[$K = $]
+    TODO
+
+    \item[$K = \objRef{K'}$]
+    Then $K[e] = \objRef{K'[e]}$, so the inversion lemma implies that $\hastype{\Xi}{\Gamma}{\Sigma}{K'[e]}{\tau'}$. The claim follows by induction.
+
+    \item[$K = \objAss{K'}{e'}$]
+    Then $K[e] = \objAss{K'[e]}{e'}$, so the inversion lemma implies that $\hastype{\Xi}{\Gamma}{\Sigma}{K'[e]}{\tau'}$ ... TODO
+\end{proofsec}
+
+TODO rest -- but they are all the same, so maybe just do one?
+\end{proof}
+
+
+\begin{lemma}
+    \label{lem:store-typing-weakening}
+    If $\Sigma$ and $\Sigma'$ are store typings with $\Sigma \subseteq \Sigma'$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\tau}$, then $\hastype{\Xi}{\Gamma}{\Sigma'}{e}{\tau}$.
+\end{lemma}
+
+\begin{proof}
+    TODO
+\end{proof}
+
+
+\begin{lemma}
+    \label{lem:evaluation-contexts-respect-types}
+    If $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\tau}$ and $\hastype{\Xi}{\Gamma}{\Sigma}{e'}{\tau}$ for the same type $\tau$, then $\hastype{\Xi}{\Gamma}{\Sigma}{K[e]}{\rho}$ and $\hastype{\Xi}{\Gamma}{\Sigma}{K[e']}{\rho}$ for the same type $\rho$.
+\end{lemma}
+
+\begin{proof}
+The proof is by induction on $K$. If $K = \hole$, then this is obvious.
+%
+\begin{proofsec}
+    \item[$K = \objPair{K'}{e''}$]
+    Then $K'[e]$ and $K'[e']$ have the same type, so by \infrule{T-pair}, so do $K[e]$ and $K[e']$.
+
+    \item[$K = \objTapp{K'}{\tau'}$]
+    Then $K'[e]$ and $K'[e']$ have the same type by induction, and so do $K[e] = \objTapp{K'[e]}{\tau'}$ and $K[e'] = \objTapp{K'[e']}{\tau'}$ by \infrule{T-Tapp}.\footnote{TODO since we just apply it to underscore, it actually has a lot of different types. But we can find one type that works for both.} [TODO need lemma saying that $\tau[\tau'/X]$ is a type! Need another production that says that $X$ is a type?]
+\end{proofsec}
+
+TODO rest
+\end{proof}
+
+
+\begin{lemma}
+    \label{lem:preservation-head-steps}
+    If $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\tau}$ and $\stotype{\Xi}{\Gamma}{\Sigma}{\sigma}$ and $(\sigma,e) \headstep (\sigma',e')$, then there exists a store typing $\Sigma'$ such that $\Sigma \subseteq \Sigma'$, $\hastype{\Xi}{\Gamma}{\Sigma'}{e'}{\tau}$, and $\stotype{\Xi}{\Gamma}{\Sigma'}{\sigma'}$.
+\end{lemma}
+
+\begin{proof}
+We simply check all cases. [TODO mention pure cases]
+%
+\begin{proofsec}
+    \item[\infrule{E-fst}]
+    In this case $e = \objFst{\objPair{v_1}{v_2}}$ and $e' = v_1$ for values $v_1,v_2$. Then $e$ is a value, so [TODO canonical forms] implies first that $\hastype{\Xi}{\Gamma}{\Sigma}{\objPair{v_1}{v_2}}{\tau \prod \tau'}$ for some type $\tau'$, and then that $\hastype{\Xi}{\Gamma}{\Sigma}{v_1}{\tau}$.
+
+    \item[\infrule{E-tapp-tlam}]
+    Write the type of $\objTapp{\objForall{X}{e}}{\tau'}$ as $\tau[\tau'/X]$. By inversion we have $\hastype{\Xi}{\Gamma}{\Sigma}{\objForall{X}{e}}{\typeForall{X}{\tau}}$, and again by inversion this implies that $\hastype{\Xi,X}{\Gamma}{\Sigma}{e}{\tau}$. But then it follows from [TODO lemma 0] that $\hastype{\Xi}{\Gamma[\tau'/X]}{\Sigma}{e}{\tau[\tau'/X]}$, and since $\Gamma$ does not contain $X$ (since $\Xi$ does not) we have $\Gamma[\tau'/X] = \Gamma$, so the claim follows.
+
+    \item[\infrule{E-alloc}]
+    In this case $e = \objRef{v}$, $e' = l$, $\sigma' = \sigma[l \mapsto v]$, and $l \not\in \dom \sigma$. By inversion we have $\hastype{\Xi}{\Gamma}{\Sigma}{\objRef{v}}{\typeRef{\tau'}}$ for some $\tau'$, and we further have $\hastype{\Xi}{\Gamma}{\Sigma}{v}{\tau'}$. Now letting $\Sigma' = \Sigma[l \mapsto \tau']$, it follows from \infrule{T-loc} that $\hastype{\Xi}{\Gamma}{\Sigma'}{l}{\typeRef{\Sigma'(l)}}$, so we have both $\stotype{\Xi}{\Gamma}{\Sigma'}{\sigma'}$ and $\hastype{\Xi}{\Gamma}{\Sigma'}{l}{\typeRef{\tau'}}$.
+
+    \item[\infrule{E-store}]
+    Here $e = \objAss{l}{v}$, $e' = \objUnit$ and $\sigma' = \sigma[l \mapsto v]$ with $l \in \dom \sigma$. Notice first that $\objAss{l}{v}$ and $\objUnit$ both have type $\typeUnit$ by inversion, so that $\hastype{\Xi}{\Gamma}{\Sigma}{\objUnit}{\typeUnit}$ as required.
+
+    By inversion we also have $\hastype{\Xi}{\Gamma}{\Sigma}{l}{\typeRef{\tau'}}$ and $\hastype{\Xi}{\Gamma}{\Sigma}{v}{\tau'}$ for some type $\tau'$, and another application of inversion (TODO via \infrule{T-loc}, or canonical forms?) implies that $\tau' = \Sigma(l)$. Furthermore, since $\stotype{\Xi}{\Gamma}{\Sigma}{\sigma}$, we have $\hastype{\Xi}{\Gamma}{\Sigma}{\sigma(l)}{\Sigma(l)}$. Since $v = \sigma'(l)$ it thus follows that $\hastype{\Xi}{\Gamma}{\Sigma}{\sigma'(l)}{\Sigma(l)}$, so $\stotype{\Xi}{\Gamma}{\Sigma}{\sigma'}$.
+
+    \item[\infrule{E-load}]
+    Here $e = \objLoad{l}$, $e' = v$ and $\sigma = \sigma'$ with $\sigma(l) = v$. By inversion we have $\hastype{\Xi}{\Gamma}{\Sigma}{l}{\typeRef{\tau}}$, so $\tau = \Sigma(l)$ [TODO again]. But since $\stotype{\Xi}{\Gamma}{\Sigma}{\sigma}$ we have $\hastype{\Xi}{\Gamma}{\Sigma}{\sigma(l)}{\Sigma(l)}$, or in other words, $\hastype{\Xi}{\Gamma}{\Sigma}{v}{\tau}$.
+\end{proofsec}
+
+TODO rest
+\end{proof}
 
 
 
