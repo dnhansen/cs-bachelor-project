@@ -262,54 +262,11 @@
 \setbeforeparaskip{.5\baselineskip}
 
 
-\begin{document}
-
-\maketitle
-
-% \newcommand{\hastype}[4]{#1 \mid #2 \vdash #3 : #4}
-\newcommand{\hastype}[5]{%
-    \ifstrempty{#1}%
-        {%
-            \ifstrempty{#2}%
-            {%
-                #3 \vdash #4 : #5%
-            }{%
-                #2 \mid #3 \vdash #4 : #5%
-            }%
-        }{%
-            \ifstrempty{#2}%
-            {%
-                #1 \mid \emptyset \mid #3 \vdash #4 : #5%
-            }{%
-                #1 \mid #2 \mid #3 \vdash #4 : #5%
-            }%
-        }%
-}
-
-\newcommand{\stotype}[4]{%
-    \ifstrempty{#1}%
-        {%
-            \ifstrempty{#2}%
-            {%
-                #3 \vdash #4%
-            }{%
-                #2 \mid #3 \vdash #4%
-            }%
-        }{%
-            \ifstrempty{#2}%
-            {%
-                #1 \mid \emptyset \mid #3 \vdash #4%
-            }{%
-                #1 \mid #2 \mid #3 \vdash #4%
-            }%
-        }%
-}
-
-
+\newcommand{\infrule}[1]{{\normalfont\textsc{#1}}}
 \newcommand{\step}{\to}
 \newcommand{\headstep}{\to_h}
 \newcommand{\purestep}{\to_p}
-\newcommand{\infrule}[1]{{\normalfont\textsc{#1}}}
+
 \newcommand{\hole}{-}
 \newcommand{\unitval}{()}
 \newcommand{\STLC}{\lambda_{\rightarrow}}
@@ -370,9 +327,14 @@
 \newcommand{\objLoad}[1]{\objOp{!}#1}
 
 
+\begin{document}
+
+\maketitle
+
+
 \chapter{Preliminaries}
 
-If $X$ and $A$ are sets, then we write $A \subseteq_\kappa X$ if $A$ is a subset of $X$ with cardinality strictly less than $\kappa$. We denote the power set of $X$ by $\powerset{X}$, and we furthermore write $\powersetcard{\kappa}{X}$ for the collection of sets $A$ with $A \subseteq_\kappa X$. We do not distinguish between the ordinal $\omega$ and the cardinal $\aleph_0$, so we write $A \subseteq_\omega X$ if $A$ is a finite subset of $X$, and $\powersetfin{X}$ similarly denotes the set of finite subsets of $X$. If $Y$ is another set, then we denote the set of partial maps from $X$ to $Y$ by $\pmaps{X}{Y}$. For $f \in \pmaps{X}{Y}$ we let $\dom f$ and $\ran f$ denote the domain and range of $f$, respectively. We also write $\pmaps[\kappa]{X}{Y}$ for the subset of $\pmaps{X}{Y}$ of partial maps whose domain has cardinality strictly less than $\kappa$, and elements in $\pmaps[\omega]{X}{Y}$ will be called \keyword{finite partial maps}. For $x_0 \in X$ and $y_0 \in Y$ we denote by $f[x_0 \mapsto y_0]$ the partial map given by
+If $X$ is a set, then we denote by $\powerset{X}$ the power set of $X$, and for a cardinal $\kappa$ we furthermore write $\powersetcard{\kappa}{X}$ for the collection of subsets of $X$ with cardinality strictly less than $\kappa$. If $A \in \powersetcard{\kappa}{X}$, then we also write $A \subseteq_\kappa X$. We do not distinguish between the ordinal $\omega$ and the cardinal $\aleph_0$, so $\powersetfin{X}$ denotes the set of finite subsets of $X$. If $Y$ is another set, then we denote the set of partial maps from $X$ to $Y$ by $\pmaps{X}{Y}$. For $f \in \pmaps{X}{Y}$ we let $\dom f$ and $\ran f$ denote the domain and range of $f$, respectively. We also write $\pmaps[\kappa]{X}{Y}$ for the partial functions $f \in \pmaps{X}{Y}$ with $\dom f \subseteq_\kappa X$. For $x_0 \in X$ and $y_0 \in Y$ we denote by $f[x_0 \mapsto y_0]$ the partial map given by
 %
 \begin{equation*}
     f[x_0 \mapsto y_0](x) =
@@ -382,148 +344,300 @@ If $X$ and $A$ are sets, then we write $A \subseteq_\kappa X$ if $A$ is a subset
     \end{cases}
 \end{equation*}
 %
-Notice in particular that $\dom f[x_0 \mapsto y_0] = \dom f \union \{x_0\}$, so that if $f \in \pmaps[\omega]{X}{Y}$, then also $f[x_0 \mapsto y_0] \in \pmaps[\omega]{X}{Y}$.
+Hence $\dom f[x_0 \mapsto y_0] = \dom f \union \{x_0\}$, so that if $f \in \pmaps[\omega]{X}{Y}$, then also $f[x_0 \mapsto y_0] \in \pmaps[\omega]{X}{Y}$.
 
-If $\Xi \subseteq_\omega \setTVar$, $\Gamma$ is a type context and $\Sigma$ is a store typing, then we say that a store $\sigma$ is \keyword{well-typed} with respect to $\Xi$, $\Gamma$ and $\Sigma$ if $\dom \sigma = \dom \Sigma$ and $\hastype{\Xi}{\Gamma}{\Sigma}{\sigma(l)}{\Sigma(l)}$ for all $l \in \dom \sigma$. In this case we write $\stotype{\Xi}{\Gamma}{\Sigma}{\sigma}$, and if $\Xi$ and $\Gamma$ are both empty we simply write $\stotype{}{}{\Sigma}{\sigma}$.
-
-% OLD
-% Progress: Let $e$ be an expression and $\tau$ a type. If $\hastype{}{}[\Sigma}{e}{\tau}$, then either $e$ is a value or there exists an expression $e'$ such that $e \step e'$ and $\hastype{}{}{e'}{\tau}$. TODO the type of $e'$ is part of preservation, isn't it??
-
-% The proof is by induction on the typing relation $\hastype{}{\Gamma}{e}{\tau}$, but the claim to be proved is augmented by \textquote{or $\Gamma$ is non-empty}.\footnote{This ensures that we can perform the induction on the entire ternary relation, which is important since this relation is the one that is defined by the inference rules, \emph{not} the corresponding binary relation obtained by restricting the ternary relation to the subset where $\Gamma = \emptyset$.} Notice that the induction step for each inference rule is trivial if $\Gamma$ is non-empty, so we need only prove the induction step when $\Gamma = \emptyset$.
-
-% \infrule{T-unit} Since $\unitval$ is a value, this follows.
-
-% \infrule{T-var} Since we may assume that $\Gamma$ is empty, this implication is vacuously true.
-
-% \infrule{T-pair} Assume that $\hastype{}{}{e_1}{\tau_1}$ and $\hastype{}{}{e_2}{\tau_2}$. If both $e_1$ and $e_2$ are values, then $(e_1,e_2)$ is also a value, so assume that only $e_1 = v_1$ is a value and that $e_2 \step e_2'$ with $\hastype{}{}{e_2'}{\tau_2}$. Then by definition of the one-step relation, there must be an evaluation context $K$ and basic [TODO what to call them?] subexpressions $d_2$ and $d_2'$ of $e_2$ and $e_2'$ such that $e_2 = K[d_2]$, $e_2' = K[d_2']$ and $d_2 \headstep d_2'$. Letting $K' = (v_1,K)$ it follows that $(v_1,e_2) = K'[d_2]$ and $(v_1,e_2') = K'[d_2']$, and so
-% %
-% \begin{equation*}
-%     (v_1,e_2)
-%         = K'[d_2]
-%         \step K'[d_2']
-%         = (v_1,e_2').
-% \end{equation*}
-% %
-% Finally, since $d_2$ and $d_2'$ have the same type [TODO], by [TODO ECtx typing lemma] $K'[d_2']$ is well-typed and has the same type as $K'[d_2]$.
-
-% If instead $e_1$ is not a value, then the same argument (using the evaluation context $(K,e_2)$) yields the same result.
+We let $\naturals$ denote the set of natural numbers, including $0$. The image of a set $A \subseteq X$ under a function $f \colon X \to Y$ is denoted $f\image{A}$.
 
 
----------
+\chapter{Induction and Inversion}
 
-Let $X$ be a set, and let $P$ be a predicate on $X$ (i.e., a unary relation on -- or simply a subset of -- $X$). For $x \in X$ we write $P(x)$ to mean $x \in P$. If $f \colon X^k \pto X$ is a partial function for some $k \in \naturals$, then we say that $P$ \keyword{satisfies} the inference rule $R_f$ if $P(x_1) \land \cdots \land P(x_k)$ implies $P(f(x_1,\ldots,x_k))$ for all $(x_1,\ldots,x_k) \in \dom f$. We write the inference rule on the form
+In this section we study inference rules and the structures that they give rise to, and we prove various theorems for such structures that will be important in the proof of type safety in TODO ref.
+
+We first give an overview of the abstract theory, studying generating functions in complete lattices and in dcpo's. In a complete lattice Knaster--Tarski's fixed-point theorem yields a principle of induction, which when applied to inference rules gives a notion of rule induction. In dcpo's we study continuous functions in the context of Kleene's fixed-point theorem, which gives a finite description of elements in a structure defined by inference rules. We then study derivations of such elements and prove an inversion theorem.
+
+For readers not interested in the technical details, we note that the main results that will be used in the sequel are \cref{thm:rule-induction} and \cref{cor:inversion}.
+
+
+\section{Abstract theory}
+
+\newpar
+
+Let $(P,\leq)$ be a partially ordered set\footnote{That is, $\leq$ is a reflexive, transitive and anti-symmetric binary relation on $P$. We also call $P$ a \keyword{poset}.}. If $A \subseteq P$, then an element $x \in P$ is called an \keyword{upper bound} of $A$ if $a \leq x$ for all $a \in A$. If there is a least upper bound $x$ (i.e., such that if $y$ is any other upper bound, then $x \leq y$), then $x$ is called the \keyword{join} of $A$. The join of $A$ is clearly unique if it exists (by anti-symmetry), and we denote it by $\bigjoin A$. We similarly define the \keyword{meet} of $A$, denoted $\bigmeet A$, to be the greatest lower bound of $A$, if it exists. If every two-element subset of $P$ has a join and a meet, then $P$ is called a \keyword{lattice}, and we write $x \join y = \bigjoin \{x,y\}$ and $x \meet y = \bigmeet \{x,y\}$. If every subset of $P$ has a join and a meet, then $P$ is a \keyword{complete lattice}.
+
+If $P$ is a partially ordered set, then a subset $D \subseteq P$ is said to be \keyword{directed} if every finite subset of $D$ has an upper bound (but not necessarily a \emph{least} upper bound, i.e. a join). By induction this is equivalent to the property that, for every \emph{pair} of elements $x,y \in D$, there exists a $z \in D$ with $x \leq z$ and $y \leq z$.\footnote{This is the usual definition of directedness. As an example of why directedness in interesting, recall that a union of a collection of subspaces of a vector space is not usually a subspace itself, but it is if the collection is directed (with respect to inclusion). Similarly for subgroups and other algebraic structures, but note that the same does \emph{not} hold for e.g. topologies or $\sigma$-algebras. If we substituted \enquote{countable} for \enquote{finite} in the definition of directness, $\sigma$-algebras would have this property as well, while we for topologies would need \enquote{arbitrary} subsets.} We further note that the image of a directed set under a monotone map is also directed. If $D$ is a directed set whose join exists, we often write $\bigdjoin D \defeq \bigjoin D$ instead. If $\bigdjoin D$ exists for every directed subset $D$ of $P$, then $P$ is called a \keyword{directly complete partial order}, or \keyword{dcpo} for short. If $P$ also has a least element, usually written $\bot$, then $P$ is called a \keyword{dcppo} (the extra \enquote{p} is for \enquote{pointed}). Notice that complete lattices are dcppo's.
+
+Let $F \colon P \to P$ be a monotone\footnote{A map $f \colon P \to Q$ between posets is \keyword{monotone} if $x \leq y$ implies $f(x) \leq f(y)$ for all $x,y \in P$} map. We think of $F$ as a \keyword{generating function}. An element $x \in P$ is said to be \keyword{$F$-closed} if $F(x) \leq x$, \keyword{$F$-consistent} if $x \leq F(x)$, and a \keyword{fixed-point} of $F$ if $F(x) = x$. If $F$ has a least fixed-point, then this is usually denoted $\mu F$. Similarly, the greatest fixed-point, if it exists, is denoted $\nu F$.
+
+
+\newpar
+
+We begin by studying dcpo's. If $P$ and $Q$ are dcpo's, then a map $f \colon P \to Q$ is \keyword{continuous}\footnote{Also called \keyword{Scott-continuous} after Dana Scott.} if, for every directed $D \subseteq P$, the image $f\image{D}$ is directed and
 %
 \begin{equation*}
-    \frac{P(x_1) \quad \cdots \quad P(x_k)}{P(f(x_1,\ldots,x_k))},
+    f \bigl( \bigdjoin D \bigr)
+        = \bigdjoin f\image{D}.
 \end{equation*}
 %
-where it is implicit that $(x_1,\ldots,x_k)$ lies in $\dom f$.
+It is easy to show that continuous maps are monotone (notice that if $x \leq y$, then the set $\{x,y\}$ is directed). If conversely $f$ is monotone, then $f\image{D}$ is as mentioned also directed, and the inequality \enquote{$\geq$} always holds.
 
-As an example, in the simply typed lambda calculus $X$ is the set of triples $(\Gamma,e,\tau)$, where $\Gamma$ is a type context, $e$ an expression and $\tau$ a type. The function $f$ might be unary and have as domain the set of triples such that $\tau$ is a product type, say $\tau_1 \prod \tau_2$, and it might then map $(\Gamma,e,\tau_1 \prod \tau_2)$ to $(\Gamma, \Snd e, \tau_2)$. Of course, using the conventional notation we would write e.g. the statement $P(\Gamma,e,\tau_1 \prod \tau_2)$ as $\hastype{}{\Gamma}{\Sigma}{e}{\tau_1 \prod \tau_2}$, and $P(\Gamma, \Snd e, \tau_2)$ would be written $\hastype{}{\Gamma}{\Sigma}{\Snd e}{\tau_2}$, so the rule $R_f$ would then just be the rule $\infrule{T-snd}$.
-
-We also wish to require a given predicate to satisfy a collection of axioms. As motivation, notice that the antecedent of the rule \infrule{T-var} is not on the same form as the consequent. That is, it is not an inductive rule, and it can thus be stated as an axiom. To wit, if $(e : \tau) \in \Gamma$ then $P(\Gamma,e,\tau)$. Another way to describe this is as the set $\set{(\Gamma,e,\tau)}{(e : \tau) \in \Gamma}$. Hence we may simply use subsets of the universal set $X$ as axioms. Of course, if $\calA$ is a collection of axioms, then $\bigunion \calA$ is also an axiom. Hence if given any number [TODO set many?] of axioms, we can always take their union and assume that there is only one axiom.
-
-Given an axiom [TODO or set of axioms?] $A$ and a collection $\calR$ of inference rules, we first define a function $F \colon \powerset{X} \to \powerset{X}$ by
+Now let $P$ be a dcppo and $F \colon P \to P$ a monotone function. We clearly have $\bot \leq F(\bot)$, and since $F$ is monotone we get the chain\footnote{A \keyword{chain} is a totally ordered set.}
 %
 \begin{equation*}
-    F(B)
-        = \bigunion_{R \in \calR} f_R(B^{\rho(R)}),
+    \bot
+        \leq F(\bot)
+        \leq \cdots
+        \leq F^n(\bot)
+        \leq F^{n+1}(\bot)
+        \leq \cdots
 \end{equation*}
 %
-where $f_R$ is some partial function inducing $R$, and $\rho(R)$ is the arity of $f_R$. For $A \subseteq X$ we further let $F_A(B) = F(B) \union A$ [TODO alternatively consider sublattice of sets $\supseteq A$]. It is clear that a set $P$ is a fixed-point of $F$ if and only if $P$ is closed under application of the inference rules in $\calR$. It is furthermore easy to show that $P$ is a fixed-point of $F_A$ if and only if $P$ is a fixed-point of $F$ which contains $A$ [TODO need that $B \subseteq F(B)$, maybe assume that $\calR$ contains the identity/trivial rule?]. Now notice that $\powerset{X}$ is a complete lattice (with respect to set inclusion), and that $F_A$ is order-preserving. The Knaster--Tarski fixed-point theorem [TODO ref] then implies that $F_A$ has a least fixed-point\footnote{It also has a greatest fixed-point, but this is trivially $\powerset{X}$ itself and is of no interest to us.}. We say that this fixed-point is the predicate \keyword{induced} by $\calR$ and $A$.
+called the \keyword{ascending Kleene chain}. Since it is a chain it is also directed. The main theorem is the following:
 
-We would also like a way to generate the predicate $P$ induced by $\calR$ and $A$. Let $A_0 = A$, and for $n \in \naturals$ define
+\begin{theorem}[Kleene's fixed-point theorem]
+    \label{thm:kleene-fixpoint-theorem}
+    If $P$ is a dcppo and $F \colon P \to P$ is continuous, then $F$ has a least fixed-point $\mu F$ and
+    %
+    \begin{equation*}
+        \mu F
+            = \bigdjoin_{n \in \naturals} F^n(\bot).
+    \end{equation*}
+\end{theorem}
+
+\begin{proof}
+    First notice that, since $F$ is continuous,
+    %
+    \begin{equation*}
+        F \Bigl( \bigdjoin_{n \in \naturals} F^n(\bot) \Bigr)
+            = \bigdjoin_{n \in \naturals} F^{n+1}(\bot)
+            = \bigdjoin_{n \in \naturals^+} F^n(\bot)
+            = \bigdjoin_{n \in \naturals} F^n(\bot),
+    \end{equation*}
+    %
+    where we use that $F^0(\bot) = \bot$. Hence $\bigdjoin_{n \in \naturals} F^n(\bot)$ is indeed a fixed-point of $F$. If $\beta$ is any fixed-point of $F$, then $\bot \leq \beta$, and hence $F^n(\bot) \leq F^n(\beta) = \beta$ since $F$ is monotone. Taking the join on the left-hand side yields $\bigdjoin_{n \in \naturals} F^n(\bot) \leq \beta$ as desired.
+\end{proof}
+
+
+\newpar
+
+Next, let $L$ be a complete lattice, and let $F \colon L \to L$ be a monotone map. Even though $L$ is also a dcppo, if $F$ is not continuous then \cref{thm:kleene-fixpoint-theorem} does not apply. However, $F$ still has fixpoints, as the following theorem shows:
+
+\begin{theorem}[Knaster--Tarski's fixed-point theorem]
+    \label{thm:knaster-tarski}
+    If $L$ is a complete lattice and $F \colon L \to L$ is monotone, then $F$ has a least and a greatest fixed-point, and these are given by
+    %
+    \begin{equation*}
+        \mu F
+            = \bigmeet \set{x \in L}{F(x) \leq x}
+        \quad \text{and} \quad
+        \nu F
+            = \bigjoin \set{x \in L}{x \leq F(x)}.
+    \end{equation*}
+    %
+    In particular, $\mu F$ is the smallest $F$-closed element and $\nu F$ is the greatest $F$-consistent element in $L$.
+\end{theorem}
+
+\begin{proof}
+    Denote the meet above by $\alpha$. If $x$ is $F$-closed, then $\alpha \leq x$, so $F(\alpha) \leq F(x) \leq x$. Taking the meet of $x$ we get $F(\alpha) \leq \alpha$, so $\alpha$ is closed. It follows that $F(F(\alpha)) \leq F(\alpha)$, so $F(\alpha)$ is also closed, and so $\alpha \leq F(\alpha)$. Hence $\alpha$ is a fixed-point. Since every other fixed-point is in particular closed, $\alpha$ is the least fixed-point.
+\end{proof}
+
+\begin{corollarynoproof}[Principle of induction]
+    \label{cor:induction-abstract}
+    If $y \in L$ is $F$-closed, then $\mu F \leq y$.
+\end{corollarynoproof}
+%
+We dually have a \keyword{principle of coinduction} -- if $y \in L$ is $F$-consistent, then $y \leq \nu F$ -- but we shall not need this in the sequel.
+
+
+\section{In power sets}
+
+\newpar
+
+Specialising to the case where $L$ is a power set $\powerset{X}$, one way to define a generating function is using inference rules. An \keyword{inference rule} on $X$ is an expression on the form
 %
 \begin{equation*}
-    A_{n+1}
-        = F_{A_n}(A_n)
-        = A_n \union \bigunion_{R \in \calR} f_R(A_n^{\rho(R)}).
+    \inferrule*[left=Rule]{
+        x_1 \and x_2 \and \cdots \and x_k
+    }{
+        y
+    }
 \end{equation*}
 %
-The sequence $(A_n)_{n \in \naturals}$ is thus increasing. Letting $P = \bigunion_{n \in \naturals} A_n$, we then have the following result:
+where $x_1, \ldots, x_k$ and $y$ are elements of $X$, and $k \in \naturals$.\footnote{We could equivalently view an inference rule as an element of the product $X^k \prod X$.} We allow $k$ to be zero, in which case we call the rule an \keyword{axiom}. We have decorated the expression with the label \enquote{\infrule{Rule}} so that we may refer to it later. Let us call $x_1, \ldots, x_k$ the \keyword{antecedents} of the rule and $y$ the \keyword{consequent}. Given a (possibly infinite) collection of inference rules, we construct a generating function $F \colon \powerset{X} \to \powerset{X}$ by defining $F(A)$ for a subset $A \subseteq X$ as follows: For $y \in X$ we let $y \in F(A)$ if and only if there is an inference rule whose consequent is $y$ and whose antecedents lie in $A$. We say that $F$ is \keyword{represented by} this collection of inference rules.
+
+Clearly $F$ is monotone if it is represented by a collection of inference rules, so it has a least fixed-point $\mu F$ and we get a principle of induction. However, it is useful to restate induction in terms of the inference rules, since we usually have explicit rules in mind when defining $F$. If $\calR$ is a collection of inference rules on $X$, then we say that a subset $A \subseteq X$ is \keyword{$\calR$-closed} if, given any rule $R \in \calR$ with antecedents lying in $A$, the consequent of $R$ also lies in $A$.
+
+\begin{lemma}
+    \label{lem:R-closed-F-closed}
+    If $F$ is represented by a collection $\calR$ of inference rules, then a subset $A \subseteq X$ is $F$-closed if and only if it is $\calR$-closed.
+\end{lemma}
+
+\begin{proof}
+    First assume that $A$ is $F$-closed so that $F(A) \subseteq A$, and consider a rule from $\calR$ with antecedents $x_1, \ldots, x_k \in A$ and consequent $y$. Since $F$ is represented by $\calR$, this implies that $y \in F(A) \subseteq A$, so $A$ is $\calR$-closed.
+
+    If $A$ is $\calR$-closed, then let $y \in F(A)$. Hence there is a rule in $\calR$ with consequent $y$ and antecedents $x_1, \ldots, x_k \in A$. But since $A$ is $\calR$-closed, this implies that $y \in A$, and so $F(A) \subseteq A$.
+\end{proof}
+
+
+\begin{theorem}[Principle of rule induction]
+    \label{thm:rule-induction}
+    If $F$ is represented by $\calR$ and $A \subseteq X$, then to show that $\mu F \subseteq A$, it suffices to show the following condition: For every inference rule $R \in \calR$ with antecedents lying in $A$, the consequent of $R$ also lies in $A$.
+\end{theorem}
+
+\begin{proof}
+    The condition says precisely that $A$ is $\calR$-closed, which implies that $A$ is $F$-closed by \cref{lem:R-closed-F-closed}. But then \cref{cor:induction-abstract} implies that $\mu F \subseteq A$.
+\end{proof}
+
+
+\newpar
+
+\newcommand{\assum}[1]{\operatorname{asm}#1}
+\newcommand{\concl}[1]{\operatorname{con}#1}
+\newcommand{\derlen}[1]{l(#1)}
+
+
+Sometimes it is necessary (or at least useful) to have an alternative characterisation of $\mu F$, one that makes use of the fact that the number of antecedents of an inference rule is finite. This property is captured by $F$ in the following way:
+
+\begin{lemma}
+    If $F$ is represented by a collection of inference rules, then $F$ is continuous.
+\end{lemma}
+
+\begin{proof}
+    It suffices to show that if $\calD \subseteq \powerset{X}$ is directed, then $F(\bigdjoin \calD) \subseteq \bigdjoin F\image{\calD}$, so let $y \in F(\bigdjoin \calD)$. Say that $F$ is represented by a collection $\calR$. Then there is a rule in $\calR$ with antecedents $x_1, \ldots, x_k \in \bigdjoin \calD$ and consequent $y$. Since the (directed) join in $\powerset{X}$ is just union, there are sets $A_1, \ldots, A_k \in \calD$ such that $x_i \in A_i$. And since $\calD$ is directed there is a set $A \in \calD$ with $A_i \subseteq A$, so that $x_i \in A$ for all $i$. But then $y \in F(A) \subseteq \bigdjoin F\image{\calD}$ as desired.
+\end{proof}
+%
+Hence, \cref{thm:kleene-fixpoint-theorem} implies that $\mu F = \bigdjoin_{n \in \naturals} F^n(\emptyset)$.
+
+To make this more concrete, we study how one can use the inference rules to derive that some element of $X$ lies in $\mu F$. If $\calR$ is a collection of inference rules, then a \keyword{derivation} from $\calR$ is a finite sequence $D = (R_1, \ldots, R_n)$ of inference rules from $\calR$. If $y$ is a consequent of some $R_i$, then we say that $y$ is a \keyword{conclusion} of $D$. The consequent of $R_n$ is called the \keyword{final conclusion} of $D$. We say that $x \in X$ is an \keyword{assumption} of $D$ if $x$ is an antecedent of some $R_i$, and if none of the rules $R_1, \ldots, R_{i-1}$ has $x$ as its antecedent. That is, $x$ is an assumption if it is not implied by any of the previous rules in the derivation. The set of conclusion of $D$ is denoted $\concl{D}$, and the set of assumptions of $D$ is denoted $\assum{D}$. If $\assum{D} = \emptyset$, then we say that $D$ is \keyword{closed}.
+
+\begin{remark}
+    Let $D = (R_1, \ldots, R_n)$ be a derivation.
+    %
+    \begin{enumrem}
+        \item If $D$ is closed, then $R_1$ must be an axiom.
+    
+        \item\label{enum:subderivation} For any $i \in \{1, \ldots, n\}$, $D' = (R_1, \ldots, R_i)$ is called a \keyword{subderivation} of $D$. If $i < n$, then $D'$ is called a \keyword{proper subderivation} of $D$ (so $D'$ is a proper subderivation when $D' \neq D$). It is clear that $\assum{D'} \subseteq \assum{D}$ and $\concl{D'} \subseteq \assum{D}$, so $D'$ is closed if $D$ is closed.
+    
+        \item\label{enum:derivation-antecedent} If $D$ is closed and $x$ is an antecedent of some $R_i$, then $D$ has a proper subderivation $D'$ whose final consequence is $x$: For $x$ must be the consequent of some $R_1, \ldots, R_{i-1}$, say $R_j$, and $(R_1, \ldots, R_j)$ is closed subderivation of $D$ by \subcref{enum:subderivation}.
+
+        \item\label{enum:derivation-composition} If $E = (S_1, \ldots, S_m)$ is another derivation, then
+        %
+        \begin{equation*}
+            D \circ E
+                \defeq (R_1, \ldots, R_n, S_1, \ldots, S_m)
+        \end{equation*}
+        %
+        is another derivation. It is clear that
+        %
+        \begin{equation*}
+            \assum{(D \circ E)}
+                = \assum{D} \union (\assum{E} \setminus \concl{D}),
+        \end{equation*}
+        %
+        that
+        %
+        \begin{equation*}
+            \concl{(D \circ E)}
+                = \concl{D} \union \concl{E},
+        \end{equation*}
+        %
+        and that the final conclusion of $D \circ E$ is the final conclusion of $E$. In particular, if $D$ is closed and $\assum{E} \subseteq \concl{D}$, then $D \circ E$ is also closed.
+
+        \item The \keyword{length} of a derivation $D = (R_1, \ldots, R_n)$ is $n$, and this is denoted $\derlen{D}$. If $D'$ is a subderivation of $D$, then $\derlen{D'} \leq \derlen{D}$ with equality if and only if $D' = D$. If $E$ is another derivation, then $\derlen{D \circ E} = \derlen{D} + \derlen{E}$.
+    \end{enumrem}
+\end{remark}
+
 
 \begin{proposition}
-    $P$ is the smallest predicate on $X$ which is true on all elements in $A$ and which satisfies all inference rules in $\calR$.
+    \label{prop:fixpoint-iff-derivation}
+    If $F$ is represented by $\calR$ and $y \in X$, then $y \in \mu F$ if and only if $y$ is the final conclusion of some closed derivation from $\calR$.
 \end{proposition}
 
 \begin{proof}
-    Clearly $P$ is true on $A$, so consider an inference rule $R \in \calR$ and let $(x_1,\ldots,x_k) \in \dom f_R$ be such that $P(x_1), \ldots, P(x_k)$ hold, i.e. such that $x_1, \ldots, x_k \in P$. We must then show that also $f_R(x_1, \ldots, x_k) \in P$. Then there must be indices $n_1, \ldots, n_k$ such that $x_i \in A_{n_i}$. Letting $n = \max\{n_1, \ldots, n_k\}$ we thus have\footnote{This is where the proof fails if the arity of $f_R$ is infinite. For instance, the proof does not go through for $\sigma$-algebras -- where $f_R$ might map a sequence $(B_n)_{n \in \naturals}$ of sets to the union $\bigunion_{n \in \naturals} B_n$ -- nor for topologies.} $x_1, \ldots, x_k \in A_n$. Hence $f_R(x_1, \ldots, x_k) \in f_R(A_n^k)$, so by definition of $A_{n+1}$ we have $f_R(x_1, \ldots, x_k) \in A_{n+1} \subseteq P$ as desired.
+    First assume that $y \in \mu F$, and recall that $\mu F = \bigdjoin_{n \in \naturals} F^n(\emptyset) = \bigunion_{n \in \naturals} F^n(\emptyset)$. We prove by induction in $n$ that every element in $F^n(\emptyset)$ is the final conclusion of a closed derivation. The base case $y \in F^0(\emptyset) = \emptyset$ is vacuous, so let $n \in \naturals$ and assume that the claim holds for every element of $F^n(\emptyset)$. If $y \in F^{n+1}(\emptyset) = F(F^n(\emptyset))$, then there is an inference rule $R$ with consequent $y$ and antecedents $x_1, \ldots, x_k$ that lie in $F^n(\emptyset)$. By induction each $x_i$ is the final conclusion of some derivation $D_i$, and by \cref{enum:derivation-composition} the derivation $D_1 \circ \cdots \circ D_k \circ (R)$ is a closed derivation, and $y$ is its final conclusion.
 
-    Conversely we show that $P$ is the smallest such predicate. But this is clear since it must be contained in every predicate containing $A$ and satisfying the inference rules.
+    We prove the converse by (strong) induction on the length of a derivation. If $y$ is the final conclusion of a closed derivation $(R)$ of length $1$, then $R$ must be an axiom. But then $y \in F(\emptyset) \subseteq \mu F$ since $F$ is represented by $\calR$. Next, let $n \in \naturals$ and let $y$ be the final conclusion of a closed derivation $D = (R_1, \ldots, R_{n+1})$. If $x$ is an antecedent of $R_{n+1}$, then by \cref{enum:derivation-antecedent} $D$ must have a proper subderivation $D'$ whose final conclusion is $x$. By \cref{enum:subderivation} $D'$ is also closed, and so $x \in \mu F$ by induction. But then we must have $y \in F(\mu F) = \mu F$ as desired.
+\end{proof}
+%
+It is of course standard to use derivation \emph{trees}, but all that matters is that there is a finite way to obtain elements in $\mu F$. Since it is easier to define and reason about linear derivations -- and since we will not have to do any actual derivations -- we have taken this approach here.\footnote{Compare the role of deductive calculi in first-order logic, where e.g. the compactness theorem can be obtained from the \emph{existence} of a deductive calculus (with finite derivations).} The main consequence we shall use is the following:
+
+\begin{corollary}[Inversion]
+    \label{cor:inversion}
+    If $F$ is represented by $\calR$ and $y \in \mu F$, then there is a rule $R$ in $\calR$ with $y$ as consequent whose antecedents also lie in $\mu F$.
+\end{corollary}
+
+\begin{proof}
+    By \cref{prop:fixpoint-iff-derivation} there is a closed derivation $D$ of $y$ from $\calR$, and we denote its last rule by $R$. If $x$ is an antecedent of $R$, then some subderivation of $D$ is a derivation of $x$ by \cref{enum:subderivation}. Another application of \cref{prop:fixpoint-iff-derivation} then implies that $x \in \mu F$.
 \end{proof}
 
-\begin{corollarynoproof}
-    For every $x \in P$ either $x \in A$ or there is a smallest $n \in \naturals$ such that $x \in f_R(A_n^{\rho(R)})$ for some $R \in \calR$.
-\end{corollarynoproof}
-%
-Note that while $n$ is uniquely determined, $R$ may not be. We say that an inference rule $R$ satisfying the corollary is the rule \keyword{applied last} in the derivation of $x$. The intuition is that we construct a derivation tree for $x$, and $R$ is the rule at the root of the tree.
 
-We are of course used to these kinds of results in computer science, and we rarely stop to spell out the details. Since $P$ is the smallest predicate on $X$ with the above properties, we obtain a notion of structural induction or rule induction, and this is often sufficient to prove properties of $P$. But sometimes it is at least much more convenient to appeal to the \textquote{last inference rule applied}, as we shall see.\footnote{As mentioned, the proof of TODO does not go through for $\sigma$-algebras. The best we can do is apparently the following: If $\calD = \calD_0$ is a collection of subsets of $X$, let $\sigma(\calD)$ denote the smallest $\sigma$-algebra on $X$ containing $\calD$. If $\alpha$ is a countable ordinal with an immediate predecessor $\beta$, then we define $\calD_\alpha$ by transfinite induction to be the set of countable unions of elements of $\calD_\beta$ and complements of such sets, and otherwise we let $\calD_\alpha = \bigunion_{\beta < \alpha} \calD_\beta$. Then one can show that $\sigma(\calD) = \bigunion_{\alpha \in \Omega} \calD_\alpha$, where $\Omega$ is the set of countable ordinals. Cf. Folland TODO. Note however that we by minimality of $\sigma(\calD)$ do get a notion of induction, just as for predicates defined by inference rules. \par For topologies we do have a simple characterisation of the topology $\calT$ generated by a collection of sets $\calS$. In this case $\calS$ is a subbasis for $\calT$, i.e., every set in $\calT$ is a (generally infinite) union of finite intersections of elements in $\calS$. But notice that infinitely many set operations (finite intersections or arbitrary unions) are still required to obtain a general open set, since we take a finite intersection infinitely many times. \par On the other hand, results such as TODO ref are of course standard fare in algebra, where we obtain a similar description of the subalgebra generated by a subset of some algebra. See e.g. Bergman TODO}
 
-% \newcommand{\wand}{\mathrel{-\!\!*}}
-% \newcommand{\wand}{\mathrel{-\mkern-9mu-\mkern-7mu*}}
-% \newcommand{\revast}{\text{\reflectbox{$*$}}}
-% \newcommand{\wand}{\mathrel{-\mkern-10mu-\mkern-7mu\revast}}
 
-% \begin{equation*}
-%     \inferrule*[right=$\wand$E]{
-%         \inferrule*{}{
-%             P \vdash Q \wand R
-%         }
-%         \and
-%         \inferrule*[right=Asm]{ }{
-%             Q \vdash Q
-%         }
-%     }{
-%         P * Q \vdash R
-%     }
-% \end{equation*}
 
-% \begin{equation*}
-%     \inferrule*[right=$\land$I]{
-%         \inferrule*[right=$*$-weak]{ }{
-%             P * Q \vdash P
-%         }
-%         \and
-%         \inferrule*[right=Trans]{
-%             \inferrule*[right=$*$-comm]{ }{
-%                 P * Q \vdash Q * P
-%             }
-%             \and
-%             \inferrule*[right=$*$-weak]{ }{
-%                 Q * P \vdash Q
-%             }
-%         }{
-%             P * Q \vdash Q
-%         }
-%     }{
-%         P * Q \vdash P \land Q
-%     }
-% \end{equation*}
 
-% Preservation: If $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\tau}$ and $e \step e'$, then $\hastype{\Xi}{\Gamma}{\Sigma}{e'}{\tau}$.
+\newcommand{\hastype}[5]{%
+    \ifstrempty{#1}%
+        {%
+            \ifstrempty{#2}%
+            {%
+                #3 \vdash #4 : #5%
+            }{%
+                #2 \mid #3 \vdash #4 : #5%
+            }%
+        }{%
+            \ifstrempty{#2}%
+            {%
+                #1 \mid \emptyset \mid #3 \vdash #4 : #5%
+            }{%
+                #1 \mid #2 \mid #3 \vdash #4 : #5%
+            }%
+        }%
+}
+
+\newcommand{\stotype}[4]{%
+    \ifstrempty{#1}%
+        {%
+            \ifstrempty{#2}%
+            {%
+                #3 \vdash #4%
+            }{%
+                #2 \mid #3 \vdash #4%
+            }%
+        }{%
+            \ifstrempty{#2}%
+            {%
+                #1 \mid \emptyset \mid #3 \vdash #4%
+            }{%
+                #1 \mid #2 \mid #3 \vdash #4%
+            }%
+        }%
+}
+
 
 
 \chapter{General stuff about languages}
 
-\section{Syntax}
-
 We describe the general framework in which we may describe various programming languages, introducing the concepts that will later be defined precisely in the concrete setting of System~F.
 
-We first fix countable sets $\setVar$ of variables and $\setLoc$ of locations. The \keyword{expressions} of the language will be a set $\setExp$ containing both $\setVar$ and $\setLoc$, and we designate some of these expressions to be \keyword{values}, collected in a set $\setVal$. We think of an expression as specifying (part of) the state of the program, and values are states in which the computation of the program has finished. All locations will also be values, and these are supposed to model memory addresses. The memory state of the program (i.e. the part of the memory that the program has access to) is modelled by a \keyword{store}\footnote{Sometimes called a \keyword{heap}, but this has nothing to do with the heap \emph{data structure}.}, which is an element of $\pmaps[\omega]{\setLoc}{\setExp}$. We simply write $\setSto$ for this set of maps.
+\section{Syntax}
 
-For $e \in \setExp$ we define the set $\freevar{e} \subseteq \setVar$ of \keyword{free variables}. There are various ways of binding variables in expressions, and the notion of free variables is supposed to capture the idea that variables can be bound, e.g. by lambda abstraction, and hence also \emph{not} bound. If $\freevar{e} = \emptyset$, then we say that $e$ is \keyword{closed}.
+We first fix countable sets $\setVar$ of variables and $\setLoc$ of locations. The \keyword{expressions} of the language will be a set $\setExp$ containing both $\setVar$ and $\setLoc$, and we designate some of these expressions to be \keyword{values}, collected in a set $\setVal$. We think of an expression as specifying the state of a program, and values are states in which the computation of the program has finished. All locations will also be values, and these are supposed to model memory addresses. The memory state of the program (i.e. the part of the memory that the program has access to) is modelled by a \keyword{store}\footnote{Sometimes called a \keyword{heap}, but this has nothing to do with the heap \emph{data structure}.}, which is an element of $\pmaps[\omega]{\setLoc}{\setExp}$. We simply write $\setSto$ for this set of partial maps.
 
-When defining the set of expressions of a language, we are strictly speaking defining a concrete syntax for the language. However, while we write expressions as a linear sequence of characters, they are thought of as describing an abstract syntax. But since writing abstract syntax trees quickly becomes impractical, we instead express them using a more convenient linear shorthand. If $e_1$, $e_2$ and $e_3$ are expressions, an expression of the language might be $e_1\,e_2\,e_3$, but this might have two different derivations corresponding to $(e_1\,e_2)\,e_3$ and $e_1\,(e_2\,e_3)$, and to disambiguate the expression $e_1\,e_2\,e_3$ we must TODO [TODO Mogensen].
+For $e \in \setExp$ we define the set $\freevar{e} \subseteq \setVar$ of \keyword{free variables}. There are various ways of binding variables in expressions, and the notion of free variables is supposed to capture the idea that variables can be bound, e.g. by lambda abstraction, and hence also \emph{not} bound. If $\freevar{e} = \emptyset$, then we say that $e$ is \keyword{closed}. Complete programs do not have free variables, or if they do we specify their values before running the program, so we may assume that all programs are closed expressions. We will see the importance of this assumption when we prove a progress theorem for System F in [TODO ref].
+
+When defining the set of expressions of a language, we are strictly speaking defining a concrete syntax for the language. However, while we write expressions as a linear sequence of characters, they are thought of as describing an abstract syntax. But since writing abstract syntax trees quickly becomes impractical, we instead express them using a more convenient linear shorthand. If $e_1$, $e_2$ and $e_3$ are expressions, an expression in the concrete syntax of the language could be $e_1 \oplus e_2 \otimes e_3$, but this might have two different derivations from the grammar and hence correspond to two different abstract syntax trees represented by $(e_1 \oplus e_2) \otimes e_3$ and $e_1 \oplus (e_2 \otimes e_3)$. To disambiguate the expression $e_1 \oplus e_2 \otimes e_3$ we must either introduce precedence and associativity rules (external to the grammar itself), or else rewrite the grammar to be unambiguous. Luckily we do not need to deal with these issues since we will not have to parse programs written in our version of System F. If the need arises, we simply use parentheses to make the structure of the abstract syntax tree clear. [TODO Mogensen?]
 
 
 \section{Type system}
 
-We next define a set $\setType$ of types. This includes a countable set $\setTVar$ of type variables, any base types (e.g. unit, integer, and boolean types) as well as more complex types that can be constructed recursively from the base types. It also includes reference types, which are the types of locations. For $\tau \in \setType$ we define the set of \keyword{free type variables} $\freeTvar{\tau} \subseteq \setTVar$. As with free variables, these can be bound in various ways. If $\freeTvar{\tau} = \emptyset$, then we also say that $\tau$ is \keyword{closed}. A pair $(e,\tau)$ of an expression and a type is usually written $e : \tau$. An expression may also have types as subexpressions, for instance if a lambda abstraction has a type annotation on its parameter.
+In order to reason statically about the correctness and safety of a program, we introduce \keyword{types}. Each sufficiently \enquote{well-formed} expression will be assigned a type, and if it is possible to assign a type to an expression, then we say that the expression is \keyword{well-typed}. We specify rules which determine which expressions can be typed based on the types of their subexpressions.
 
-If an expression $e$ has free variables, then to specify the type of $e$ it is necessary to first specify the types of the free variables in $e$. This is done using a \keyword{type context}, which is an element of $\pmaps[\omega]{\setVar}{\setType}$. If $e$ is supposed to be well-typed in a type context $\Gamma$, then we of course require that $\freevar{e} \subseteq \dom \Gamma$. That is, $\Gamma$ must in fact specify the types of the variables that occur free in $e$.
+We thus define a set $\setType$ of types. This includes a countable set $\setTVar$ of type variables, any base types (e.g. unit, integer, and boolean types), as well as more complex types that can be constructed recursively from the base types such as function, product, or sum types. It also includes reference types, which are the types of locations. For $\tau \in \setType$ we define the set of \keyword{free type variables} $\freeTvar{\tau} \subseteq \setTVar$ in $\tau$. If $\freeTvar{\tau} = \emptyset$, then we also say that $\tau$ is \keyword{closed}. A pair $(e,\tau)$ of an expression and a type is usually written $e : \tau$. An expression may also have types as subexpressions, for instance if a lambda abstraction has a type annotation on its parameter, though this will not be the case for our version of System F.
 
-Furthermore, if $e$ has a location as a subexpression, then we need to be able to look up the type of the expression stored at this location in order to specify the type of $e$. Hence the type of $e$ will also depend on the store in question. However, it not in general possible to deduce the type of $e$ in this case: If $\sigma$ is a store, $l_1,l_2 \in \dom \sigma$, and if $\sigma(l_1)$ references $l_2$ and $\sigma(l_2)$ references $l_1$, then it is impossible to deduce the type of $\sigma(l_1)$. Hence the type of $e$ will instead depend on a given \keyword{store typing}, which is an element of $\pmaps[\omega]{\setLoc}{\setType}$. We of course require that the store typing in question actually contains in its domain all locations referenced in $e$, and we furthermore require that all free variables of $e$ lie in the domain of the current type context.
+If an expression $e$ has free variables, then to assign a type to $e$ it is (usually) necessary to first assign types to the free variables in $e$. This is done using a \keyword{type context}, which is a partial function $\pmaps[\omega]{\setVar}{\setType}$. If $e$ is to be well-typed in a type context $\Gamma$, then we (again usually) require that $\freevar{e} \subseteq \dom \Gamma$. That is, $\Gamma$ must in fact specify the types of the variables that occur free in $e$. Notice that it is possible for an expression to be well-typed in one context but not another. If for instance $e$ is the expression $x + 1$, then the typing rules will probably require the free variable $x$ to have some sort of numeric type in the given type context for $e$ to be well-typed.
+
+Furthermore, if $e$ has a location as a subexpression, then we need to be able to look up the type of the expression stored at this location in order to specify the type of $e$. Hence the type of $e$ can also depend on the store in question. However, it not in general possible to deduce the type of $e$ just by knowing the contents of the store: If $\sigma$ is a store with $l_1,l_2 \in \dom \sigma$, and if $\sigma(l_1)$ references $l_2$ and $\sigma(l_2)$ references $l_1$, then it is impossible to deduce the type of $\sigma(l_1)$. Hence we introduce a \keyword{store typing}, which is an element of $\pmaps[\omega]{\setLoc}{\setType}$ that assigns a type to each location. We of course require that the store typing in question actually contains in its domain all locations referenced in $e$, and we furthermore require that all free variables of $e$ lie in the domain of the current type context.
+
+Since a store $\sigma$ specifies the expressions at each location, and a store typing $\Sigma$ specifies the types of those locations, we of course require $\sigma(l)$ to be of type $\Sigma(l)$. In particular, for $\sigma$ to be well-typed we must have $\dom \sigma \subseteq \dom \Sigma$. [TODO but why equal? Refer to later proofs where we use this]
 
 It may be that the type of $e$ or of the types of the variables in the type context $\Gamma$ or of the expressions in the store typing $\Sigma$ contain type variables. In order to keep track of these we collect these in a (finite) set $\Xi$ and require that the free type variables in $\Gamma$ and $\Sigma$, defined by
 %
@@ -537,7 +651,7 @@ It may be that the type of $e$ or of the types of the variables in the type cont
 %
 are contained in $\Xi$. A variable $x$ is called \keyword{fresh} for $\Gamma$ if $x \not\in \dom \Gamma$. The finitude of $\dom \Gamma$ ensures that there always exist fresh variables (recall that there are countably infinitely many variables). If $\Delta$ is another type context such that $\dom \Gamma \intersect \dom \Delta = \emptyset$, then instead of $\Gamma \union \Delta$ we simply write $\Gamma,\Delta$. Furthermore, if $\Delta = \{x_1 : \tau_1, \ldots, x_n : \tau_n\}$ for distinct $x_i$, then we omit the braces and write $\Gamma, x_1 : \tau_1, \ldots, x_n : \tau_n$. If $\Xi$ and $\Phi$ are finite disjoint subsets of $\setTVar$, then we similarly write $\Xi,\Phi$ for $\Xi \union \Phi$, and if $\Phi = \{X_1, \ldots, X_n\}$ for distinct $X_i$, then we also write $\Xi, X_1, \ldots, X_n$.
 
-The semantics of the type system is captured by a five-place relation on the set
+We are now ready to describe the semantics of the type system precisely. The semantics is captured by a subset of the set
 %
 \begin{equation*}
     \powersetfin{\setTVar}
@@ -547,7 +661,11 @@ The semantics of the type system is captured by a five-place relation on the set
         \prod \setType,
 \end{equation*}
 %
-where an element $(\Xi,\Gamma,\Sigma,e,\tau)$ of this relation is written $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\tau}$ and is called a \keyword{type derivation}. This relation is usually defined recursively, by specifying a series of axioms and inference rules\footnote{Or more usually axiom and rule \emph{schemas}. TODO Pierce}. If $\Xi = \emptyset$, then we write $\hastype{}{\Gamma}{\Sigma}{e}{\tau}$ [TODO do we need this?], and we furthermore write $\hastype{}{}{\Sigma}{e}{\tau}$ if also $\Gamma = \emptyset$.
+where an element $(\Xi,\Gamma,\Sigma,e,\tau)$ of this set is written $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\tau}$ and is called a \keyword{type derivation}. If $\Xi = \emptyset$, then we simply denote the above element by $\hastype{}{\Gamma}{\Sigma}{e}{\tau}$ [TODO do we need this?], and we furthermore write $\hastype{}{}{\Sigma}{e}{\tau}$ if also $\Gamma = \emptyset$.
+
+Say that we have somehow settled on a semantics for the type system, i.e. a subset of the above product. We do not often refer to this set explicitly, but let us temporarily denote it $\calT$. Usually $\calT$ is defined recursively, by specifying a series of inference rules. Indeed, these inference rules represent a generating function, and $\calT$ will be the least fixed-point of this function.
+
+If a type derivation $\hastype{\Xi}{\Gamma}{\Sigma}{e}{\tau}$ lies in $\calT$, then we say that $e$ is \keyword{well-typed} in $\Xi,\Gamma,\Sigma$ with type $\tau$.
 
 
 \section{Dynamics}
@@ -563,132 +681,10 @@ One role of evaluation contexts is to specify the evaluation order of complex ex
 TODO multiple threads
 
 
-\section{Lambda calculus}
-
-The syntax of the untyped lambda calculus consists only of variables, abstractions and applications:
-%
-%
-\begin{alignat*}{2}
-    && x &\in \setVar \\
-    & \setExp \quad & e &\Coloneqq x \mid \lambda x.e \mid e\,e \\
-    & \setVal \quad & v &\Coloneqq \lambda x.e
-\end{alignat*}
-%
-This means that there in particular are expressions on the form $e_1\,e_2\,e_3$, and we use the convention that application is left-associative, i.e. that the above expression is to be read $(e_1\,e_2)\,e_3$. [TODO build into the grammar, Mogensen]
-
-The small-step reduction relation $\step$ on expressions formalises how to reduce expressions. For instance, the rule
-%
-\begin{equation*}
-    \inferrule*[right=E-app-abs]{ }{
-        (\lambda x . e_1) \, e_2 \step e_1[x \mapsto e_2]
-    }
-\end{equation*}
-%
-says that we can apply abstractions to other expressions. Such a rule is called a \keyword{computation rule}, and an expression $(\lambda x . e_1) \, e_2$ is called a \keyword{redex}. Rewriting a redex according to the above rule is called \keyword{$\beta$-reduction}.
-
-A more complex expression might not itself be a redex but instead have a redex as a subexpression. In this case we need other rules, so-called \keyword{congruence rules}, which tell us how to reduce complex expressions by reducing subexpressions. For instance, in the expression $e_1\,e_2$, do we evaluate $e_1$ before $e_2$ or vice versa? That is, does evaluation happen left-to-right or right-to-left, or do we allow this to be determined arbitrarily? This is of course especially important in languages with side-effects. Formally we impose an evaluation order by having either (or both) of the congruence rules
-%
-\begin{equation*}
-    \inferrule*[right=E-app1 \quad {\normalfont and} \quad]{
-        e_1 \step e_1'
-    }{
-        e_1 \, e_2 \step e_1' \, e_2
-    }
-    % \quad \text{and} \quad
-    \inferrule*[right=E-app2.]{
-        e_2 \step e_2'
-    }{
-        e_1 \, e_2 \step e_1 \, e_2'
-    }
-\end{equation*}
-%
-If we desire right-to-left evaluation order, then we choose \infrule{E-app2}, but we also need a restricted form of \infrule{E-app1}, namely
-%
-\begin{equation*}
-    \inferrule*[right=E-app1'.]{
-        e \step e'
-    }{
-        e \, v \step e' \, v
-    }
-\end{equation*}
-%
-That is, only when the right expression has been reduced to a value $v$ can we evaluate the left expression.
-
-We may also formalise the evaluation order by defining the reduction relation in terms of head reductions $\headstep$, and using evaluation contexts to impose an evaluation order. For instance,
-%
-\begin{equation*}
-    K \Coloneqq \hole \mid K \, e \mid v \, K
-    \quad \text{and} \quad
-    K \Coloneqq \hole \mid e \, K \mid K \, v
-\end{equation*}
-%
-define evaluation contexts for left-to-right and right-to-left evaluation, respectively. The symbol \enquote{$\hole$} is called the \keyword{hole}, and we think of the hole as the place into which we substitute the expression $e$ when writing $K[e]$.
-
-Computation and congruence rules together might also allow for different evaluation strategies, for instance:
-%
-\begin{enumerate}
-    \item Full $\beta$-reduction: We may reduce \emph{any} redex contained in an expression.
-
-    \item Normal order reduction: We must reduce the leftmost, outermost redex first.
-
-    \item Call-by-name: The subexpression $e_2$ of a redex $(\lambda x . e_1) \, e_2$ cannot be reduced. Instead, we must perform $\beta$-reduction without reducing $e_2$.
-
-    \item Call-by-value: Instead, $e_2$ \emph{must} be reduced to a value before $\beta$-reduction can take place.
-\end{enumerate}
-%
-For instance, in call-by-value we might have a restricted form of the rule \infrule{E-app-abs}, namely
-%
-\begin{equation*}
-    \inferrule*[right=E-app-abs'.]{ }{
-        (\lambda x . e) \, v \step e[x \mapsto v]
-    }
-\end{equation*}
-%
-That is, the argument must be a value $v$ for the reduction to take place. If we use evaluation contexts, this computation rule would be a rule concerning head reductions $\headstep$.
-
-
-Since the untyped lambda calculus does not allow abstractions to be named, it is not obvious how to define recursive functions. TODO
-
-
-\section{Recursion}
-
-Call by name: $Y = \lambda f . (\lambda x . f (xx)) (\lambda x . f (xx))$
-
-\begin{align*}
-    Y g
-        &= \lambda f . (\lambda x . f (xx)) (\lambda x . f (xx)) g \\
-        &\step (\lambda x . g (xx)) (\lambda x . g (xx)) \\
-        &\step g ((\lambda x . g (xx))(\lambda x . g (xx)))
-\end{align*}
-%
-On the other hand we also have
-%
-\begin{align*}
-    g (Y g)
-        &= g (\lambda f . (\lambda x . f (xx)) (\lambda x . f (xx)) g) \\
-        &\step g ((\lambda x . g (xx))(\lambda x . g (xx))).
-\end{align*}
-%
-That is, $Y g$ and $g (Y g)$ reduce to the same expression.
-
-Call by value: $Z = \lambda f . (\lambda x . f (\lambda y. x x y)) (\lambda x. f (\lambda y. x x y))$
-
-\begin{align*}
-    Z g
-        &= \lambda f . (\lambda x . f (\lambda y. x x y)) (\lambda x. f (\lambda y. x x y)) g \\
-        &\step (\lambda x . g (\lambda y. x x y)) (\lambda x. g (\lambda y. x x y)) \\
-        &\step g (\lambda y. (\lambda x. g (\lambda y. x x y)) (\lambda x. g (\lambda y. x x y)) y) \\
-        &\step g (  )
-\end{align*}
-
-\begin{align*}
-    g (Z g)
-        &= g (\lambda f . (\lambda x . f (\lambda y. x x y)) (\lambda x. f (\lambda y. x x y)) g) \\
-        &\step g ((\lambda x . g (\lambda y. x x y)) (\lambda x. g (\lambda y. x x y)))
-\end{align*}
-
-
 \chapter{System F}
+
+\newcommand{\derives}{\Rightarrow}
+\newcommand{\derivesmany}{\Rightarrow^*}
 
 The following grammar defines the syntax, the sets of values and types, and the evaluation contexts of System F:
 %
@@ -702,6 +698,59 @@ The following grammar defines the syntax, the sets of values and types, and the 
     & \setECtx \quad & K &\Coloneqq \hole \mid \objPair{K}{e} \mid \objPair{v}{K} \mid \cdots
 \end{alignat*}
 %
+We first note some difficulties with this and similar definitions. Recall that a \keyword{grammar} is a tuple $G = (V,\Sigma,P,S)$, where $V$ is a finite set of variables or non-terminal symbols, $\Sigma$ is a finite set of terminal symbols that is disjoint from $V$, $P$ is a finite rewriting system\footnote{A \keyword{rewriting system} $P$ on a set $A$ is a binary relation on $A^*$, i.e. a subset of $A^* \prod A^*$. An element of $P$ is called a \keyword{production}. If $(\alpha,\beta) \in P$ and $\gamma,\delta \in A^*$, then we write $\gamma \alpha \delta \derives \gamma \beta \delta$. This defines another binary relation $\derives$ on $A^*$, the reflexive and transitive closure of which is denoted $\derivesmany$.} on $V \union \Sigma$, and $S \in V$ is the start symbol. The language generated by $G$ is the language $L(G) = \set{\alpha \in \Sigma^*}{S \derivesmany \alpha}$. We say that $G$ is \keyword{context-free} if every production in $P$ is on the form $A \derives \alpha$, where $A \in V$.
+
+Notice especially that a grammar must only contain \emph{finitely} many productions, but also that the above \enquote{grammar} defining System F\footnote{We put the word \enquote{grammar} in scare quotes since it is not actually a grammar.} as written has infinitely many productions: For instance, there is a production $(e,x)$ for each of the infinitely many variables $x \in \setVar$. While this poses no problems for the abstract study of System F that we are undertaking, we note that it is (or at least in practice it will be) possible to rewrite the \enquote{grammar} so that it has only finitely many productions. We may for instance define the countably many variables recursively by the grammar with productions
+%
+\begin{equation*}
+    x \Coloneqq \objlang{x} \mid x\objlang{'},
+\end{equation*}
+%
+yielding the countably many variables $\objlang{x}$, $\objlang{x'}$, $\objlang{x''}$, and so on. Including these productions instead of the postulate \enquote{$x \in \setVar$} would solve at least this problem. We can do similarly for locations and type variables.
+
+Next we notice that the \enquote{grammar} has no obvious start symbol. Indeed, we may take any of $e$, $v$, $\tau$ or $K$ to be the start symbol, depending on the type of string we wish to construct.
+
+With these issues dealt with, we now relate grammars and the languages they generate to the results from TODO ref, and in particular to inference rules. In fact, since the \enquote{grammar} defining System F is not a proper grammar, we consider more broadly \keyword{infinite grammars}. An infinite grammar is just a grammar $G = (V,\Sigma,P,S)$, except that we allow $V$, $\Sigma$ and $P$ to be infinite. Given $G$ we construct a collection of inference rules as follows: First add the axiom
+%
+\begin{equation*}
+    \inferrule*{
+    }{
+        S
+    }
+\end{equation*}
+%
+saying that we can always derive the start symbol $S$. Next, for every production $(\alpha,\beta) \in P$ and strings $\gamma,\delta \in (V \union \Sigma)^*$ we add the rule
+%
+\begin{equation*}
+    \inferrule*{
+        \gamma\alpha\delta
+    }{
+        \gamma\beta\delta
+    }
+\end{equation*}
+%
+Denote the resulting collection of inference rules $\calR_G$.
+
+\begin{proposition}
+    $\mu \calR_G = \set{\alpha \in (V \union \Sigma)^*}{S \derivesmany \alpha}$. In particular, TODO no variables % TODO: Define \mu \calR
+\end{proposition}
+
+\begin{proof}
+    Denote the set $\set{\alpha \in (V \union \Sigma)^*}{S \derivesmany \alpha}$ by $\tilde{L}(G)$. We prove the inclusion \enquote{$\subseteq$} by rule induction, cf. \cref{thm:rule-induction}.
+\end{proof}
+
+TODO if all rules have one antecedent, maybe let that define a relation (axioms don't give an element of the relation) + show about transitive closure?
+
+
+
+\begin{lemma}
+    $\setVal \subseteq \setExp$.
+\end{lemma}
+
+\begin{proof}
+    
+\end{proof}
+
 Notice that $\setLoc \subseteq \setVal \subseteq \setExp$ as we required in TODO ref. If $K$ is an evaluation context and $e$ is an expression, then we define $K[e]$ recursively by
 %
 \begin{align*}
@@ -996,6 +1045,8 @@ The proof is by induction on the typing relation $\hastype{\Xi}{\Gamma}{\Sigma}{
 
 \section{Preservation}
 
+If $\Xi \subseteq_\omega \setTVar$, $\Gamma$ is a type context and $\Sigma$ is a store typing, then we say that a store $\sigma$ is \keyword{well-typed} with respect to $\Xi$, $\Gamma$ and $\Sigma$ if $\dom \sigma = \dom \Sigma$ and $\hastype{\Xi}{\Gamma}{\Sigma}{\sigma(l)}{\Sigma(l)}$ for all $l \in \dom \sigma$. In this case we write $\stotype{\Xi}{\Gamma}{\Sigma}{\sigma}$, and if $\Xi$ and $\Gamma$ are both empty we simply write $\stotype{}{}{\Sigma}{\sigma}$.
+
 \begin{theorem}[Preservation]
     If
     %
@@ -1129,313 +1180,131 @@ TODO rest
 \end{proof}
 
 
-\chapter{Fixed-points and Induction}
+\chapter{Misc}
 
-Overview: generating functions, in terms of inference rules
+\section{Lambda calculus}
 
-complete lattice -> Knaster-Tarski -> induction -> rule induction
+The syntax of the untyped lambda calculus consists only of variables, abstractions and applications:
+%
+%
+\begin{alignat*}{2}
+    && x &\in \setVar \\
+    & \setExp \quad & e &\Coloneqq x \mid \lambda x.e \mid e\,e \\
+    & \setVal \quad & v &\Coloneqq \lambda x.e
+\end{alignat*}
+%
+This means that there in particular are expressions on the form $e_1\,e_2\,e_3$, and we use the convention that application is left-associative, i.e. that the above expression is to be read $(e_1\,e_2)\,e_3$. [TODO build into the grammar, Mogensen]
 
-dcp(p)o -> Kleene and continuity -> finite derivations -> inversion
-
-Note for readers not interested in details.
-
-
-\section{Abstract theory}
-
-\newpar
-
-Let $(P,\leq)$ be a partially ordered set\footnote{That is, $\leq$ is a reflexive, transitive and anti-symmetric binary relation on $P$.}. If $A \subseteq P$, then an element $x \in P$ is called an \keyword{upper bound} of $A$ if $a \leq x$ for all $a \in A$. If there is a least upper bound $x$ (i.e., such that if $y$ is any other upper bound, then $x \leq y$), then $x$ is called the \keyword{join} of $A$. The join is clearly unique if it exists (by anti-symmetry), and we write $\bigjoin A$ for the join of $A$. We similarly define the \keyword{meet} of $A$, denoted $\bigmeet A$, to be the greatest lower bound of $A$, if it exists. If every two-element subset of $P$ has a join and a meet, then $P$ is called a \keyword{lattice}, and we write $x \join y = \bigjoin \{x,y\}$ and $x \meet y = \bigmeet \{x,y\}$. If every subset of $P$ has a join and a meet, then $P$ is a \keyword{complete lattice}.
-
-If $P$ is a partially ordered set, then a subset $D \subseteq P$ is said to be \keyword{directed} if, for every pair of elements $x,y \in D$, there exists a $z \in D$ with $x \leq z$ and $y \leq z$. That is, $D$ is directed if every two-element subset of $D$ has an upper bound in $D$ (but not necessarily a \emph{least} upper bound, i.e. a join). By induction any \emph{finite} subset of $D$ also has an upper bound in $D$.\footnote{As an example of why directedness in interesting, recall that a union of a collection of subspaces of a vector space is not usually a subspace itself, but it is if the collection is directed (with respect to inclusion). Similarly for subgroups and other algebraic structures.} We further note that the image of a directed set under a monotone map is also directed. If $D$ is a directed set for which the join $\bigjoin D$ exists, we often write $\bigdjoin D$ instead. If $\bigdjoin D$ exists for every directed subset $D$ of $P$, then $P$ is called a \keyword{directly complete partial order}, or \keyword{dcpo} for short. If $P$ also has a least element, usually written $\bot$, then $P$ is called a \keyword{dcppo} (the extra \enquote{p} is for \enquote{pointed}). Notice that complete lattices are dcppo's.
-
-Let $F \colon P \to P$ be a monotone\footnote{A map $f \colon P \to Q$ between posets is \keyword{monotone} if $x \leq y$ implies $f(x) \leq f(y)$ for all $x,y \in P$} map. We think of $F$ as a \keyword{generating function}. An element $x \in P$ is said to be \keyword{$F$-closed} if $F(x) \leq x$, \keyword{$F$-consistent} if $x \leq F(x)$, and a \keyword{fixed-point} of $F$ if $F(x) = x$. If $F$ has a least fixed-point, then this is usually denoted $\mu F$. Similarly, the greatest fixed-point, if it exists, is denoted $\nu F$.
-
-
-\newpar
-
-We begin by studying dcpo's. If $P$ and $Q$ are dcpo's, then a map $f \colon P \to Q$ is \keyword{continuous}\footnote{Also called \keyword{Scott-continuous} after Dana Scott.} if, for every directed $D \subseteq P$, the image $f\image{D}$ is directed and
+The small-step reduction relation $\step$ on expressions formalises how to reduce expressions. For instance, the rule
 %
 \begin{equation*}
-    f \bigl( \bigdjoin D \bigr)
-        = \bigdjoin f\image{D}.
-\end{equation*}
-%
-It is easy to show that continuous maps are monotone (notice that if $x \leq y$, then the set $\{x,y\}$ is directed). If conversely $f$ is monotone, then $f\image{D}$ is as mentioned also directed, and the inequality \enquote{$\geq$} always holds.
-
-Now let $P$ be a dcppo and $F \colon P \to P$ a monotone function. We clearly have $\bot \leq F(\bot)$, and since $F$ is monotone we get the chain\footnote{A \keyword{chain} is a totally ordered set.}
-%
-\begin{equation*}
-    \bot
-        \leq F(\bot)
-        \leq \cdots
-        \leq F^n(\bot)
-        \leq F^{n+1}(\bot)
-        \leq \cdots
-\end{equation*}
-%
-called the \keyword{ascending Kleene chain}. Since it is a chain it is also directed. The main theorem is the following:
-
-\begin{theorem}[Kleene's fixed-point theorem]
-    \label{thm:kleene-fixpoint-theorem}
-    If $P$ is a dcppo and $F \colon P \to P$ is continuous, then $F$ has a least fixed-point $\mu F$ and
-    %
-    \begin{equation*}
-        \mu F
-            = \bigdjoin_{n \in \naturals} F^n(\bot).
-    \end{equation*}
-\end{theorem}
-
-\begin{proof}
-    First notice that, since $F$ is continuous,
-    %
-    \begin{equation*}
-        F \Bigl( \bigdjoin_{n \in \naturals} F^n(\bot) \Bigr)
-            = \bigdjoin_{n \in \naturals} F^{n+1}(\bot)
-            = \bigdjoin_{n \in \naturals^+} F^n(\bot)
-            = \bigdjoin_{n \in \naturals} F^n(\bot),
-    \end{equation*}
-    %
-    where we use that $F^0(\bot) = \bot$. Hence $\bigdjoin_{n \in \naturals} F^n(\bot)$ is indeed a fixed-point of $F$. If $\beta$ is any fixed-point of $F$, then $\bot \leq \beta$, and hence $F^n(\bot) \leq F^n(\beta) = \beta$ since $F$ is monotone. Taking the join on the left-hand side yields $\bigdjoin_{n \in \naturals} F^n(\bot) \leq \beta$ as desired.
-\end{proof}
-
-
-\newpar
-
-Next, let $L$ be a complete lattice, and let $F \colon L \to L$ be a monotone map. Even though $L$ is also a dcppo, if $F$ is not continuous then \cref{thm:kleene-fixpoint-theorem} does not apply. However, $F$ still has fixpoints, as the following theorem shows:
-
-\begin{theorem}[Knaster--Tarski's fixed-point theorem]
-    \label{thm:knaster-tarski}
-    If $L$ is a complete lattice and $F \colon L \to L$ is monotone, then $F$ has a least and a greatest fixed-point, and these are given by
-    %
-    \begin{equation*}
-        \mu F
-            = \bigmeet \set{x \in L}{F(x) \leq x}
-        \quad \text{and} \quad
-        \nu F
-            = \bigjoin \set{x \in L}{x \leq F(x)}.
-    \end{equation*}
-    %
-    In particular, $\mu F$ is the smallest $F$-closed element and $\nu F$ is the greatest $F$-consistent element in $L$.
-\end{theorem}
-
-\begin{proof}
-    Denote the meet above by $\alpha$. If $x$ is $F$-closed, then $\alpha \leq x$, so $F(\alpha) \leq F(x) \leq x$. Taking the meet of $x$ we get $F(\alpha) \leq \alpha$, so $\alpha$ is closed. It follows that $F(F(\alpha)) \leq F(\alpha)$, so $F(\alpha)$ is also closed, and so $\alpha \leq F(\alpha)$. Hence $\alpha$ is a fixed-point. Since every other fixed-point is in particular closed, $\alpha$ is the least fixed-point.
-\end{proof}
-
-\begin{corollarynoproof}[Principle of induction]
-    \label{cor:induction-abstract}
-    If $y \in L$ is $F$-closed, then $\mu F \leq y$.\footnote{We dually have a \keyword{principle of coinduction}: If $y \in L$ is $F$-consistent, then $y \leq \nu F$.}
-\end{corollarynoproof}
-
-
-
-
-
-
-% If $x \leq F(x)$ for all $x \in L$, then we say that $F$ is \keyword{extensive}.\footnote{That is, $F$ is extensive if all elements of $x$ are $F$-consistent.} Clearly not all monotone functions are extensive, but it is useful to associate to $F$ an extensive function with the same least fixed-point.
-
-% \begin{proposition}
-%     If $F,G \colon L \to L$ are monotone and\footnote{We define the join on the set of functions $L \to L$ pointwise. Notice that the join of two monotone functions is again monotone.} $H = F \join G$, then $\mu H$ is the smallest element that is both $F$-closed and $G$-closed.
-% \end{proposition}
-
-% \begin{proof}
-%     First notice that
-%     %
-%     \begin{equation*}
-%         \mu H
-%             = H(\mu H)
-%             = F(\mu H) \join G(\mu H),
-%     \end{equation*}
-%     %
-%     so $\mu H$ is both $F$- and $G$-closed. Conversely, if $y \in L$ is both $F$- and $G$-closed, then
-%     %
-%     \begin{equation*}
-%         H(y)
-%             = F(y) \join G(y)
-%             \leq y,
-%     \end{equation*}
-%     %
-%     so $y$ is also $H$-closed, and hence $\mu H \leq y$.
-% \end{proof}
-% %
-% Now notice that every element of $L$ is closed with respect to the identity function $\id_L \colon L \to L$, yielding the following:
-
-% \begin{corollarynoproof}
-%     If $\overline{F} = F \join \id_L$, then $\overline{F}$ is extensive and $\mu \overline{F} = \mu F$.
-% \end{corollarynoproof}
-
-
-\section{In power sets}
-
-\newpar
-
-Specialising to the case where $L$ is a power set $\powerset{X}$, one way to define a generating function is using inference rules. An \keyword{inference rule} on $X$ is an expression on the form
-%
-\begin{equation*}
-    \inferrule*[left=Rule]{
-        x_1 \and x_2 \and \cdots \and x_k
-    }{
-        y
+    \inferrule*[right=E-app-abs]{ }{
+        (\lambda x . e_1) \, e_2 \step e_1[x \mapsto e_2]
     }
 \end{equation*}
 %
-where $x_1, \ldots, x_k$ and $y$ are elements of $X$, and $k \in \naturals$.\footnote{We could equivalently view an inference rule as an element of the product $X^k \prod X$.} We allow $k$ to be zero, in which case we call the rule an \keyword{axiom}. We have decorated the expression with the label \enquote{\infrule{Rule}} so that we may refer to it later. Let us call $x_1, \ldots, x_k$ the \keyword{antecedents} of the rule and $y$ the \keyword{consequent}. Given a (possibly infinite) collection of inference rules, we construct a generating function $F \colon \powerset{X} \to \powerset{X}$ by defining $F(A)$ for a subset $A \subseteq X$ as follows: For $y \in X$ we let $y \in F(A)$ if and only if there is an inference rule whose consequent is $y$ and whose antecedents lie in $A$. We say that $F$ is \keyword{represented by} this collection of inference rules.
+says that we can apply abstractions to other expressions. Such a rule is called a \keyword{computation rule}, and an expression $(\lambda x . e_1) \, e_2$ is called a \keyword{redex}. Rewriting a redex according to the above rule is called \keyword{$\beta$-reduction}.
 
-Clearly $F$ is monotone if it is represented by a collection of inference rules, so it has a least fixed-point $\mu F$ and we get a principle of induction. However, it is useful to restate induction in terms of the inference rules, since we usually have explicit rules in mind when defining $F$. If $\calR$ is a collection of inference rules on $X$, then we say that a subset $A \subseteq X$ is \keyword{$\calR$-closed} if, given any rule $R \in \calR$ with antecedents lying in $A$, the consequent of $R$ also lies in $A$.
-
-\begin{lemma}
-    \label{lem:R-closed-F-closed}
-    If $F$ is represented by a collection $\calR$ of inference rules, then a subset $A \subseteq X$ is $F$-closed if and only if it is $\calR$-closed.
-\end{lemma}
-
-\begin{proof}
-    First assume that $A$ is $F$-closed so that $F(A) \subseteq A$, and consider a rule from $\calR$ with antecedents $x_1, \ldots, x_k \in A$ and consequent $y$. Since $F$ is represented by $\calR$, this implies that $y \in F(A) \subseteq A$, so $A$ is $\calR$-closed.
-
-    If $A$ is $\calR$-closed, then let $y \in F(A)$. Hence there is a rule in $\calR$ with consequent $y$ and antecedents $x_1, \ldots, x_k \in A$. But since $A$ is $\calR$-closed, this implies that $y \in A$, and so $F(A) \subseteq A$.
-\end{proof}
-
-
-\begin{theorem}[Principle of rule induction]
-    If $F$ is represented by $\calR$ and $A \subseteq X$, then to show that $\mu F \subseteq A$, it suffices to show the following condition: For every inference rule $R \in \calR$ with antecedents lying in $A$, the consequent of $R$ also lies in $A$.
-\end{theorem}
-
-\begin{proof}
-    The condition says precisely that $A$ is $\calR$-closed, which implies that $A$ is $F$-closed by \cref{lem:R-closed-F-closed}. But then \cref{cor:induction-abstract} implies that $\mu F \subseteq A$.
-\end{proof}
-
-
-
-% If $G$ is another generating function represented by a collection of inference rules, then we have the following:
-
-% \begin{lemma}
-%     If $F$ is represented by inference rules $\calR$ and $G$ is represented by $\calR'$, then $F \union G$ is represented by $\calR \union \calR'$.
-% \end{lemma}
-
-% \begin{proof}
-%     Let $H = F \union G$, and let $A \subseteq X$. If $y \in H(A)$, then assume without loss of generality that $y \in F(A)$. Then $y$ is the consequent of some inference rule in $\calR$ whose antecedents lie in $A$. But then $y$ is obviously also the consequent of an inference rule in $\calR \union \calR'$.
-
-%     Conversely, if $y$ is a consequent of an inference rule in $\calR \union \calR'$ with antecedents in $A$, then assume without loss of generality that this rule lies in $\calR$. But then $y \in F(A) \subseteq H(A)$.
-% \end{proof}
-% %
-% Now notice that the identity function $\id_{\powerset{X}}$ is represented by the collection of inference rules
-% %
-% \begin{equation*}
-%     \inferrule*[left=$\infrule{ID}_x$]{
-%         x
-%     }{
-%         x
-%     }
-% \end{equation*}
-% %
-% for all $x \in X$.\footnote{Notice that this is indeed a \emph{collection} of inference rules, one for each $x \in X$. The rule as written is thus more properly a rule \emph{schema}.} Given a representation $\calR$ of $F$, we thus obtain a representation $\overline{\calR}$ of $\overline{F}$ by augmenting $\calR$ with all identity rules:
-% %
-% \begin{propositionnoproof}
-%     If $F$ is represented by $\calR$, then $\overline{F}$ is represented by
-%     %
-%     \begin{equation*}
-%         \overline{\calR}
-%             = \calR \union \set{\infrule{ID}_x}{x \in X}.
-%     \end{equation*}
-% \end{propositionnoproof}
-
-% Knowing that $F$ is monotone is enough to yield a principle of induction, but sometimes it is necessary (or at least useful) to have an alternative characterisation of $\mu F$, one that makes use of the fact that the number of antecedents of an inference rule is finite. Assume that $F$ is extensive, and define a sequence $(A_n)_{n \in \naturals}$ of subsets of $X$ as follows: Let $A_0 = \emptyset$, and let $A_{n+1} = F(A_n)$ for $n \in \naturals$. Since $F$ is extensive, this is an increasing sequence. Finally let $A_\infty = \bigunion_{n \in \naturals} A_n$. We then have the following:
-
-% \begin{lemma}
-%     If $F$ is extensive, then $A_\infty = \mu F$.
-% \end{lemma}
-
-% \begin{proof}
-%     For the inclusion \enquote{$\subseteq$}, notice that $A_0 = \emptyset \subseteq \mu F$, and that $A_{n+1} = F(A_n) \subseteq F(\mu F) = \mu F$ by induction in $n$ and induction hypothesis $A_n \subseteq \mu F$.
-
-%     To prove the inclusion \enquote{$\supseteq$} it suffices to show that $A_\infty$ is $F$-closed, so consider an element $y \in F(A_\infty)$. Then there is an inference rule with $y$ as consequent and whose antecedents $x_1, \ldots, x_k$ lie in $A_\infty$. But then there exist indices $n_1, \ldots, n_k$ such that $x_i \in A_{n_i}$. Letting\footnote{Here we use that inference rules have finitely many antecedents, and that the sequence $(A_n)$ is increasing.} $N = \max\{n_1, \ldots, n_k\}$ it follows that $x_i \in A_N$ for all $i$. But then $y \in F(A_N) = A_{N+1}$ by definition of $F$, so $y \in A_\infty$. Hence $A_\infty$ is $F$-closed.
-% \end{proof}
-
-
-\newpar
-
-\newcommand{\assum}[1]{\operatorname{asm}#1}
-\newcommand{\concl}[1]{\operatorname{con}#1}
-\newcommand{\derlen}[1]{l(#1)}
-
-
-[TODO rewrite] But sometimes it is necessary (or at least useful) to have an alternative characterisation of $\mu F$, one that makes use of the fact that the number of antecedents of an inference rule is finite. This has the following consequence:
-
-\begin{lemma}
-    If $F$ is represented by a collection of inference rules, then $F$ is continuous.
-\end{lemma}
-
-\begin{proof}
-    It suffices to show that if $\calD \subseteq \powerset{X}$ is directed, then $F(\bigdjoin \calD) \subseteq \bigdjoin F\image{\calD}$, so let $y \in F(\bigdjoin \calD)$. Say that $F$ is represented by a collection $\calR$. Then there is a rule in $\calR$ with antecedents $x_1, \ldots, x_k \in \bigdjoin \calD$ and consequent $y$. Since the (directed) join in $\powerset{X}$ is just union, there are sets $A_1, \ldots, A_k \in \calD$ such that $x_i \in A_i$. And since $\calD$ is directed there is a set $A \in \calD$ with $A_i \subseteq A$, so that $x_i \in A$ for all $i$. But then $y \in F(A) \subseteq \bigdjoin F\image{\calD}$ as desired.
-\end{proof}
+A more complex expression might not itself be a redex but instead have a redex as a subexpression. In this case we need other rules, so-called \keyword{congruence rules}, which tell us how to reduce complex expressions by reducing subexpressions. For instance, in the expression $e_1\,e_2$, do we evaluate $e_1$ before $e_2$ or vice versa? That is, does evaluation happen left-to-right or right-to-left, or do we allow this to be determined arbitrarily? This is of course especially important in languages with side-effects. Formally we impose an evaluation order by having either (or both) of the congruence rules
 %
-Hence, \cref{thm:kleene-fixpoint-theorem} implies that $\mu F = \bigdjoin_{n \in \naturals} F^n(\emptyset)$.
-
-
-
-We now make this more concrete. If $\calR$ is a collection of inference rules, then a \keyword{derivation} from $\calR$ is a finite sequence $D = (R_1, \ldots, R_n)$ of inference rules from $\calR$. If $y$ is a consequent of some $R_i$, then we say that $y$ is a \keyword{conclusion} of $D$. The consequent of $R_n$ is called the \keyword{final conclusion} of $D$. We say that $x \in X$ is an \keyword{assumption} of $D$ if $x$ is an antecedent of some $R_i$, and if none of the rules $R_1, \ldots, R_{i-1}$ has $x$ as its antecedent. That is, $x$ is an assumption if it is not implied by any of the previous rules in the derivation. The set of conclusion of $D$ is denoted $\concl{D}$, and the set of assumptions of $D$ is denoted $\assum{D}$. If $\assum{D} = \emptyset$, then we say that $D$ is \keyword{closed}.
-
-\begin{remark}
-    Let $D = (R_1, \ldots, R_n)$ be a derivation.
-    %
-    \begin{enumrem}
-        \item If $D$ is closed, then $R_1$ must be an axiom.
-    
-        \item\label{enum:subderivation} For any $i \in \{1, \ldots, n\}$, $D' = (R_1, \ldots, R_i)$ is called a \keyword{subderivation} of $D$. If $i < n$, then $D'$ is called a \keyword{strict subderivation} of $D$ (so $D'$ is a strict subderivation when $D' \neq D$). It is clear that $\assum{D'} \subseteq \assum{D}$ and $\concl{D'} \subseteq \assum{D}$, so $D'$ is closed if $D$ is closed.
-    
-        \item\label{enum:derivation-antecedent} If $D$ is closed and $x$ is an antecedent of some $R_i$, then $D$ has a strict subderivation $D'$ whose final consequence is $x$: For $x$ must be the consequent of some $R_1, \ldots, R_{i-1}$, say $R_j$, and $(R_1, \ldots, R_j)$ is closed subderivation of $D$ by \subcref{enum:subderivation}.
-
-        \item\label{enum:derivation-composition} If $E = (S_1, \ldots, S_m)$ is another derivation, then
-        %
-        \begin{equation*}
-            D \circ E
-                \defeq (R_1, \ldots, R_n, S_1, \ldots, S_m)
-        \end{equation*}
-        %
-        is another derivation. It is clear that
-        %
-        \begin{equation*}
-            \assum{(D \circ E)}
-                = \assum{D} \union (\assum{E} \setminus \concl{D}),
-        \end{equation*}
-        %
-        that
-        %
-        \begin{equation*}
-            \concl{(D \circ E)}
-                = \concl{D} \union \concl{E},
-        \end{equation*}
-        %
-        and that the final conclusion of $D \circ E$ is the final conclusion of $E$. In particular, if $D$ is closed and $\assum{E} \subseteq \concl{D}$, then $D \circ E$ is also closed.
-
-        \item The \keyword{length} of a derivation $D = (R_1, \ldots, R_n)$ is $n$, and this is denoted $\derlen{D}$. If $D'$ is a subderivation of $D$, then $\derlen{D'} \leq \derlen{D}$ with equality if and only if $D' = D$. If $E$ is another derivation, then $\derlen{D \circ E} = \derlen{D} + \derlen{E}$.
-    \end{enumrem}
-\end{remark}
-
-
-\begin{proposition}
-    \label{prop:fixpoint-iff-derivation}
-    If $F$ is represented by $\calR$ and $y \in X$, then $y \in \mu F$ if and only if $y$ is the final conclusion of some closed derivation from $\calR$.
-\end{proposition}
-
-\begin{proof}
-    First assume that $y \in \mu F$, and recall that $\mu F = \bigdjoin_{n \in \naturals} F^n(\emptyset) = \bigunion_{n \in \naturals} F^n(\emptyset)$. We prove by induction in $n$ that every element in $F^n(\emptyset)$ is the final conclusion of a closed derivation. The base case $y \in F^0(\emptyset) = \emptyset$ is vacuous, so let $n \in \naturals$ and assume that the claim holds for every element of $F^n(\emptyset)$. If $y \in F^{n+1}(\emptyset) = F(F^n(\emptyset))$, then there is an inference rule $R$ with consequent $y$ and antecedents $x_1, \ldots, x_k$ that lie in $F^n(\emptyset)$. By induction each $x_i$ is the final conclusion of some derivation $D_i$, and by \cref{enum:derivation-composition} the derivation $D_1 \circ \cdots \circ D_k \circ (R)$ is a closed derivation, and $y$ is its final conclusion.
-
-    % For a general $F$ we apply the above to $\overline{F}$ to obtain a derivation $D$ of $y \in \mu \overline{F}$ from $\overline{\calR}$. We then delete all occurrences of the rules $\infrule{ID}_x$ from $D$, and the result is clearly a derivation of $y$ from $\calR$. Since $\mu F = \mu \overline{F}$ by TODO ref, the first implication follows.
-
-    We prove the converse by (strong) induction on the length of a derivation. If $y$ is the final conclusion of a closed derivation $(R)$ of length $1$, then $R$ must be an axiom. But then $y \in F(\emptyset) \subseteq \mu F$ since $F$ is represented by $\calR$. Next, let $n \in \naturals$ and let $y$ be the final conclusion of a closed derivation $D = (R_1, \ldots, R_{n+1})$. If $x$ is an antecedent of $R_{n+1}$, then by \cref{enum:derivation-antecedent} $D$ must have a strict subderivation $D'$ whose final conclusion is $x$. By \cref{enum:subderivation} $D'$ is also closed, and so $x \in \mu F$ by induction. But then we must have $y \in F(\mu F) = \mu F$ as desired.
-\end{proof}
+\begin{equation*}
+    \inferrule*[right=E-app1 \quad {\normalfont and} \quad]{
+        e_1 \step e_1'
+    }{
+        e_1 \, e_2 \step e_1' \, e_2
+    }
+    % \quad \text{and} \quad
+    \inferrule*[right=E-app2.]{
+        e_2 \step e_2'
+    }{
+        e_1 \, e_2 \step e_1 \, e_2'
+    }
+\end{equation*}
 %
-It is of course standard to use derivation \emph{trees}, but all that matters is that there is a finite way to obtain elements in $\mu F$. Since it is easier to define and reason about linear derivations -- and since we will not have to do any actual derivations -- we have taken this approach here.\footnote{Compare the role of deductive calculi in first-order logic, where e.g. the compactness theorem can be obtained from the \emph{existence} of a deductive calculus (with finite derivations).} The main consequence we shall use is the following:
+If we desire right-to-left evaluation order, then we choose \infrule{E-app2}, but we also need a restricted form of \infrule{E-app1}, namely
+%
+\begin{equation*}
+    \inferrule*[right=E-app1'.]{
+        e \step e'
+    }{
+        e \, v \step e' \, v
+    }
+\end{equation*}
+%
+That is, only when the right expression has been reduced to a value $v$ can we evaluate the left expression.
 
-\begin{corollary}[Inversion]
-    If $F$ is represented by $\calR$ and $y \in \mu F$, then there is a rule $R$ in $\calR$ with $y$ as consequent whose antecedents also lie in $\mu F$.
-\end{corollary}
+We may also formalise the evaluation order by defining the reduction relation in terms of head reductions $\headstep$, and using evaluation contexts to impose an evaluation order. For instance,
+%
+\begin{equation*}
+    K \Coloneqq \hole \mid K \, e \mid v \, K
+    \quad \text{and} \quad
+    K \Coloneqq \hole \mid e \, K \mid K \, v
+\end{equation*}
+%
+define evaluation contexts for left-to-right and right-to-left evaluation, respectively. The symbol \enquote{$\hole$} is called the \keyword{hole}, and we think of the hole as the place into which we substitute the expression $e$ when writing $K[e]$.
 
-\begin{proof}
-    By \cref{prop:fixpoint-iff-derivation} there is a closed derivation $D$ of $y$ from $\calR$, and we denote its last rule by $R$. If $x$ is an antecedent of $R$, then some subderivation of $D$ is a derivation of $x$ by \cref{enum:subderivation}. Another application of \cref{prop:fixpoint-iff-derivation} then implies that $x \in \mu F$.
-\end{proof}
+Computation and congruence rules together might also allow for different evaluation strategies, for instance:
+%
+\begin{enumerate}
+    \item Full $\beta$-reduction: We may reduce \emph{any} redex contained in an expression.
+
+    \item Normal order reduction: We must reduce the leftmost, outermost redex first.
+
+    \item Call-by-name: The subexpression $e_2$ of a redex $(\lambda x . e_1) \, e_2$ cannot be reduced. Instead, we must perform $\beta$-reduction without reducing $e_2$.
+
+    \item Call-by-value: Instead, $e_2$ \emph{must} be reduced to a value before $\beta$-reduction can take place.
+\end{enumerate}
+%
+For instance, in call-by-value we might have a restricted form of the rule \infrule{E-app-abs}, namely
+%
+\begin{equation*}
+    \inferrule*[right=E-app-abs'.]{ }{
+        (\lambda x . e) \, v \step e[x \mapsto v]
+    }
+\end{equation*}
+%
+That is, the argument must be a value $v$ for the reduction to take place. If we use evaluation contexts, this computation rule would be a rule concerning head reductions $\headstep$.
 
 
+Since the untyped lambda calculus does not allow abstractions to be named, it is not obvious how to define recursive functions. TODO
+
+
+\section{Recursion}
+
+Call by name: $Y = \lambda f . (\lambda x . f (xx)) (\lambda x . f (xx))$
+
+\begin{align*}
+    Y g
+        &= \lambda f . (\lambda x . f (xx)) (\lambda x . f (xx)) g \\
+        &\step (\lambda x . g (xx)) (\lambda x . g (xx)) \\
+        &\step g ((\lambda x . g (xx))(\lambda x . g (xx)))
+\end{align*}
+%
+On the other hand we also have
+%
+\begin{align*}
+    g (Y g)
+        &= g (\lambda f . (\lambda x . f (xx)) (\lambda x . f (xx)) g) \\
+        &\step g ((\lambda x . g (xx))(\lambda x . g (xx))).
+\end{align*}
+%
+That is, $Y g$ and $g (Y g)$ reduce to the same expression.
+
+Call by value: $Z = \lambda f . (\lambda x . f (\lambda y. x x y)) (\lambda x. f (\lambda y. x x y))$
+
+\begin{align*}
+    Z g
+        &= \lambda f . (\lambda x . f (\lambda y. x x y)) (\lambda x. f (\lambda y. x x y)) g \\
+        &\step (\lambda x . g (\lambda y. x x y)) (\lambda x. g (\lambda y. x x y)) \\
+        &\step g (\lambda y. (\lambda x. g (\lambda y. x x y)) (\lambda x. g (\lambda y. x x y)) y) \\
+        &\step g (  )
+\end{align*}
+
+\begin{align*}
+    g (Z g)
+        &= g (\lambda f . (\lambda x . f (\lambda y. x x y)) (\lambda x. f (\lambda y. x x y)) g) \\
+        &\step g ((\lambda x . g (\lambda y. x x y)) (\lambda x. g (\lambda y. x x y)))
+\end{align*}
 
 
 \end{document}
