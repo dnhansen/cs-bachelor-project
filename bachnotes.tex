@@ -29,6 +29,12 @@
 \usepackage{theorems-changedot}
 \usepackage{theorems-references}
 
+
+% Bibliography
+\usepackage[backend=biber, style=authoryear, maxcitenames=2, useprefix]{biblatex}
+\addbibresource{references.bib}
+
+
 \usepackage{enumitem}
 \setenumerate[0]{label=\normalfont(\arabic*)}
 \setlist{
@@ -170,8 +176,8 @@
 
 \newcommand{\converges}[1]{\xrightarrow[#1]{}}
 \DeclareMathOperator{\supp}{supp}
-\let\oldvec\vec
-\renewcommand{\vec}[1]{\underline{#1}}
+% \let\oldvec\vec
+% \renewcommand{\vec}[1]{\underline{#1}}
 \newcommand{\Tr}[1][]{%
     \ifstrempty{#1}%
         {%
@@ -280,7 +286,9 @@
 \newcommand{\langkw}[1]{\textlang{\color{objlangcolor} #1}}
 \newcommand{\Fst}{\operatorname{\langkw{fst}}}
 \newcommand{\Snd}{\operatorname{\langkw{snd}}}
+\let\oldprod\prod
 \renewcommand{\prod}{\times}
+\newcommand{\bigprod}{\oldprod}
 
 \newcommand{\objlang}[1]{{\normalfont\textsf{\textcolor{objlangcolor}{#1}}}}
 \definecolor{objlangcolor}{HTML}{A91616}
@@ -364,14 +372,9 @@ For readers not interested in the technical details, we note that the main resul
 
 Let $(P,\leq)$ be a partially ordered set\footnote{That is, $\leq$ is a reflexive, transitive and anti-symmetric binary relation on $P$. We also call $P$ a \keyword{poset}.}. If $A \subseteq P$, then an element $x \in P$ is called an \keyword{upper bound} of $A$ if $a \leq x$ for all $a \in A$. If there is a least upper bound $x$ (i.e., such that if $y$ is any other upper bound, then $x \leq y$), then $x$ is called the \keyword{join} of $A$. The join of $A$ is clearly unique if it exists (by anti-symmetry), and we denote it by $\bigjoin A$. We similarly define the \keyword{meet} of $A$, denoted $\bigmeet A$, to be the greatest lower bound of $A$, if it exists. If every two-element subset of $P$ has a join and a meet, then $P$ is called a \keyword{lattice}, and we write $x \join y = \bigjoin \{x,y\}$ and $x \meet y = \bigmeet \{x,y\}$. If every subset of $P$ has a join and a meet, then $P$ is a \keyword{complete lattice}.
 
-If $P$ is a partially ordered set, then a subset $D \subseteq P$ is said to be \keyword{directed} if every finite subset of $D$ has an upper bound (but not necessarily a \emph{least} upper bound, i.e. a join). By induction this is equivalent to the property that, for every \emph{pair} of elements $x,y \in D$, there exists a $z \in D$ with $x \leq z$ and $y \leq z$.\footnote{This is the usual definition of directedness. As an example of why directedness in interesting, recall that a union of a collection of subspaces of a vector space is not usually a subspace itself, but it is if the collection is directed (with respect to inclusion). Similarly for subgroups and other algebraic structures, but note that the same does \emph{not} hold for e.g. topologies or $\sigma$-algebras. If we substituted \enquote{countable} for \enquote{finite} in the definition of directness, $\sigma$-algebras would have this property as well, while we for topologies would need \enquote{arbitrary} subsets.} We further note that the image of a directed set under a monotone map is also directed. If $D$ is a directed set whose join exists, we often write $\bigdjoin D \defeq \bigjoin D$ instead. If $\bigdjoin D$ exists for every directed subset $D$ of $P$, then $P$ is called a \keyword{directly complete partial order}, or \keyword{dcpo} for short. If $P$ also has a least element, usually written $\bot$, then $P$ is called a \keyword{dcppo} (the extra \enquote{p} is for \enquote{pointed}). Notice that complete lattices are dcppo's.
+If $P$ is a partially ordered set, then a nonempty subset $D \subseteq P$ is said to be \keyword{directed} if every finite subset of $D$ has an upper bound (but not necessarily a \emph{least} upper bound, i.e. a join). By induction this is equivalent to the property that, for every \emph{pair} of elements $x,y \in D$, there exists a $z \in D$ with $x \leq z$ and $y \leq z$.\footnote{This is the usual definition of directedness. As an example of why directedness in interesting, recall that a union of a collection of subspaces of a vector space is not usually a subspace itself, but it is if the collection is directed (with respect to inclusion). Similarly for subgroups and other algebraic structures, but note that the same does \emph{not} hold for e.g. topologies or $\sigma$-algebras. If we substituted \enquote{countable} for \enquote{finite} in the definition of directedness, $\sigma$-algebras would have this property as well, while we for topologies would need \enquote{arbitrary} subsets.} We further note that the image of a directed set under a monotone map\footnote{A function $f \colon P \to Q$ between posets is \keyword{monotone} if $x \leq y$ implies $f(x) \leq f(y)$ for all $x,y \in P$.} is also directed [TODO embedding]. If $D$ is a directed set whose join exists, we often write $\bigdjoin D \defeq \bigjoin D$ instead. If $\bigdjoin D$ exists for every directed subset $D$ of $P$, then $P$ is called a \keyword{directly complete partial order}, or \keyword{dcpo} for short. If $P$ also has a least element, usually written $\bot$, then $P$ is called a \keyword{dcppo} (the extra \enquote{p} is for \enquote{pointed}). Notice that complete lattices are dcppo's.
 
-Let $F \colon P \to P$ be a monotone\footnote{A map $f \colon P \to Q$ between posets is \keyword{monotone} if $x \leq y$ implies $f(x) \leq f(y)$ for all $x,y \in P$} map. We think of $F$ as a \keyword{generating function}. An element $x \in P$ is said to be \keyword{$F$-closed} if $F(x) \leq x$, \keyword{$F$-consistent} if $x \leq F(x)$, and a \keyword{fixed-point} of $F$ if $F(x) = x$. If $F$ has a least fixed-point, then this is usually denoted $\mu F$. Similarly, the greatest fixed-point, if it exists, is denoted $\nu F$.
-
-
-\newpar
-
-We begin by studying dcpo's. If $P$ and $Q$ are dcpo's, then a map $f \colon P \to Q$ is \keyword{continuous}\footnote{Also called \keyword{Scott-continuous} after Dana Scott.} if, for every directed $D \subseteq P$, the image $f\image{D}$ is directed and
+If $P$ and $Q$ are dcpo's, then a map $f \colon P \to Q$ is \keyword{continuous}\footnote{Also called \keyword{Scott-continuous} after Dana Scott.} if, for every directed $D \subseteq P$, the image $f\image{D}$ is directed and
 %
 \begin{equation*}
     f \bigl( \bigdjoin D \bigr)
@@ -380,7 +383,54 @@ We begin by studying dcpo's. If $P$ and $Q$ are dcpo's, then a map $f \colon P \
 %
 It is easy to show that continuous maps are monotone (notice that if $x \leq y$, then the set $\{x,y\}$ is directed). If conversely $f$ is monotone, then $f\image{D}$ is as mentioned also directed, and the inequality \enquote{$\geq$} always holds.
 
-Now let $P$ be a dcppo and $F \colon P \to P$ a monotone function. We clearly have $\bot \leq F(\bot)$, and since $F$ is monotone we get the chain\footnote{A \keyword{chain} is a totally ordered set.}
+\newcommand{\graph}[2][]{\calG\auxdelimparen[#1]{#2}}
+
+
+\begin{examplebreak}[Products of dcpo's]
+    Let $(P_i)_{i \in I}$ be a collection dcpo's, and equip the product $P \defeq \bigprod_{i \in I} P_i$ with the product order\footnote{The \keyword{product order} on $P = \bigprod_{i \in I} P_i$ is defined as follows: For $(x_i)_{i \in I}, (y_i)_{i \in I} \in P$ we say that $(x_i)_{i \in I} \leq (y_i)_{i \in I}$ if $x_i \leq y_i$ for all $i \in I$. The projections $\pi_i \colon P \to P_i$ are thus monotone, and, as an aside, we mention that $P$ is a categorical product in the category of posets and monotone maps.}. We claim that $P$ is also a dcpo. If $D \subseteq P$ is directed, then each $\pi_i\image{D}$ is also directed and thus has a join $x_i$. Letting $x = (x_i)_{i \in I}$ it is easy to see that $x = \bigdjoin D$ in $P$: It is clear that $x$ is an upper bound of $D$, and furthermore $x \leq y$ if and only if $x_i \leq \pi_i(y)$ for all $y \in P$ and $i \in I$.
+
+    In particular,
+    %
+    \begin{equation*}
+        \pi_i(\bigdjoin D)
+            = \pi_i(x)
+            = x_i
+            = \bigdjoin \pi_i\image{D},
+    \end{equation*}
+    %
+    so $\pi_i$ is continuous.\footnote{It follows that $P$ is a product in the category of dcpo's and continuous maps.}
+\end{examplebreak}
+
+
+\begin{examplebreak}[Partial functions]
+    If $X$ and $Y$ are sets, then we order the set $\pmaps{X}{Y}$ of partial functions as follows: For $f,g \in \pmaps{X}{Y}$ we let $f \leq g$ if $\dom f \subseteq \dom g$ and $f(x) = g(x)$ for all $x \in \dom f$. The \keyword{graph} of a partial function $f$ is the set
+    %
+    \begin{equation*}
+        \graph{f} = \set{(x,y) \in X \prod Y}{x \in \dom f \text{ and } f(x) = y}.
+    \end{equation*}
+    %
+    This induces a map $\calG \colon \pmaps{X}{Y} \to \powerset{X \prod Y}$ given by $f \mapsto \graph{f}$, which is clearly an order-embedding. If $D \subseteq \pmaps{X}{Y}$ is a directed set of partial functions, then it is clear that the set $\bigdjoin \calG\image{D} = \bigunion_{d \in D} \graph{d}$ is the graph of a partial function. This function is then the join of $D$ in $\pmaps{X}{Y}$, which is therefore a dcpo, and the map $\calG$ is thus continuous. In fact, $\pmaps{X}{Y}$ is a dcppo since the empty map is the least element.
+
+    Denoting the projection maps by $\pi_X \colon X \prod Y \to X$ and $\pi_Y \colon X \prod Y \to Y$, notice that $\dom f = \pi_X\image{\graph{f}}$ and $\ran f = \pi_Y\image{\graph{f}}$. Since images preserve unions, and joins in power sets are just unions, if $D \subseteq \pmaps{X}{Y}$ is directed then
+    %
+    \begin{equation*}
+        \dom \bigdjoin D
+            = \pi_X\image[\big]{\graph{\bigdjoin D}}
+            = \pi_X\image[\big]{\bigdjoin \calG\image{D}}
+            = \bigdjoin \pi_X\image[\big]{\calG\image{D}}
+            = \bigdjoin \dom\image{D},
+    \end{equation*}
+    %
+    and we similarly have $\ran \bigdjoin D = \bigdjoin \ran\image{D}$.
+\end{examplebreak}
+
+
+Let $F \colon P \to P$ be a monotone map. We think of $F$ as a \keyword{generating function}. An element $x \in P$ is said to be \keyword{$F$-closed} if $F(x) \leq x$, \keyword{$F$-consistent} if $x \leq F(x)$, and a \keyword{fixed-point} of $F$ if $F(x) = x$. If $F$ has a least fixed-point, then this is usually denoted $\mu F$. Similarly, the greatest fixed-point, if it exists, is denoted $\nu F$.
+
+
+\newpar
+
+We begin by studying dcpo's. Let $P$ be a dcppo and $F \colon P \to P$ a monotone function. We clearly have $\bot \leq F(\bot)$, and since $F$ is monotone we get the chain\footnote{A \keyword{chain} is a totally ordered set.}
 %
 \begin{equation*}
     \bot
@@ -403,7 +453,9 @@ called the \keyword{ascending Kleene chain}. Since it is a chain it is also dire
     \end{equation*}
 \end{theorem}
 
-\begin{proof}
+\newenvironment{prooffootnote}[1]{\begin{proofof}[Proof\,\protect\footnotemark]\footnotetext{#1}}{\end{proofof}}
+
+\begin{prooffootnote}{This proof is based on \textcite[Theorem~8.15]{davey-priestley-order}.}
     First notice that, since $F$ is continuous,
     %
     \begin{equation*}
@@ -414,7 +466,7 @@ called the \keyword{ascending Kleene chain}. Since it is a chain it is also dire
     \end{equation*}
     %
     where we use that $F^0(\bot) = \bot$. Hence $\bigdjoin_{n \in \naturals} F^n(\bot)$ is indeed a fixed-point of $F$. If $\beta$ is any fixed-point of $F$, then $\bot \leq \beta$, and hence $F^n(\bot) \leq F^n(\beta) = \beta$ since $F$ is monotone. Taking the join on the left-hand side yields $\bigdjoin_{n \in \naturals} F^n(\bot) \leq \beta$ as desired.
-\end{proof}
+\end{prooffootnote}
 
 
 \newpar
@@ -436,9 +488,9 @@ Next, let $L$ be a complete lattice, and let $F \colon L \to L$ be a monotone ma
     In particular, $\mu F$ is the smallest $F$-closed element and $\nu F$ is the greatest $F$-consistent element in $L$.
 \end{theorem}
 
-\begin{proof}
+\begin{prooffootnote}{This proof is based on \textcite[Theorem~2.35]{davey-priestley-order}.}
     Denote the meet above by $\alpha$. If $x$ is $F$-closed, then $\alpha \leq x$, so $F(\alpha) \leq F(x) \leq x$. Taking the meet of $x$ we get $F(\alpha) \leq \alpha$, so $\alpha$ is closed. It follows that $F(F(\alpha)) \leq F(\alpha)$, so $F(\alpha)$ is also closed, and so $\alpha \leq F(\alpha)$. Hence $\alpha$ is a fixed-point. Since every other fixed-point is in particular closed, $\alpha$ is the least fixed-point.
-\end{proof}
+\end{prooffootnote}
 
 \begin{corollarynoproof}[Principle of induction]
     \label{cor:induction-abstract}
@@ -462,9 +514,9 @@ Specialising to the case where $L$ is a power set $\powerset{X}$, one way to def
     }
 \end{equation*}
 %
-where $x_1, \ldots, x_k$ and $y$ are elements of $X$, and $k \in \naturals$.\footnote{We could equivalently view an inference rule as an element of the product $X^k \prod X$.} We allow $k$ to be zero, in which case we call the rule an \keyword{axiom}. We have decorated the expression with the label \enquote{\infrule{Rule}} so that we may refer to it later. Let us call $x_1, \ldots, x_k$ the \keyword{antecedents} of the rule and $y$ the \keyword{consequent}. Given a (possibly infinite) collection of inference rules, we construct a generating function $F \colon \powerset{X} \to \powerset{X}$ by defining $F(A)$ for a subset $A \subseteq X$ as follows: For $y \in X$ we let $y \in F(A)$ if and only if there is an inference rule whose consequent is $y$ and whose antecedents lie in $A$. We say that $F$ is \keyword{represented by} this collection of inference rules.
+where $x_1, \ldots, x_k$ and $y$ are elements of $X$, and $k \in \naturals$.\footnote{We could equivalently view an inference rule as an element of the product $X^k \prod X$.} We allow $k$ to be zero, in which case we call the rule an \keyword{axiom}. We have decorated the expression with the label \enquote{\infrule{Rule}} so that we may refer to it later. Let us call $x_1, \ldots, x_k$ the \keyword{antecedents} of the rule and $y$ the \keyword{consequent}. Given a (possibly infinite) collection $\calR$ of inference rules, we construct a generating function $F \colon \powerset{X} \to \powerset{X}$ by defining $F(A)$ for a subset $A \subseteq X$ as follows: For $y \in X$ we let $y \in F(A)$ if and only if there is an inference rule in $\calR$ whose consequent is $y$ and whose antecedents lie in $A$. We say that $F$ is \keyword{represented by} $\calR$. In this case $F$ is clearly monotone, so it has a least and a greatest fixed-point $\mu F$ and $\nu F$, respectively. Since it is often unnecessary to explicitly talk about $F$, we also write $\mu \calR$ and $\nu \calR$ for these fixed-points.
 
-Clearly $F$ is monotone if it is represented by a collection of inference rules, so it has a least fixed-point $\mu F$ and we get a principle of induction. However, it is useful to restate induction in terms of the inference rules, since we usually have explicit rules in mind when defining $F$. If $\calR$ is a collection of inference rules on $X$, then we say that a subset $A \subseteq X$ is \keyword{$\calR$-closed} if, given any rule $R \in \calR$ with antecedents lying in $A$, the consequent of $R$ also lies in $A$.
+By \cref{cor:induction-abstract} we also get a principle of induction for $F$. However, as for fixed-points it is useful to restate induction in terms of the inference rules, since we usually have explicit rules in mind when defining $F$. If $\calR$ is a collection of inference rules on $X$, then we say that a subset $A \subseteq X$ is \keyword{$\calR$-closed} if, given any rule $R \in \calR$ with antecedents lying in $A$, the consequent of $R$ also lies in $A$.
 
 \begin{lemma}
     \label{lem:R-closed-F-closed}
@@ -480,11 +532,11 @@ Clearly $F$ is monotone if it is represented by a collection of inference rules,
 
 \begin{theorem}[Principle of rule induction]
     \label{thm:rule-induction}
-    If $F$ is represented by $\calR$ and $A \subseteq X$, then to show that $\mu F \subseteq A$, it suffices to show the following condition: For every inference rule $R \in \calR$ with antecedents lying in $A$, the consequent of $R$ also lies in $A$.
+    If $\calR$ is a set of inference rules on $X$ and $A \subseteq X$, then $\mu \calR \subseteq A$ if the following condition holds: For every inference rule $R \in \calR$ with antecedents lying in $A$, the consequent of $R$ also lies in $A$.
 \end{theorem}
 
 \begin{proof}
-    The condition says precisely that $A$ is $\calR$-closed, which implies that $A$ is $F$-closed by \cref{lem:R-closed-F-closed}. But then \cref{cor:induction-abstract} implies that $\mu F \subseteq A$.
+    Let $F$ be the function represented by $\calR$. The condition says precisely that $A$ is $\calR$-closed, which implies that $A$ is $F$-closed by \cref{lem:R-closed-F-closed}. But then \cref{cor:induction-abstract} implies that $\mu \calR = \mu F \subseteq A$.
 \end{proof}
 
 
@@ -495,7 +547,7 @@ Clearly $F$ is monotone if it is represented by a collection of inference rules,
 \newcommand{\derlen}[1]{l(#1)}
 
 
-Sometimes it is necessary (or at least useful) to have an alternative characterisation of $\mu F$, one that makes use of the fact that the number of antecedents of an inference rule is finite. This property is captured by $F$ in the following way:
+Sometimes it is necessary (or at least useful) to have an alternative characterisation of $\mu \calR$, one that makes use of the fact that the number of antecedents of an inference rule is finite. This property is reflected by the represented function $F$ in the following way:
 
 \begin{lemma}
     If $F$ is represented by a collection of inference rules, then $F$ is continuous.
@@ -549,7 +601,7 @@ To make this more concrete, we study how one can use the inference rules to deri
 
 \begin{proposition}
     \label{prop:fixpoint-iff-derivation}
-    If $F$ is represented by $\calR$ and $y \in X$, then $y \in \mu F$ if and only if $y$ is the final conclusion of some closed derivation from $\calR$.
+    If $F$ is represented by $\calR$ and $y \in X$, then $y \in \mu F$ if and only if $y$ is the final conclusion of some closed derivation from $\calR$. [TODO only in terms of R]
 \end{proposition}
 
 \begin{proof}
@@ -558,16 +610,121 @@ To make this more concrete, we study how one can use the inference rules to deri
     We prove the converse by (strong) induction on the length of a derivation. If $y$ is the final conclusion of a closed derivation $(R)$ of length $1$, then $R$ must be an axiom. But then $y \in F(\emptyset) \subseteq \mu F$ since $F$ is represented by $\calR$. Next, let $n \in \naturals$ and let $y$ be the final conclusion of a closed derivation $D = (R_1, \ldots, R_{n+1})$. If $x$ is an antecedent of $R_{n+1}$, then by \cref{enum:derivation-antecedent} $D$ must have a proper subderivation $D'$ whose final conclusion is $x$. By \cref{enum:subderivation} $D'$ is also closed, and so $x \in \mu F$ by induction. But then we must have $y \in F(\mu F) = \mu F$ as desired.
 \end{proof}
 %
-It is of course standard to use derivation \emph{trees}, but all that matters is that there is a finite way to obtain elements in $\mu F$. Since it is easier to define and reason about linear derivations -- and since we will not have to do any actual derivations -- we have taken this approach here.\footnote{Compare the role of deductive calculi in first-order logic, where e.g. the compactness theorem can be obtained from the \emph{existence} of a deductive calculus (with finite derivations).} The main consequence we shall use is the following:
+It is of course standard to use derivation \emph{trees}, but all that matters is that there is a finite way to obtain elements in $\mu \calR$. Since it is easier to define and reason about linear derivations -- and since we will not have to do any actual derivations -- we have taken this approach here.\footnote{Compare the role of deductive calculi in first-order logic, where e.g. the compactness theorem can be obtained from the mere \emph{existence} of a deductive calculus (with finite derivations), cf. \textcite[Theorem~3.3.1]{leary-kristiansen-logic}.} The main consequence we shall use is the following:
 
 \begin{corollary}[Inversion]
     \label{cor:inversion}
-    If $F$ is represented by $\calR$ and $y \in \mu F$, then there is a rule $R$ in $\calR$ with $y$ as consequent whose antecedents also lie in $\mu F$.
+    If $\calR$ is a collection of inference rules and $y \in \mu \calR$, then there is a rule in $\calR$ with $y$ as consequent whose antecedents also lie in $\mu \calR$.
 \end{corollary}
 
 \begin{proof}
-    By \cref{prop:fixpoint-iff-derivation} there is a closed derivation $D$ of $y$ from $\calR$, and we denote its last rule by $R$. If $x$ is an antecedent of $R$, then some subderivation of $D$ is a derivation of $x$ by \cref{enum:subderivation}. Another application of \cref{prop:fixpoint-iff-derivation} then implies that $x \in \mu F$.
+    By \cref{prop:fixpoint-iff-derivation} there is a closed derivation $D$ of $y$ from $\calR$, and we denote its last rule by $R$. If $x$ is an antecedent of $R$, then some subderivation of $D$ is a derivation of $x$ by \cref{enum:subderivation}. Another application of \cref{prop:fixpoint-iff-derivation} then implies that $x \in \mu \calR$.
 \end{proof}
+
+
+\newpar
+
+The final construction we need is definition by recursion.\footnote{The statement of this result is based on \textcite[Theorem~3.2]{goldrei-set-theory}, while the proof is inspired by \textcite[§8.18]{davey-priestley-order}.}
+
+\begin{theorem}[Definition by recursion]
+    Let $\calR$ be a set of inference rules [TODO need uniqueness!], and let $Z$ be any set. For each $R \in \calR$ let $h_R \colon \mu \calR \prod Z^{\rho(R)} \to Z$ be a function [TODO define arity of rule]. Then there is a unique function $f \colon \mu \calR \to Z$ such that if $x_1, \ldots, x_k$ are the antecedents and $y$ the consequent of a rule $R$, then
+    %
+    \begin{equation*}
+        f(y)
+            = h_R(y, f(x_1), \ldots, f(x_k)).
+    \end{equation*}
+\end{theorem}
+
+\begin{proof}
+    Define a function $G \colon \pmaps{\mu\calR}{Z} \to \pmaps{\mu\calR}{Z}$ as follows: For $f \in \pmaps{\mu\calR}{Z}$ let $\dom G(f)$ be the set of elements $y \in \mu\calR$ such that if $R \in \calR$ is the unique rule with consequent $y$, then the antecedents of $R$ lie in $\dom f$. For $y \in \dom G(f)$ we then let
+    %
+    \begin{equation*}
+        G(f)(y)
+            = h_R(y, f(x_1), \ldots, f(x_k)).
+    \end{equation*}
+    %
+    If $F$ is the function represented by $\calR$, notice that $\dom G(f) = F(\dom f)$. In particular, $\dom G(\bot) = F(\emptyset)$, so it follows by induction that $\dom G^n(\bot) = F^n(\emptyset)$ for $n \in \naturals$.
+
+    We next show that $G$ is continuous, so let $D \subseteq \pmaps{\mu\calR}{Z}$ be directed. First notice that, since $F$ is continuous by [TODO ref], we get from [TODO ref ex] that
+    %
+    \begin{align*}
+        \dom G(\bigdjoin D)
+            &= F(\dom \bigdjoin D)
+             = F(\bigdjoin \dom \image{D}) \\
+            &= \bigdjoin F\image{\dom \image{D}}
+             = \bigdjoin \dom \image{G\image{D}} \\
+            &= \dom \bigdjoin G\image{D}.
+    \end{align*}
+    %
+    For $y$ in this common domain there is a $d \in D$ such that $y \in \dom G(d)$. If $R$ is the unique rule with consequent $y$ and $x_1, \ldots, x_k$ are its antecedents, then these lie in $\dom d$, and so
+    %
+    \begin{align*}
+        G(\bigdjoin D)(y)
+            &= h_R(y, (\bigdjoin D)(x_1), \ldots, (\bigdjoin D)(x_k)) \\
+            &= h_R(y, d(x_1), \ldots, d(x_k)) \\
+            &= G(d)(y) \\
+            &= (\bigdjoin G\image{D})(y).
+    \end{align*}
+    %
+    Thus $G(\bigdjoin D) = \bigdjoin G\image{D}$, so $G$ is continuous.
+    
+    It now follows from \cref{thm:kleene-fixpoint-theorem} that
+    %
+    \begin{equation*}
+        \dom \mu G
+            = \dom \bigdjoin_{n \in \naturals} G^n(\bot)
+            = \bigdjoin_{n \in \naturals} \dom G^n(\bot)
+            = \bigdjoin_{n \in \naturals} F^n(\emptyset)
+            = \mu F.
+    \end{equation*}
+    %
+    Hence $\mu G$ is fact a total function solving the equation [TODO ref], which proves the theorem.
+\end{proof}
+
+[TODO example? + nonexample for sigma-algebras/topologies?]
+
+
+
+\section{Abstract syntax}
+
+\newcommand{\seq}[1]{\vec{#1}}
+\newcommand{\setOp}{\mathit{Op}}
+\newcommand{\setSort}{\mathit{Sort}}
+\newcommand{\sortExp}{\mathit{Exp}}
+\newcommand{\sortType}{\mathit{Type}}
+\newcommand{\finseq}[1]{\mathrm{Seq}(#1)}
+
+If $X$ is a set, then we denote by $\finseq{X}$ the set of finite sequences of elements in $X$. We often denote such a sequence by a variable decorated with an arrow, e.g. $\seq{x}$. If $\seq{x} \in \finseq{X}$ and $x \in X$, then we write $x \in \seq{x}$ if $x$ is among the entries in $\seq{x}$, and $x \not\in \seq{x}$ otherwise.
+
+
+\newpar
+
+Let $\setSort$ be a set. We think of $\setSort$ as a set of \keyword{sorts}, for instance expressions or types. A \keyword{valence} is an expression on the form $s_1,\ldots,s_k.s$, or $\seq{s}.s$ for short, where $s_1,\ldots,s_k,s$ are sorts for $k \in \naturals$. [TODO formalise expression] If $k = 0$, then instead of \enquote{$.s$} we omit the period and simply write \enquote{$s$}. Each argument of an operator is supposed to have a valence which describes both the sort of that argument as well as the sorts of the variables that are bound in that argument (if any). An \keyword{arity} is then an expression on the form $(v_1, \ldots, v_n)s$, where $v_1, \ldots, v_n$ are valences and $s$ is a sort, for $n \in \naturals$. [TODO formalise expression] Operators will be assigned arities, and $v_i$ is then the valence of the $i$th argument to an operator with the above arity, and $s$ is the sort of the return value of the operator. We also fix a set $\setOp$ which we think of as a set of \keyword{operators}, each of which is assigned an arity. Finally we fix a set $\setVar$ of variables, and we assign to each variable a sort, so that we for instance can have both ordinary variables (of expression sort) and type variables (of type sort).
+
+For example, if $\sortExp$ is a sort of expressions and $\sortType$ a sort of types, an operator corresponding to lambda abstraction with type annotation might have arity $(\sortType, \sortExp.\sortExp)\sortExp$. This indicates that its arguments are a type (the type of the argument) along with an expression in which a variable of expression sort is bound, and the entire abstraction is also of expression sort. If we also allow the abstraction to be given a name (in order to easily allow for recursive functions), then the arity of the operator might instead be $(\sortType; \sortExp,\sortExp.\sortExp)\sortExp$. We here separate the valences with a semicolon since the valence of the second argument itself contains a comma.
+
+
+\newpar
+
+We first define the set of \keyword{unsorted abstract syntax trees}, or simply \keyword{UASTs}. [TODO universal set] We define this set using inference rules. For each $x \in \setVar$ we have the axiom
+%
+\begin{equation*}
+    \inferrule*{}{
+        x
+    }
+\end{equation*}
+%
+saying that $x$ itself is always a UAST. For each $\phi \in \setOp$ taking $n$ arguments and $\seq{x}_1, \ldots, \seq{x}_n \in \finseq{\setVar}$ we also have the rule
+%
+\begin{equation*}
+    \inferrule*{
+        a_1 \and \cdots \and a_n
+    }{
+        \phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n)
+    }
+\end{equation*}
+%
+[TODO formalise expression] That is, for now we ignore sorts and simply ... [TODO without fresh renamings etc., are UASTs even necessary?]
 
 
 
@@ -1306,5 +1463,11 @@ Call by value: $Z = \lambda f . (\lambda x . f (\lambda y. x x y)) (\lambda x. f
         &\step g ((\lambda x . g (\lambda y. x x y)) (\lambda x. g (\lambda y. x x y)))
 \end{align*}
 
+
+\nocite{*}
+\chapter*{\bibname}
+\markboth{\bibname}{\bibname}
+\addcontentsline{toc}{chapter}{\bibname}
+\printbibliography[heading=none]
 
 \end{document}
