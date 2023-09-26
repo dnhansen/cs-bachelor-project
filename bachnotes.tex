@@ -33,6 +33,7 @@
 % Bibliography
 \usepackage[backend=biber, style=authoryear, maxcitenames=2, useprefix]{biblatex}
 \addbibresource{references.bib}
+\DeclareNumChars*{+} % https://tex.stackexchange.com/questions/16904/xiv-pages-in-page-counts
 
 
 \usepackage{enumitem}
@@ -54,6 +55,7 @@
 \newcommand{\extreals}{\overbar{1.5}{1.5}{\reals}}
 \newcommand{\complex}{\mathbb{C}}
 
+\usepackage{bm}
 
 \usepackage{pgffor}
 
@@ -213,7 +215,7 @@
 \DeclareMathOperator{\Span}{span}
 \DeclareMathOperator{\clSpan}{\overbar{0.5}{1.5}{span}}
 
-\newcommand\inv{^{\langle-1\rangle}}
+\newcommand\inv{^{-1}}
 \newcommand{\preim}[2][]{^{-1}\auxdelimparen[#1]{#2}}
 \newcommand{\image}[2][]{\auxdelimbracket[#1]{#2}}
 
@@ -311,7 +313,7 @@
 
 \newcommand{\objForall}[2]{\objApp{\textcolor{objlangcolor}{\Lambda}}{#2}}
 
-\newcommand{\setVar}{\mathit{Var}}
+\newcommand{\setVar}{\calV}
 \newcommand{\setTVar}{\mathit{TVar}}
 \newcommand{\setLoc}{\mathit{Loc}}
 \newcommand{\setSto}{\mathit{Sto}}
@@ -321,10 +323,22 @@
 \newcommand{\setECtx}{\mathit{ECtx}}
 \newcommand{\setTAnn}{\mathit{TAnn}}
 \newcommand{\typeUnit}{{\normalfont\textsf{Unit}}}
-\newcommand{\freevar}[1]{\mathit{FV}(#1)}
+\newcommand{\freevar}[2][]{\mathit{FV}\auxdelimparen[#1]{#2}}
+\newcommand{\boundvar}[2][]{\mathit{BV}\auxdelimparen[#1]{#2}}
+\newcommand{\allvar}[2][]{\mathit{V}\auxdelimparen[#1]{#2}}
 \newcommand{\freeTvar}[1]{\mathit{FTV}(#1)}
 % \newcommand{\powersetcard}[2]{\calP_\omega(#1)}
-\newcommand{\pmaps}[3][]{#2 \pto_{#1} #3}
+
+% \newcommand{\pmaps}[3][]{P_{#1}(#2,#3)}
+\newcommand{\pmaps}[3][]{%
+    \ifstrempty{#1}%
+        {%
+            P(#2,#3)
+        }{%
+            P_{#1}(#2,#3)
+        }%
+}
+
 \newcommand{\typeForall}[2]{\forall #1. #2}
 \newcommand{\typeExists}[2]{\exists #1. #2}
 \newcommand{\typeRef}[1]{{\normalfont\textsf{ref(}#1\textsf{)}}}
@@ -356,14 +370,27 @@ Hence $\dom f[x_0 \mapsto y_0] = \dom f \union \{x_0\}$, so that if $f \in \pmap
 
 We let $\naturals$ denote the set of natural numbers, including $0$. The image of a set $A \subseteq X$ under a function $f \colon X \to Y$ is denoted $f\image{A}$.
 
+% \newcommand{\seq}[1]{\vec{#1}}
+\newcommand{\seq}[1]{\bm{#1}}
+\newcommand{\setOp}{\calO}
+\newcommand{\setSort}{\calS}
+\newcommand{\sortExp}{\mathit{Exp}}
+\newcommand{\sortType}{\mathit{Type}}
+\newcommand{\finseq}[1]{#1^*}
+\newcommand{\disj}{\mathbin{\#}}
+
+If $X$ is a set, then we denote by $\finseq{X}$ the set of finite sequences of elements in $X$, including the empty sequence. We often denote such a sequence by a boldface symbol e.g. $\seq{x}$. If $\seq{x} \in \finseq{X}$ and $x \in X$, then we write $x \in \seq{x}$ if $x$ is among the entries in $\seq{x}$, and $x \not\in \seq{x}$ otherwise. We use the convention that the entries in $\seq{x}$ are written $x_1, \ldots, x_k$.
+
+If $A$ and $B$ are disjoint sets, then we write $A \disj B$.
+
 
 \chapter{Induction and Inversion}
 
 In this section we study inference rules and the structures that they give rise to, and we prove various theorems for such structures that will be important in the proof of type safety in TODO ref.
 
-We first give an overview of the abstract theory, studying generating functions in complete lattices and in dcpo's. In a complete lattice Knaster--Tarski's fixed-point theorem yields a principle of induction, which when applied to inference rules gives a notion of rule induction. In dcpo's we study continuous functions in the context of Kleene's fixed-point theorem, which gives a finite description of elements in a structure defined by inference rules. We then study derivations of such elements and prove an inversion theorem.
+We first give an overview of the abstract theory, studying generating functions in complete lattices and in dcpo's. In a complete lattice, Knaster--Tarski's fixed-point theorem yields a principle of induction, which when applied to inference rules gives a notion of rule induction. In dcpo's we study continuous functions in the context of Kleene's fixed-point theorem, which gives a finite description of elements in a structure defined by inference rules. We then study derivations of such elements and prove an inversion theorem. We finally use Kleene's fixed-point theorem to prove that we can define functions recursively over inference rules.
 
-For readers not interested in the technical details, we note that the main results that will be used in the sequel are \cref{thm:rule-induction} and \cref{cor:inversion}.
+For readers not interested in the technical details, we note that the main results that will be used in the sequel are \cref{thm:rule-induction}, \cref{cor:inversion} and \cref{thm:recursive-definitions}.
 
 
 \section{Abstract theory}
@@ -372,7 +399,7 @@ For readers not interested in the technical details, we note that the main resul
 
 Let $(P,\leq)$ be a partially ordered set\footnote{That is, $\leq$ is a reflexive, transitive and anti-symmetric binary relation on $P$. We also call $P$ a \keyword{poset}.}. If $A \subseteq P$, then an element $x \in P$ is called an \keyword{upper bound} of $A$ if $a \leq x$ for all $a \in A$. If there is a least upper bound $x$ (i.e., such that if $y$ is any other upper bound, then $x \leq y$), then $x$ is called the \keyword{join} of $A$. The join of $A$ is clearly unique if it exists (by anti-symmetry), and we denote it by $\bigjoin A$. We similarly define the \keyword{meet} of $A$, denoted $\bigmeet A$, to be the greatest lower bound of $A$, if it exists. If every two-element subset of $P$ has a join and a meet, then $P$ is called a \keyword{lattice}, and we write $x \join y = \bigjoin \{x,y\}$ and $x \meet y = \bigmeet \{x,y\}$. If every subset of $P$ has a join and a meet, then $P$ is a \keyword{complete lattice}.
 
-If $P$ is a partially ordered set, then a nonempty subset $D \subseteq P$ is said to be \keyword{directed} if every finite subset of $D$ has an upper bound (but not necessarily a \emph{least} upper bound, i.e. a join). By induction this is equivalent to the property that, for every \emph{pair} of elements $x,y \in D$, there exists a $z \in D$ with $x \leq z$ and $y \leq z$.\footnote{This is the usual definition of directedness. As an example of why directedness in interesting, recall that a union of a collection of subspaces of a vector space is not usually a subspace itself, but it is if the collection is directed (with respect to inclusion). Similarly for subgroups and other algebraic structures, but note that the same does \emph{not} hold for e.g. topologies or $\sigma$-algebras. If we substituted \enquote{countable} for \enquote{finite} in the definition of directedness, $\sigma$-algebras would have this property as well, while we for topologies would need \enquote{arbitrary} subsets.} We further note that the image of a directed set under a monotone map\footnote{A function $f \colon P \to Q$ between posets is \keyword{monotone} if $x \leq y$ implies $f(x) \leq f(y)$ for all $x,y \in P$.} is also directed [TODO embedding]. If $D$ is a directed set whose join exists, we often write $\bigdjoin D \defeq \bigjoin D$ instead. If $\bigdjoin D$ exists for every directed subset $D$ of $P$, then $P$ is called a \keyword{directly complete partial order}, or \keyword{dcpo} for short. If $P$ also has a least element, usually written $\bot$, then $P$ is called a \keyword{dcppo} (the extra \enquote{p} is for \enquote{pointed}). Notice that complete lattices are dcppo's.
+If $P$ is a partially ordered set, then a nonempty [TODO Vickers 7.2.1] subset $D \subseteq P$ is said to be \keyword{directed} if every finite subset of $D$ has an upper bound (but not necessarily a \emph{least} upper bound, i.e. a join). By induction this is equivalent to the property that, for every \emph{pair} of elements $x,y \in D$, there exists a $z \in D$ with $x \leq z$ and $y \leq z$.\footnote{This is the usual definition of directedness. As an example of why directedness in interesting, recall that a union of a collection of subspaces of a vector space is not usually a subspace itself, but it is if the collection is directed (with respect to inclusion). Similarly for subgroups and other algebraic structures, but note that the same does \emph{not} hold for e.g. topologies or $\sigma$-algebras. If we substituted \enquote{countable} for \enquote{finite} in the definition of directedness, $\sigma$-algebras would have this property as well, while we for topologies would need \enquote{arbitrary} subsets.} We further note that the image of a directed set under a monotone map\footnote{A function $f \colon P \to Q$ between posets is \keyword{monotone} if $x \leq y$ implies $f(x) \leq f(y)$ for all $x,y \in P$.} is also directed [TODO embedding]. If $D$ is a directed set whose join exists, we often write $\bigdjoin D \defeq \bigjoin D$ instead. If $\bigdjoin D$ exists for every directed subset $D$ of $P$, then $P$ is called a \keyword{directly complete partial order}, or \keyword{dcpo} for short. If $P$ also has a least element, usually written $\bot$, then $P$ is called a \keyword{dcppo} (the extra \enquote{p} is for \enquote{pointed}). Notice that complete lattices are dcppo's.
 
 If $P$ and $Q$ are dcpo's, then a map $f \colon P \to Q$ is \keyword{continuous}\footnote{Also called \keyword{Scott-continuous} after Dana Scott.} if, for every directed $D \subseteq P$, the image $f\image{D}$ is directed and
 %
@@ -392,7 +419,7 @@ It is easy to show that continuous maps are monotone (notice that if $x \leq y$,
     In particular,
     %
     \begin{equation*}
-        \pi_i(\bigdjoin D)
+        \pi_i \bigl( \bigdjoin D \bigr)
             = \pi_i(x)
             = x_i
             = \bigdjoin \pi_i\image{D},
@@ -403,7 +430,7 @@ It is easy to show that continuous maps are monotone (notice that if $x \leq y$,
 
 
 \begin{examplebreak}[Partial functions]
-    If $X$ and $Y$ are sets, then we order the set $\pmaps{X}{Y}$ of partial functions as follows: For $f,g \in \pmaps{X}{Y}$ we let $f \leq g$ if $\dom f \subseteq \dom g$ and $f(x) = g(x)$ for all $x \in \dom f$. The \keyword{graph} of a partial function $f$ is the set
+    If $X$ and $Y$ are sets, then we order the set $\pmaps{X}{Y}$ of partial functions as follows: For $f,g \colon X \pto Y$ we let $f \leq g$ if $\dom f \subseteq \dom g$ and $f(x) = g(x)$ for all $x \in \dom f$. The \keyword{graph} of a partial function $f$ is the set
     %
     \begin{equation*}
         \graph{f} = \set{(x,y) \in X \prod Y}{x \in \dom f \text{ and } f(x) = y}.
@@ -415,7 +442,7 @@ It is easy to show that continuous maps are monotone (notice that if $x \leq y$,
     %
     \begin{equation*}
         \dom \bigdjoin D
-            = \pi_X\image[\big]{\graph{\bigdjoin D}}
+            = \pi_X\image[\big]{\graph[\big]{\bigdjoin D}}
             = \pi_X\image[\big]{\bigdjoin \calG\image{D}}
             = \bigdjoin \pi_X\image[\big]{\calG\image{D}}
             = \bigdjoin \dom\image{D},
@@ -430,7 +457,7 @@ Let $F \colon P \to P$ be a monotone map. We think of $F$ as a \keyword{generati
 
 \newpar
 
-We begin by studying dcpo's. Let $P$ be a dcppo and $F \colon P \to P$ a monotone function. We clearly have $\bot \leq F(\bot)$, and since $F$ is monotone we get the chain\footnote{A \keyword{chain} is a totally ordered set.}
+Let $P$ be a dcppo and $F \colon P \to P$ a monotone function. We clearly have $\bot \leq F(\bot)$, and since $F$ is monotone we get the chain\footnote{A \keyword{chain} is a totally ordered set.}
 %
 \begin{equation*}
     \bot
@@ -467,6 +494,8 @@ called the \keyword{ascending Kleene chain}. Since it is a chain it is also dire
     %
     where we use that $F^0(\bot) = \bot$. Hence $\bigdjoin_{n \in \naturals} F^n(\bot)$ is indeed a fixed-point of $F$. If $\beta$ is any fixed-point of $F$, then $\bot \leq \beta$, and hence $F^n(\bot) \leq F^n(\beta) = \beta$ since $F$ is monotone. Taking the join on the left-hand side yields $\bigdjoin_{n \in \naturals} F^n(\bot) \leq \beta$ as desired.
 \end{prooffootnote}
+%
+The proof of \cref{thm:kleene-fixpoint-theorem} betrays that it is not necessary to work with directed sets: Indeed, the proof only uses the fact that an increasing sequence -- also called an \keyword{$\omega$-chain} -- in $P$ has a join, and that $F$ preserves such joins. The theory would work out in the same way if we instead worked in partial orders in which every $\omega$-chain has a join, called \keyword{$\omega$-complete partial orders} -- for short \keyword{$\omega$-cpo's}, or \keyword{$\omega$-cppo's} if they have a least element. Our reasons for nonetheless working in dcpo's are (at least) twofold: Firstly, replacing directed sets with $\omega$-chains does not simplify the arguments in any way. Secondly, since we intend to apply this theory to power sets anyway, there is no reason to make the weaker assumption that $P$ is an $\omega$-cppo. The present choice yields the stronger conclusion that the map $F$ in \cref{lem:inference-rules-continuous} is continuous and hence preserves all \emph{directed} joins and not just joins of $\omega$-chains. [TODO also useful in domain theory maybe??]
 
 
 \newpar
@@ -502,6 +531,17 @@ We dually have a \keyword{principle of coinduction} -- if $y \in L$ is $F$-consi
 
 \section{In power sets}
 
+% \newcommand{\myinfrule}[3]{#1 \colon #2 \vdash #3}
+
+\newcommand{\myinfrule}[3]{%
+    \ifstrempty{#1}%
+        {%
+            #2 \vdash #3
+        }{%
+            #1 \colon #2 \vdash #3
+        }%
+}
+
 \newpar
 
 Specialising to the case where $L$ is a power set $\powerset{X}$, one way to define a generating function is using inference rules. An \keyword{inference rule} on $X$ is an expression on the form
@@ -514,9 +554,11 @@ Specialising to the case where $L$ is a power set $\powerset{X}$, one way to def
     }
 \end{equation*}
 %
-where $x_1, \ldots, x_k$ and $y$ are elements of $X$, and $k \in \naturals$.\footnote{We could equivalently view an inference rule as an element of the product $X^k \prod X$.} We allow $k$ to be zero, in which case we call the rule an \keyword{axiom}. We have decorated the expression with the label \enquote{\infrule{Rule}} so that we may refer to it later. Let us call $x_1, \ldots, x_k$ the \keyword{antecedents} of the rule and $y$ the \keyword{consequent}. Given a (possibly infinite) collection $\calR$ of inference rules, we construct a generating function $F \colon \powerset{X} \to \powerset{X}$ by defining $F(A)$ for a subset $A \subseteq X$ as follows: For $y \in X$ we let $y \in F(A)$ if and only if there is an inference rule in $\calR$ whose consequent is $y$ and whose antecedents lie in $A$. We say that $F$ is \keyword{represented by} $\calR$. In this case $F$ is clearly monotone, so it has a least and a greatest fixed-point $\mu F$ and $\nu F$, respectively. Since it is often unnecessary to explicitly talk about $F$, we also write $\mu \calR$ and $\nu \calR$ for these fixed-points.
+where $x_1, \ldots, x_k$ and $y$ are elements of $X$, and $k \in \naturals$.\footnote{We could equivalently view an inference rule as an element of the product $X^k \prod X$.} We allow $k$ to be zero, in which case we call the rule an \keyword{axiom}. We have decorated the expression with the label \enquote{\infrule{Rule}} so that we may refer to it later. Let us call $x_1, \ldots, x_k$ the \keyword{antecedents} of the rule and $y$ the \keyword{consequent}. If $R$ is a rule with antecedents $x_1, \ldots, x_k$ and consequent $y$, we also write $\myinfrule{R}{x_1, \ldots, x_k}{y}$, or $\myinfrule{R}{\seq{x}}{y}$ for short. We often suppress $R$ from this notation and simply write $\myinfrule{}{\seq{x}}{y}$. The number of antecedents of a rule $R$ is called its \keyword{arity} and is denoted $\rho(R)$.
 
-By \cref{cor:induction-abstract} we also get a principle of induction for $F$. However, as for fixed-points it is useful to restate induction in terms of the inference rules, since we usually have explicit rules in mind when defining $F$. If $\calR$ is a collection of inference rules on $X$, then we say that a subset $A \subseteq X$ is \keyword{$\calR$-closed} if, given any rule $R \in \calR$ with antecedents lying in $A$, the consequent of $R$ also lies in $A$.
+Given a (possibly infinite) collection $\calR$ of inference rules, we construct a generating function $F \colon \powerset{X} \to \powerset{X}$ by defining $F(A)$ for a subset $A \subseteq X$ as follows: For $y \in X$ we let $y \in F(A)$ if and only if there is a rule $\myinfrule{}{\seq{x}}{y}$ in $\calR$ with $\seq{x} \subseteq A$. We say that $F$ is \keyword{represented by} $\calR$. In this case $F$ is clearly monotone, so it has a least and a greatest fixed-point $\mu F$ and $\nu F$, respectively. Since it is often unnecessary to explicitly talk about $F$, we also write $\mu \calR$ and $\nu \calR$ for these fixed-points.
+
+By \cref{cor:induction-abstract} we also get a principle of induction for $F$. However, as for fixed-points it is useful to restate induction in terms of the inference rules, since we usually have explicit rules in mind when defining $F$. If $\calR$ is a collection of inference rules on $X$, then we say that a subset $A \subseteq X$ is \keyword{$\calR$-closed} if, given any rule $\myinfrule{}{\seq{x}}{y}$ in $\calR$, $\seq{x} \subseteq A$ implies that $y \in A$.
 
 \begin{lemma}
     \label{lem:R-closed-F-closed}
@@ -524,15 +566,15 @@ By \cref{cor:induction-abstract} we also get a principle of induction for $F$. H
 \end{lemma}
 
 \begin{proof}
-    First assume that $A$ is $F$-closed so that $F(A) \subseteq A$, and consider a rule from $\calR$ with antecedents $x_1, \ldots, x_k \in A$ and consequent $y$. Since $F$ is represented by $\calR$, this implies that $y \in F(A) \subseteq A$, so $A$ is $\calR$-closed.
+    First assume that $A$ is $F$-closed so that $F(A) \subseteq A$, and consider a rule $\myinfrule{}{\seq{x}}{y}$ from $\calR$ with $\seq{x} \subseteq A$. Since $F$ is represented by $\calR$, this implies that $y \in F(A) \subseteq A$, so $A$ is $\calR$-closed.
 
-    If $A$ is $\calR$-closed, then let $y \in F(A)$. Hence there is a rule in $\calR$ with consequent $y$ and antecedents $x_1, \ldots, x_k \in A$. But since $A$ is $\calR$-closed, this implies that $y \in A$, and so $F(A) \subseteq A$.
+    If $A$ is $\calR$-closed, then let $y \in F(A)$. Hence there is a rule $\myinfrule{}{\seq{x}}{y}$ in $\calR$ with $\seq{x} \subseteq A$. But since $A$ is $\calR$-closed, this implies that $y \in A$, and so $F(A) \subseteq A$.
 \end{proof}
 
 
 \begin{theorem}[Principle of rule induction]
     \label{thm:rule-induction}
-    If $\calR$ is a set of inference rules on $X$ and $A \subseteq X$, then $\mu \calR \subseteq A$ if the following condition holds: For every inference rule $R \in \calR$ with antecedents lying in $A$, the consequent of $R$ also lies in $A$.
+    If $\calR$ is a set of inference rules on $X$ and $A \subseteq X$, then $\mu \calR \subseteq A$ if the following condition holds: For every inference rule $\myinfrule{}{\seq{x}}{y}$ in $\calR$, $\seq{x} \subseteq A$ implies $y \in A$.
 \end{theorem}
 
 \begin{proof}
@@ -550,16 +592,17 @@ By \cref{cor:induction-abstract} we also get a principle of induction for $F$. H
 Sometimes it is necessary (or at least useful) to have an alternative characterisation of $\mu \calR$, one that makes use of the fact that the number of antecedents of an inference rule is finite. This property is reflected by the represented function $F$ in the following way:
 
 \begin{lemma}
+    \label{lem:inference-rules-continuous}
     If $F$ is represented by a collection of inference rules, then $F$ is continuous.
 \end{lemma}
 
 \begin{proof}
-    It suffices to show that if $\calD \subseteq \powerset{X}$ is directed, then $F(\bigdjoin \calD) \subseteq \bigdjoin F\image{\calD}$, so let $y \in F(\bigdjoin \calD)$. Say that $F$ is represented by a collection $\calR$. Then there is a rule in $\calR$ with antecedents $x_1, \ldots, x_k \in \bigdjoin \calD$ and consequent $y$. Since the (directed) join in $\powerset{X}$ is just union, there are sets $A_1, \ldots, A_k \in \calD$ such that $x_i \in A_i$. And since $\calD$ is directed there is a set $A \in \calD$ with $A_i \subseteq A$, so that $x_i \in A$ for all $i$. But then $y \in F(A) \subseteq \bigdjoin F\image{\calD}$ as desired.
+    It suffices to show that if $\calD \subseteq \powerset{X}$ is directed, then $F(\bigdjoin \calD) \subseteq \bigdjoin F\image{\calD}$, so let $y \in F(\bigdjoin \calD)$. Say that $F$ is represented by a collection $\calR$. Then there is a rule $\myinfrule{}{\seq{x}}{y}$ in $\calR$ with $\seq{x} \subseteq \bigdjoin \calD$. Since the (directed) join in $\powerset{X}$ is just union, there are sets $A_1, \ldots, A_k \in \calD$ such that $x_i \in A_i$. And since $\calD$ is directed there is a set $A \in \calD$ with $A_i \subseteq A$, so that $x_i \in A$ for all $i$. But then $y \in F(A) \subseteq \bigdjoin F\image{\calD}$ as desired.
 \end{proof}
 %
 Hence, \cref{thm:kleene-fixpoint-theorem} implies that $\mu F = \bigdjoin_{n \in \naturals} F^n(\emptyset)$.
 
-To make this more concrete, we study how one can use the inference rules to derive that some element of $X$ lies in $\mu F$. If $\calR$ is a collection of inference rules, then a \keyword{derivation} from $\calR$ is a finite sequence $D = (R_1, \ldots, R_n)$ of inference rules from $\calR$. If $y$ is a consequent of some $R_i$, then we say that $y$ is a \keyword{conclusion} of $D$. The consequent of $R_n$ is called the \keyword{final conclusion} of $D$. We say that $x \in X$ is an \keyword{assumption} of $D$ if $x$ is an antecedent of some $R_i$, and if none of the rules $R_1, \ldots, R_{i-1}$ has $x$ as its antecedent. That is, $x$ is an assumption if it is not implied by any of the previous rules in the derivation. The set of conclusion of $D$ is denoted $\concl{D}$, and the set of assumptions of $D$ is denoted $\assum{D}$. If $\assum{D} = \emptyset$, then we say that $D$ is \keyword{closed}.
+To make this more concrete, we study how one can use the inference rules to derive that some element of $X$ lies in $\mu F$. If $\calR$ is a collection of inference rules, then a \keyword{derivation} from $\calR$ is a finite sequence $D = (R_1, \ldots, R_n)$ of inference rules from $\calR$. If $y$ is a consequent of some $R_i$, then we say that $y$ is a \keyword{conclusion} of $D$. The consequent of $R_n$ is called the \keyword{final conclusion} of $D$. We say that $x \in X$ is an \keyword{assumption} of $D$ if $x$ is an antecedent of some $R_i$, and if none of the rules $R_1, \ldots, R_{i-1}$ has $x$ as its consequent. That is, $x$ is an assumption if it is not implied by any of the previous rules in the derivation. The set of conclusion of $D$ is denoted $\concl{D}$, and the set of assumptions of $D$ is denoted $\assum{D}$. If $\assum{D} = \emptyset$, then we say that $D$ is \keyword{closed}.
 
 \begin{remark}
     Let $D = (R_1, \ldots, R_n)$ be a derivation.
@@ -601,11 +644,11 @@ To make this more concrete, we study how one can use the inference rules to deri
 
 \begin{proposition}
     \label{prop:fixpoint-iff-derivation}
-    If $F$ is represented by $\calR$ and $y \in X$, then $y \in \mu F$ if and only if $y$ is the final conclusion of some closed derivation from $\calR$. [TODO only in terms of R]
+    If $\calR$ is a collection of inference rules and $y \in X$, then $y \in \mu \calR$ if and only if $y$ is the final conclusion of some closed derivation from $\calR$.
 \end{proposition}
 
 \begin{proof}
-    First assume that $y \in \mu F$, and recall that $\mu F = \bigdjoin_{n \in \naturals} F^n(\emptyset) = \bigunion_{n \in \naturals} F^n(\emptyset)$. We prove by induction in $n$ that every element in $F^n(\emptyset)$ is the final conclusion of a closed derivation. The base case $y \in F^0(\emptyset) = \emptyset$ is vacuous, so let $n \in \naturals$ and assume that the claim holds for every element of $F^n(\emptyset)$. If $y \in F^{n+1}(\emptyset) = F(F^n(\emptyset))$, then there is an inference rule $R$ with consequent $y$ and antecedents $x_1, \ldots, x_k$ that lie in $F^n(\emptyset)$. By induction each $x_i$ is the final conclusion of some derivation $D_i$, and by \cref{enum:derivation-composition} the derivation $D_1 \circ \cdots \circ D_k \circ (R)$ is a closed derivation, and $y$ is its final conclusion.
+    Let $F$ be the function represented by $\calR$. First assume that $y \in \mu F$, and recall that $\mu F = \bigdjoin_{n \in \naturals} F^n(\emptyset) = \bigunion_{n \in \naturals} F^n(\emptyset)$. We prove by induction in $n$ that every element in $F^n(\emptyset)$ is the final conclusion of a closed derivation. The base case $y \in F^0(\emptyset) = \emptyset$ is vacuous, so let $n \in \naturals$ and assume that the claim holds for every element of $F^n(\emptyset)$. If $y \in F^{n+1}(\emptyset) = F(F^n(\emptyset))$, then there is an inference rule $\myinfrule{R}{\seq{x}}{y}$ with $\seq{x} \subseteq F^n(\emptyset)$. By induction each $x_i$ is the final conclusion of some derivation $D_i$, and by \cref{enum:derivation-composition} the derivation $D_1 \circ \cdots \circ D_k \circ (R)$ is a closed derivation, and $y$ is its final conclusion.
 
     We prove the converse by (strong) induction on the length of a derivation. If $y$ is the final conclusion of a closed derivation $(R)$ of length $1$, then $R$ must be an axiom. But then $y \in F(\emptyset) \subseteq \mu F$ since $F$ is represented by $\calR$. Next, let $n \in \naturals$ and let $y$ be the final conclusion of a closed derivation $D = (R_1, \ldots, R_{n+1})$. If $x$ is an antecedent of $R_{n+1}$, then by \cref{enum:derivation-antecedent} $D$ must have a proper subderivation $D'$ whose final conclusion is $x$. By \cref{enum:subderivation} $D'$ is also closed, and so $x \in \mu F$ by induction. But then we must have $y \in F(\mu F) = \mu F$ as desired.
 \end{proof}
@@ -614,11 +657,11 @@ It is of course standard to use derivation \emph{trees}, but all that matters is
 
 \begin{corollary}[Inversion]
     \label{cor:inversion}
-    If $\calR$ is a collection of inference rules and $y \in \mu \calR$, then there is a rule in $\calR$ with $y$ as consequent whose antecedents also lie in $\mu \calR$.
+    If $\calR$ is a collection of inference rules and $y \in \mu \calR$, then there is a rule $\myinfrule{}{\seq{x}}{y}$ in $\calR$ such that $\seq{x} \subseteq \mu \calR$.
 \end{corollary}
 
 \begin{proof}
-    By \cref{prop:fixpoint-iff-derivation} there is a closed derivation $D$ of $y$ from $\calR$, and we denote its last rule by $R$. If $x$ is an antecedent of $R$, then some subderivation of $D$ is a derivation of $x$ by \cref{enum:subderivation}. Another application of \cref{prop:fixpoint-iff-derivation} then implies that $x \in \mu \calR$.
+    By \cref{prop:fixpoint-iff-derivation} there is a closed derivation $D$ of $y$ from $\calR$, and let its last rule be $\myinfrule{}{\seq{x}}{y}$. For each $x_i$, some subderivation of $D$ is a derivation of $x_i$ by \cref{enum:subderivation}. Another application of \cref{prop:fixpoint-iff-derivation} then implies that $x_i \in \mu \calR$.
 \end{proof}
 
 
@@ -627,20 +670,21 @@ It is of course standard to use derivation \emph{trees}, but all that matters is
 The final construction we need is definition by recursion.\footnote{The statement of this result is based on \textcite[Theorem~3.2]{goldrei-set-theory}, while the proof is inspired by \textcite[§8.18]{davey-priestley-order}.}
 
 \begin{theorem}[Definition by recursion]
-    Let $\calR$ be a set of inference rules [TODO need uniqueness!], and let $Z$ be any set. For each $R \in \calR$ let $h_R \colon \mu \calR \prod Z^{\rho(R)} \to Z$ be a function [TODO define arity of rule]. Then there is a unique function $f \colon \mu \calR \to Z$ such that if $x_1, \ldots, x_k$ are the antecedents and $y$ the consequent of a rule $R$, then
+    \label{thm:recursive-definitions}
+    Let $\calR$ be a set of inference rules such that each $y \in \mu\calR$ is the consequent of a unique rule, and let $Z$ be any set. For each $R \in \calR$ let $h_R \colon \mu \calR \prod Z^{\rho(R)} \to Z$ be a function. Then there is a unique function $f \colon \mu \calR \to Z$ such that if $\myinfrule{R}{\seq{x}}{y}$, then
     %
     \begin{equation*}
         f(y)
-            = h_R(y, f(x_1), \ldots, f(x_k)).
+            = h_R \bigl( y, f(x_1), \ldots, f(x_k) \bigr).
     \end{equation*}
 \end{theorem}
 
 \begin{proof}
-    Define a function $G \colon \pmaps{\mu\calR}{Z} \to \pmaps{\mu\calR}{Z}$ as follows: For $f \in \pmaps{\mu\calR}{Z}$ let $\dom G(f)$ be the set of elements $y \in \mu\calR$ such that if $R \in \calR$ is the unique rule with consequent $y$, then the antecedents of $R$ lie in $\dom f$. For $y \in \dom G(f)$ we then let
+    Define a function $G \colon \pmaps{\mu\calR}{Z} \to \pmaps{\mu\calR}{Z}$ as follows: For $f \colon \mu\calR \pto Z$ let $\dom G(f)$ be the set of elements $y \in \mu\calR$ such that if $\myinfrule{R}{\seq{x}}{y}$ is the unique rule with consequent $y$, $\seq{x} \subseteq \dom f$. For $y \in \dom G(f)$ we then let
     %
     \begin{equation*}
         G(f)(y)
-            = h_R(y, f(x_1), \ldots, f(x_k)).
+            = h_R \bigl( y, f(x_1), \ldots, f(x_k) \bigr).
     \end{equation*}
     %
     If $F$ is the function represented by $\calR$, notice that $\dom G(f) = F(\dom f)$. In particular, $\dom G(\bot) = F(\emptyset)$, so it follows by induction that $\dom G^n(\bot) = F^n(\emptyset)$ for $n \in \naturals$.
@@ -648,22 +692,22 @@ The final construction we need is definition by recursion.\footnote{The statemen
     We next show that $G$ is continuous, so let $D \subseteq \pmaps{\mu\calR}{Z}$ be directed. First notice that, since $F$ is continuous by [TODO ref], we get from [TODO ref ex] that
     %
     \begin{align*}
-        \dom G(\bigdjoin D)
-            &= F(\dom \bigdjoin D)
-             = F(\bigdjoin \dom \image{D}) \\
-            &= \bigdjoin F\image{\dom \image{D}}
-             = \bigdjoin \dom \image{G\image{D}} \\
+        \dom G \bigl( \bigdjoin D \bigr)
+            &= F \bigl( \dom \bigdjoin D \bigr)
+             = F \bigl( \bigdjoin \dom \image{D} \bigr) \\
+            &= \bigdjoin F\image[\big]{\dom \image{D}}
+             = \bigdjoin \dom \image[\big]{G\image{D}} \\
             &= \dom \bigdjoin G\image{D}.
     \end{align*}
     %
-    For $y$ in this common domain there is a $d \in D$ such that $y \in \dom G(d)$. If $R$ is the unique rule with consequent $y$ and $x_1, \ldots, x_k$ are its antecedents, then these lie in $\dom d$, and so
+    For $y$ in this common domain there is a $d \in D$ such that $y \in \dom G(d)$. If $\myinfrule{R}{\seq{x}}{y}$ then $\seq{x} \subseteq \dom d$, and so
     %
     \begin{align*}
-        G(\bigdjoin D)(y)
-            &= h_R(y, (\bigdjoin D)(x_1), \ldots, (\bigdjoin D)(x_k)) \\
-            &= h_R(y, d(x_1), \ldots, d(x_k)) \\
+        G \bigl( \bigdjoin D \bigr) (y)
+            &= h_R \bigl( y, (\bigdjoin D)(x_1), \ldots, (\bigdjoin D)(x_k) \bigr) \\
+            &= h_R \bigl( y, d(x_1), \ldots, d(x_k) \bigr) \\
             &= G(d)(y) \\
-            &= (\bigdjoin G\image{D})(y).
+            &= \bigl( \bigdjoin G\image{D} \bigr) (y).
     \end{align*}
     %
     Thus $G(\bigdjoin D) = \bigdjoin G\image{D}$, so $G$ is continuous.
@@ -678,28 +722,90 @@ The final construction we need is definition by recursion.\footnote{The statemen
             = \mu F.
     \end{equation*}
     %
-    Hence $\mu G$ is fact a total function solving the equation [TODO ref], which proves the theorem.
+    Hence $\mu G$ is in fact a total function solving the equation [TODO ref], which proves the theorem.
 \end{proof}
 
 [TODO example? + nonexample for sigma-algebras/topologies?]
 
 
+\section{Topology and logic}
+
+\begin{definition}[Frames]
+    A poset $P$ is a \keyword{frame} if
+    %
+    \begin{enumdef}
+        \item every subset of $P$ has a join,
+        \item every finite subset of $P$ has a meet, and
+        \item $P$ satisfies the \keyword{join-infinite distributive law},
+        %
+        \begin{equation*}
+            x \meet \bigjoin Y
+                = \bigjoin \set{x \meet y}{y \in Y}
+        \end{equation*}
+        %
+        for all $x \in P$ and $Y \subseteq P$.
+    \end{enumdef}
+\end{definition}
+%
+Since all joins exist, so do all meets. In particular, a frame is complete distributive lattice.
+
+\newcommand{\inpoint}{\prec}
+\newcommand{\opens}[1]{\calU_{#1}}
+\newcommand{\specs}{\sqsubseteq}
+
+\begin{definition}[Topological systems]
+    A \keyword{topological system} is a pair $(X,\calT)$, where $X$ is a set and $\calT$ is a frame, equipped with a relation ${\inpoint} \subseteq X \prod \calT$ with the following properties:
+    %
+    \begin{enumdef}
+        \item For all $\calS \subseteq_\omega \calT$ and $x \in X$,
+        %
+        \begin{equation*}
+            x \inpoint \bigmeet \calS
+                \quad \text{if and only if} \quad
+                \forall U \in \calS \colon a \inpoint U.
+        \end{equation*}
+
+        \item For all $\calS \subseteq \calT$ and $x \in X$,
+        %
+        \begin{equation*}
+            x \inpoint \bigjoin \calS
+                \quad \text{if and only if} \quad
+                \exists U \in \calS \colon a \inpoint U.
+        \end{equation*}
+    \end{enumdef}
+\end{definition}
+%
+The elements in $X$ are called \keyword{points}, and the elements of $\calT$ are alled \keyword{opens}. If $x \inpoint U$, then we say that $x$ is an \keyword{inner point} of $U$. The set of opens of which $x$ is an inner point is denoted $\opens{x}$. For $x,y \in X$ we say that $y$ \keyword{specialises} $x$, written $x \specs y$, if $\opens{x} \subseteq \opens{y}$. We call $\specs$ the \keyword{specialisation preorder} on $X$, and it is indeed a preorder.
+
+In trying to equip $X$ with a logic, we obviously wish to define disjunctions on $X$. For $A \subseteq X$, we say that $x \in X$ is a \keyword{disjunction} of $A$, written $\bigjoin A$, if it satisfies
+%
+\begin{equation*}
+    \bigjoin A \inpoint U
+        \quad \text{if and only if} \quad
+        \exists a \in A \colon a \inpoint U,
+\end{equation*}
+%
+for all $U \in \calT$. We are careful to distinguish this from a join $\bigdjoin A$ of $A$ with respect to $\specs$.\footnote{Note that since $\specs$ is not (generally) antisymmetric, the join of $A$ is not necessarily unique if it exists, but it is easy to show that if $x$ and $y$ are both joins of $A$, then $x \specs y$ and $y \specs x$.}
+
+\begin{proposition}
+    Any disjunction is a join, but not vice-versa.
+\end{proposition}
+
+\begin{proof}
+    Let $\bigjoin A$ be a disjuction. If $a \in A$ and $a \inpoint U$, then we also have $\bigjoin A \inpoint U$, so $\bigjoin A$ is an upper bound of $A$. Next let $x$ be any upper bound of $A$. If $\bigjoin A \inpoint U$, then $a \inpoint U$ for some $a \in A$, and since $a \specs x$ we also have $x \inpoint U$. Hence $\bigjoin A \specs x$.
+\end{proof}
+
+However, arbitrary subsets of $X$ do not have disjunctions, or at least do not have disjunctions that respect the logic on $\calT$. For instance, if $x,y \in X$ are incomparable with respect to the specialisation preorder, then there are opens $U \in \opens{x} \setminus \opens{y}$ and $V \in \opens{Y} \setminus \opens{X}$. If the disjunction $x \join y$ existed, then we would have $x \join y \inpoint U$ and $x \join y \inpoint V$, but not $x \join y \inpoint U \meet V$, in contradiction with the assumption that $(X,\calT)$ is a topological system.
+
+In order to mitigate this problem, we must find 
+
+
 
 \section{Abstract syntax}
 
-\newcommand{\seq}[1]{\vec{#1}}
-\newcommand{\setOp}{\mathit{Op}}
-\newcommand{\setSort}{\mathit{Sort}}
-\newcommand{\sortExp}{\mathit{Exp}}
-\newcommand{\sortType}{\mathit{Type}}
-\newcommand{\finseq}[1]{\mathrm{Seq}(#1)}
-
-If $X$ is a set, then we denote by $\finseq{X}$ the set of finite sequences of elements in $X$. We often denote such a sequence by a variable decorated with an arrow, e.g. $\seq{x}$. If $\seq{x} \in \finseq{X}$ and $x \in X$, then we write $x \in \seq{x}$ if $x$ is among the entries in $\seq{x}$, and $x \not\in \seq{x}$ otherwise.
-
-
 \newpar
 
-Let $\setSort$ be a set. We think of $\setSort$ as a set of \keyword{sorts}, for instance expressions or types. A \keyword{valence} is an expression on the form $s_1,\ldots,s_k.s$, or $\seq{s}.s$ for short, where $s_1,\ldots,s_k,s$ are sorts for $k \in \naturals$. [TODO formalise expression] If $k = 0$, then instead of \enquote{$.s$} we omit the period and simply write \enquote{$s$}. Each argument of an operator is supposed to have a valence which describes both the sort of that argument as well as the sorts of the variables that are bound in that argument (if any). An \keyword{arity} is then an expression on the form $(v_1, \ldots, v_n)s$, where $v_1, \ldots, v_n$ are valences and $s$ is a sort, for $n \in \naturals$. [TODO formalise expression] Operators will be assigned arities, and $v_i$ is then the valence of the $i$th argument to an operator with the above arity, and $s$ is the sort of the return value of the operator. We also fix a set $\setOp$ which we think of as a set of \keyword{operators}, each of which is assigned an arity. Finally we fix a set $\setVar$ of variables, and we assign to each variable a sort, so that we for instance can have both ordinary variables (of expression sort) and type variables (of type sort).
+Let $\setSort$ be a set. We think of $\setSort$ as a set of \keyword{sorts}, for instance expressions or types. A \keyword{valence} is an expression on the form $s_1,\ldots,s_k.s$, or $\seq{s}.s$ for short, where $s_1,\ldots,s_k,s$ are sorts for $k \in \naturals$. [TODO formalise expression] If $k = 0$, then instead of \enquote{$.s$} we omit the period and simply write \enquote{$s$}. Each argument of an operator is supposed to have a valence which describes both the sort of that argument as well as the sorts of the variables that are bound in that argument (if any). An \keyword{arity} is then an expression on the form $(v_1, \ldots, v_n)s$, where $v_1, \ldots, v_n$ are valences and $s$ is a sort, for $n \in \naturals$. [TODO formalise expression] Operators will be assigned arities, and $v_i$ is then the valence of the $i$th argument to an operator with the above arity, and $s$ is the sort of the return value of the operator. For each arity $\alpha$ we also fix a set $\setOp_\alpha$ which we think of as a set of \keyword{operators}. Finally we fix for each sort $s \in \calS$ a set $\setVar_s$ of variables so that we for instance can have both ordinary variables (of expression sort) and type variables (of type sort). Note that we do not [TODO contrary to Harper] require the sets $\setOp_\alpha$ to be disjoint, so an operator can have multiple arities. [TODO variables of multiple sorts?] We let $\setOp$ be the set of all operators of any arity, and $\calX$ the set of all variables of any sort.
 
 For example, if $\sortExp$ is a sort of expressions and $\sortType$ a sort of types, an operator corresponding to lambda abstraction with type annotation might have arity $(\sortType, \sortExp.\sortExp)\sortExp$. This indicates that its arguments are a type (the type of the argument) along with an expression in which a variable of expression sort is bound, and the entire abstraction is also of expression sort. If we also allow the abstraction to be given a name (in order to easily allow for recursive functions), then the arity of the operator might instead be $(\sortType; \sortExp,\sortExp.\sortExp)\sortExp$. We here separate the valences with a semicolon since the valence of the second argument itself contains a comma.
 
@@ -708,26 +814,382 @@ For example, if $\sortExp$ is a sort of expressions and $\sortType$ a sort of ty
 
 We first define the set of \keyword{unsorted abstract syntax trees}, or simply \keyword{UASTs}. [TODO universal set] We define this set using inference rules. For each $x \in \setVar$ we have the axiom
 %
-\begin{equation*}
-    \inferrule*{}{
+\begin{equation}
+    \label{eq:UAST-var}
+    \inferrule*{ }{
         x
     }
-\end{equation*}
+\end{equation}
 %
 saying that $x$ itself is always a UAST. For each $\phi \in \setOp$ taking $n$ arguments and $\seq{x}_1, \ldots, \seq{x}_n \in \finseq{\setVar}$ we also have the rule
 %
-\begin{equation*}
+\begin{equation}
+    \label{eq:UAST-op}
     \inferrule*{
         a_1 \and \cdots \and a_n
     }{
         \phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n)
     }
+\end{equation}
+%
+[TODO formalise expression] We denote the set of UASTs by $\calA$. The expression $\phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n)$ is supposed to denote the application of the operator $\phi$ on the UASTs $a_1, \ldots, a_n$ in which the variables $\seq{x}_1, \ldots, \seq{x}_n$ have been bound.
+
+We next define the set of \keyword{free variables}. This will be a function $\freevar{} \colon \calA \to \powerset{\setVar}$ defined recursively using \cref{thm:recursive-definitions}. According to this theorem, we must specify for each inference rule $R$ a function $h_R \colon \calA \prod \powerset{\setVar}^{\rho(R)} \to \powerset{\setVar}$. If $R$ is a rule as in \cref{eq:UAST-var}, then $\rho(R) = 0$ and we let $h_R(a) = \{a\}$. If instead $R$ is as in \cref{eq:UAST-op}, then we let
+%
+\begin{equation*}
+    h_R \bigl( \phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n), A_1, \ldots, A_n \bigr)
+        = \bigunion_{i=1}^n (A_i \setminus \seq{x}_i).
 \end{equation*}
 %
-[TODO formalise expression] That is, for now we ignore sorts and simply ... [TODO without fresh renamings etc., are UASTs even necessary?]
+(If the first argument to $h_R$ is instead a variable, then we let the value of $h_R$ be an arbitrary element of $\powerset{\setVar}$.) This implies the existence of a function $\freevar{} \colon \calA \to \powerset{\setVar}$ with the properties
+%
+\begin{align*}
+    \freevar{x}
+        &= \{x\}, \\
+    \freevar[\big]{\phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n)}
+        &= \bigunion_{i=1}^n (\freevar{a_i} \setminus \seq{x}_i).
+\end{align*}
+%
+The function $\freevar{}$ is usually \enquote{defined} simply by writing down the above two equations, but the precise justification goes through \cref{thm:recursive-definitions} and the functions $h_R$ (or a similar argument). We similarly define the set of \keyword{bound variables} in a UAST by
+%
+\begin{align*}
+    \boundvar{x}
+        &= \emptyset, \\
+    \boundvar[\big]{\phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n)}
+        &= \bigunion_{i=1}^n \bigl( \seq{x}_i \union \boundvar{a_i} \bigr).
+\end{align*}
+%
+The set of all variables occurring in a UAST $a$ is then $\allvar{a} \defeq \freevar{a} \union \boundvar{a}$. If $\freevar{a} = \emptyset$, then we say that $a$ is \keyword{closed}.
 
 
+\newpar
 
+For $y,z \in \setVar$ we define the \keyword{renaming map} $a \mapsto a^{y \to z}$ on $\calA$ as follows:
+%
+\begin{align*}
+    x^{y \to z}
+        &= \begin{cases}
+            z, & x = y, \\
+            x, & x \neq y,
+        \end{cases} \\
+    \phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n)^{y \to z}
+        &= \phi(\seq{x}_1.a_1' ; \ldots ; \seq{x}_n.a_n'),
+\end{align*}
+%
+where $a_i' = a_i$ if $y \in \seq{x}$ and $a_i' = a_i^{y \to z}$ otherwise. We think of this map as renaming all the \emph{free} occurrences of $y$ in a UAST. This way of informally defining the renaming map makes it seem like there is an issue of well-definition: That is, if $a \in \calA$ do we indeed have $a^{y \to z} \in \calA$? But this \enquote{problem} disappears if we formulate the definition in the precise manner prescribed by \cref{thm:recursive-definitions}. For a sequence of variables we also define $(x_1, \ldots, x_n)^{y \to z} = (x_1', \ldots, x_n')$, where $x_i' = z$ if $x_i = y$ and $x_i' = x_i$ if $x_i \neq y$.
+
+Renaming free variables in $a$ changes the set $\freevar{a}$ in a predictable way:
+
+\begin{lemma}
+    \label{lem:renaming-freevars}
+    $\freevar{a^{y \to z}} \subseteq (\freevar{a} \setminus \{y\}) \union \{z\}$. In particular, if $y \neq z$ then $y \not\in \freevar{a^{y \to z}}$.
+\end{lemma}
+
+\begin{proof}
+    We prove the claim by rule induction in $a$. If $a = x$ is a variable and $x = y$, then
+    %
+    \begin{equation*}
+        \freevar{x^{y \to z}}
+            = \freevar{z}
+            = \{z\}
+            \subseteq (\freevar{x} \setminus \{y\}) \union \{z\}.
+    \end{equation*}
+    %
+    If instead $x \neq y$, then
+    %
+    \begin{equation*}
+        \freevar{x^{y \to z}}
+            = \freevar{x}
+            \subseteq (\freevar{x} \setminus \{y\}) \union \{z\},
+    \end{equation*}
+    %
+    since $y \not\in \{x\} = \freevar{x}$. Finally we have
+    %
+    \begin{equation*}
+        \freevar[\big]{\phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n)^{y \to z}}
+            = \freevar[\big]{\phi(\seq{x}_1.a_1' ; \ldots ; \seq{x}_n.a_n')}
+            = \bigunion_{i=1}^n (\freevar{a_i'} \setminus \seq{x}_i).
+    \end{equation*}
+    %
+    For each $i$ we either have $y \in \seq{x}_i$ and $\freevar{a_i'} = \freevar{a_i}$, or else $y \not\in \seq{x}_i$ and $a_i' = a_i^{y \to z}$. In the former case $\freevar{a_i'} \setminus \seq{x}_i \subseteq (\freevar{a_i'} \setminus \seq{x}_i) \setminus \{y\}$. In the latter case we have $\freevar{a_i'} \subseteq (\freevar{a_i} \setminus \{y\}) \union \{z\}$, so that $\freevar{a_i'} \setminus \seq{x}_i \subseteq ((\freevar{a_i} \setminus \seq{x}_i) \setminus \{y\}) \union \{z\}$. Hence
+    %
+    \begin{align*}
+        \bigunion_{i=1}^n (\freevar{a_i'} \setminus \seq{x}_i)
+            &\subseteq \Bigl(\bigunion_{i=1}^n (\freevar{a_i} \setminus \seq{x}_i) \setminus \{y\} \Bigr) \union \{z\} \\
+            &= \Bigl( \freevar[\big]{\phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n)} \setminus \{y\} \Bigr) \union \{z\},
+    \end{align*}
+    %
+    as claimed.
+\end{proof}
+
+
+While the renaming map allows us to rename \emph{free} occurrences of variables in UASTs, this is not usually something we wish to do, first of all since the ASTs we are ultimately interested in will be closed anyway, and secondly because renaming a free variable makes the UAST behave differently with respect to e.g. substitution. Nonetheless, the renaming map allows to define renaming of \emph{bound} occurrences of variables, and the names of bound variables are of course not supposed to be significant. We usually say that two UASTs (or similar syntactic objects, such as terms in the $\lambda$-calculus) are \keyword{$\alpha$-equivalent} if one is obtained from the other by renaming of bound variables. We define the $\alpha$-equivalence relation $=_\alpha$ by the following inference rules:
+%
+\begin{equation*}
+    \inferrule*{
+        a_i =_\alpha b
+    }{
+        \phi(\ldots ; \seq{x}_i.a_i ; \ldots)
+            =_\alpha \phi( \ldots ; \seq{x}_{i-1}.a_{i-1} ; \seq{x}_i.b ; \seq{x}_{i+1}.a_{i+1} ; \ldots )
+    }
+\end{equation*}
+
+\begin{equation*}
+    \inferrule*{ }{
+        \phi(\ldots ; \seq{x}_i.a_i ; \ldots)
+            =_\alpha \phi( \ldots ; \seq{x}_{i-1}.a_{i-1} ; \seq{x}_i^{y \to z}.a_i^{y \to z} ; \seq{x}_{i+1}.a_{i+1} ; \ldots )
+    }
+\end{equation*}
+%
+if either $y = z$ [TODO is this necessary??], or else $y \in \seq{x}_i$, $z \not\in \seq{x}_i$ and $z \not\in \allvar{a_i}$. We also require $=_\alpha$ to be an equivalence relation as described in [TODO ref + write it! use old stuff about fixpoints of joins of functions.]
+
+
+\subsection{Substitution}
+
+\newpar
+
+We also want to be able to substitute one UAST $b$ into another UAST $a$ by replacing a (free) variable $x$ in $a$ with $b$. The resulting UAST is denoted $a[b/x]$, and it is fairly difficult to define precisely, even if the concept is natural. If $a$ is a variable $z$, then this is easy:
+%
+\begin{equation*}
+    z[b/x]
+        = \begin{cases}
+            b, & z = x, \\
+            z, & z \neq x.
+        \end{cases}
+\end{equation*}
+%
+However, if $a$ is a more complex UAST, then potential bindings inside $a$ might \enquote{capture} the free variables in $b$, so we must take care that does not happen. On the other hand, if $x$ is not free in $a$ then there is no issue, since then (as it turns out, cf. \cref{lem:substitution-not-free}) $b$ is not substituted into $a$ at all. There are various solutions to this capture problem, and the one we have chosen is to simply not define substitution when it does not make sense. We will see (cf. \cref{lem:substitution-alpha-defined}) that even if we cannot substitute $b$ into $a$, then we can find another UAST $a'$ that is $\alpha$-equivalent to $a$ into which it is possible to substitute $b$. It also turns out (cf. \cref{prop:substitution-alpha-respects}) that if both $a[b/x]$ and $a'[b/x]$ are defined and $a =_\alpha a'$, then we also have $a[b/x] =_\alpha a'[b/x]$. Hence the \emph{partial} substitution function on UASTs induces a \emph{total} substitution function on $\alpha$-equivalence classes of UASTs.
+
+Returning to the definition of substitution, we now define $\phi(\ldots ; \seq{x}_i.a_i ; \ldots)[b/x]$ to be either undefined or $\phi(\ldots ; \seq{x}_i.a_i' ; \ldots)$, where $a_i'$ is to be defined below. For each $i \in \{1, \ldots, n\}$ we do the following:
+%
+\begin{enumerate}
+    \item If $x \in \seq{x}_i$, then $a_i' = a_i$.
+
+    \item Otherwise, if $a_i[b/x]$ is undefined, then $\phi(\ldots ; \seq{x}_i.a_i ; \ldots)[b/x]$ is also undefined.
+
+    \item Otherwise, if both $x \in \freevar{a_i}$ and $\seq{x}_i \intersect \freevar{b} \neq \emptyset$, then $\phi(\ldots ; \seq{x}_i.a_i ; \ldots)[b/x]$ is undefined.
+
+    \item Otherwise it follows that $a_i[b/x]$ is defined, and that either $x \not\in \freevar{a_i}$ or $\seq{x}_i \disj \freevar{b}$. In this case we let $a_i' = a_i[b/x]$.
+\end{enumerate}
+%
+The idea is as follows: If it is impossible to substitute $b$ into any of the arguments to $\phi$, then the entire substitution is undefined. If $x$ is among the variables bound by $\phi$ in the $i$th argument $\seq{x}_i.a_i$, then there is never any issue, since in this case we do not substitute $b$ into $a_i$ at all. Next, if $x \not\in \freevar{a_i}$ then we can also substitute $b$ into $a_i$, since no actual substitution will happen: During the recursion we never reach a free occurrence of $x$. Finally, if $\seq{x}_i \disj \freevar{b}$, then there is no possibility of capture, and we may substitute $b$ into $a_i$.
+
+As mentioned, even if substitution is undefined for some UAST, we can always find an $\alpha$-equivalent UAST into which it is possible to perform substitution.
+
+\begin{lemma}
+    \label{lem:substitution-alpha-defined}
+    If $a[b/x]$ is undefined, then there is an $a' \in \calA$ with $a =_\alpha a'$ such that $a'[b/x]$ is defined.
+\end{lemma}
+
+\begin{proof}
+    We prove this by rule induction on the definition of $\calA$. If $a = x$ is a variable, then we may simply choose $a' = x$. Next assume that the claim holds for UASTs $a_1, \ldots, a_n$, such that $a_i =_\alpha a_i'$ and $a_i'[b/x]$ is defined. Considering the UAST $\phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n)$, successive applications of [TODO rule] (and transitivity of $=_\alpha$) implies that
+    %
+    \begin{equation*}
+        \phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n)
+            =_\alpha \phi(\seq{x}_1.a_1' ; \ldots ; \seq{x}_n.a_n').
+    \end{equation*}
+    %
+    For each $i \in \{1, \ldots, n\}$, if $x \in \seq{x}_i$ then do nothing for that $i$. Otherwise successively apply [TODO rule] to obtain $\seq{x}_i'$ and $a_i''$ such that
+    %
+    \begin{equation*}
+        \phi( \ldots ; \seq{x}_{i-1}.a_{i-1}' ; \seq{x}_i.a_i' ; \seq{x}_{i+1}.a_{i+1}' ; \ldots )
+            =_\alpha \phi( \ldots ; \seq{x}_{i-1}.a_{i-1}' ; \seq{x}_i'.a_i'' ; \seq{x}_{i+1}.a_{i+1}' ; \ldots ),
+    \end{equation*}
+    %
+    and such that $\seq{x}_i' \disj \freevar{b}$. Now substitution is possible.
+\end{proof}
+
+
+\newpar
+
+We next prove some lemmas on substitution.
+
+\begin{lemma}
+    \label{lem:substitution-not-free}
+    If $x \not\in \freevar{a}$, then the substitution $a[b/x]$ is defined and $a[b/x] = a$.
+\end{lemma}
+
+\begin{proof}
+    The proof is by rule induction on $a$. If $a$ is a variable $z$, then we must have $z \neq x$, and so $z[b/x] = z$.
+
+    Assume instead that $a = \phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n)$ and that the claim holds for $a_1, \ldots, a_n$. For $i \in \{1, \ldots, n\}$, if $x \in \seq{x}_i$ then we do not substitute $b$ into $a_i$, so assume that $x \not\in \seq{x}_i$. By the definition of free variables, $x$ cannot be free in $a_i$ since it is not free in $a$, so by induction $a_i[b/x] = a_i$. The claim follows.
+\end{proof}
+
+
+\begin{lemma}[The substitution lemma]
+    \label{lem:substitution-lemma}
+    TODO
+\end{lemma}
+
+
+\newpar
+
+As promised we now show that substitution respects $\alpha$-equivalence. This is a fairly technical result, and it is not easy to find detailed proofs of this fact in the literature\footnote{\Textcite{harper-pl} simply leaves it as an exercise, cf. Exercise~1.3.}, even for the simpler case of the untyped $\lambda$-calculus.
+
+The main reference on the $\lambda$-calculus, \textcite{barendregt-lambda}, uses the so-called \keyword{variable convention} (cf. his §2.1), in which all bound variables are chosen to be different from the free variables occurring in a given context. Furthermore, $\alpha$-equivalent terms are identified. He afterwards goes on to define substitution, but for substitution to be well-defined in this context it must respect $\alpha$-equivalence. Barendregt relegates this to his Appendix~C: Here he defines substitution anew with using the variable convention and describes how substitution respects $\alpha$-equivalence. However, he simply refers to \textcite[§3.E]{curry-combinatory} for a proof of this result, but the proof that the authors give is rather anachronistic, and as is the nature of proofs of these technical results, it depends highly on the precise way in which the relevant concepts are defined. Hence we give a detailed proof of the claim below for UASTs.
+
+\begin{proposition}
+    \label{prop:substitution-alpha-respects}
+    If $a =_\alpha a'$ and $b =_\alpha b'$, then $a[b/x] =_\alpha a'[b'/x]$ if the substitutions $a[b/x]$ and $a'[b'/x]$, as well as either $a'[b/x]$ or $a[b'/x]$, are all defined.
+\end{proposition}
+
+\begin{proof}
+    By \cref{lem:substitution-alpha-1} and \cref{lem:substitution-alpha-2} below, we get either
+    %
+    \begin{equation*}
+        a[b/x]
+            =_\alpha a'[b/x]
+            =_\alpha a'[b'/x]
+    \end{equation*}
+    %
+    or
+    %
+    \begin{equation*}
+        a[b/x]
+            =_\alpha a[b'/x]
+            =_\alpha a'[b'/x],
+    \end{equation*}
+    %
+    depending on which substitutions are defined.
+\end{proof}
+
+
+\begin{lemma}
+    \label{lem:substitution-alpha-1}
+    If $a =_\alpha a'$, then $a[b/x] =_\alpha a'[b/x]$ if both substitutions are defined.
+\end{lemma}
+
+\begin{proof}
+    We prove this claim by rule induction on the definition of $=_\alpha$.
+    %
+    \begin{proofsec}
+        \item[Reflexivity]
+        TODO
+
+        \item[Transitivity]
+        TODO
+
+        \item[Symmetry]
+        TODO
+
+        \item[First rule [TODO ref]]
+        Assume that $a_i[b/x] =_\alpha b_i[b/x]$ for some $i$. Then [TODO rule] implies that
+        %
+        \begin{align*}
+            \phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n)[b/x]
+                &= \phi(\seq{x}_1.a_1[b/x] ; \ldots ; \seq{x}_n.a_n[b/x]) \\
+                &=_\alpha \phi(\seq{x}_1.a_1[b/x] ; \ldots ; \seq{x}_i.b_i[b/x] ; \ldots ; \seq{x}_n.a_n[b/x]) \\
+                &= \phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_i.b_i ; \ldots ; \seq{x}_n.a_n)[b/x].
+        \end{align*}
+
+        \item[Second rule [TODO ref]]
+        Fix $i \in \{1, \ldots, n\}$. We may assume that $y \in \seq{x}_i$, $z \not\in \seq{x}_i$ and $z \not\in \allvar{a_i}$ [TODO from the rule], so that $y \neq z$ in particular. From the definition of substitution we have four cases:
+        %
+        \begin{enumerate}
+            \item $x \in \seq{x}_i$ and $x \in \seq{x}_i^{y \to z}$: In this case no substitution happens, so this is obvious.
+
+            \item $x \in \seq{x}_i$ and $x \not\in \seq{x}_i^{y \to z}$: By definition of renaming of sequences of variables, this implies that $x = y$. But then $x$ is not free in $a_i^{y \to z}$ by \cref{lem:renaming-freevars}, so \cref{lem:substitution-not-free} implies that $a_i^{y \to z}[b/x] = a_i^{y \to z}$. Since $x \in \seq{x}_i$ we do not substitute $b$ into $a_i$, so the claim follows from [TODO second rule].
+
+            \item $x \not\in \seq{x}_i$ and $x \in \seq{x}_i^{y \to z}$: In this case we must have $x = z$, so $x \not\in \allvar{a_i}$, and in particular $x$ is not free in $a_i$. Hence $a_i[b/x] = a_i$ as before, and since $x \in \seq{x}_i^{y \to z}$ we do not substitute $b$ into $a_i^{y \to z}$. The claim then follows as in the previous case.
+
+            \item $x \not\in \seq{x}_i$ and $x \not\in \seq{x}_i^{y \to z}$: In this case $x$ is neither $y$ nor $z$, so $x \not\in \freevar{a_i}$ if and only if $x \not\in \freevar{a_i^{y \to z}}$ by \cref{lem:renaming-freevars}. The claim thus follows from \cref{lem:substitution-not-free} as above.
+
+            Hence we may assume that both $\seq{x}_i \disj \freevar{b}$ and $\seq{x}_i^{y \to z} \disj \freevar{b}$, and we must show that
+            %
+            \begin{equation*}
+                \phi(\ldots ; \seq{x}_i.a_i[b/x] ; \ldots)
+                    =_\alpha \phi( \ldots ; \seq{x}_i^{y \to z}.a_i^{y \to z}[b/x] ; \ldots ).
+            \end{equation*}
+            %
+            An application of [TODO rule] implies that it suffices to show that $a_i^{y \to z}[b/x] =_\alpha a_i[b/x]^{y \to z}$. Notice that $y \in \seq{x}_i$ so $z \in \seq{x}_i^{y \to z}$, and so neither $y$ nor $z$ is free in $b$. By \cref{lem:substitution-lemma} we thus have $a_i^{y \to z}[b/x] = a_i[b/x]^{y \to z}$ as desired.
+        \end{enumerate}
+    \end{proofsec}
+\end{proof}
+
+
+\begin{lemma}
+    \label{lem:substitution-alpha-2}
+    If $b =_\alpha b'$, then $a[b/x] =_\alpha a[b'/x]$ if both substitutions are defined.
+\end{lemma}
+
+\begin{proof}
+    TODO
+\end{proof}
+
+
+\section{Abstract reduction systems}
+
+\newcommand{\reduce}{\rightarrow}
+\newcommand{\reduceR}{\overset{=}{\rightarrow}}
+\newcommand{\reduceT}{\overset{+}{\rightarrow}}
+\newcommand{\reduceRT}{\overset{*}{\rightarrow}}
+\newcommand{\reduceI}{\leftarrow}
+\newcommand{\reduceIR}{\overset{=}{\leftarrow}}
+\newcommand{\reduceIT}{\overset{+}{\leftarrow}}
+\newcommand{\reduceIRT}{\overset{*}{\leftarrow}}
+\newcommand{\reduceS}{\leftrightarrow}
+\newcommand{\reduceTS}{\overset{+}{\leftrightarrow}}
+\newcommand{\reduceRTS}{\overset{*}{\leftrightarrow}}
+\newcommand{\joinable}{\downarrow}
+
+Given two relations $R \subseteq X \prod Y$ and $S \subseteq Y \prod Z$, we define their composition
+%
+\begin{equation*}
+    R \circ S
+        \defeq \set{(x,z) \in X \prod Z}{\exists y \in Y \colon (x,y) \in R \land (y,z) \in S},
+\end{equation*}
+%
+(note the ordering), and we also define the inverse
+%
+\begin{equation*}
+    R\inv
+        \defeq \set{(y,x) \in Y \prod X}{(x,y) \in R}.
+\end{equation*}
+%
+If $X = Y$, then we let $R^0 \defeq \set{(x,x)}{x \in X}$ be the identity relation on $X$ (i.e., equality), and for $n \in \naturals$ we recursively define $R^{n+1} \defeq R^n \circ R$. We further define the following:
+%
+\begin{alignat*}{2}
+    R^= &\defeq R \union R^0 && \quad \text{reflexive closure} \\
+    R^+ &\defeq \bigunion_{n\in\naturals^+} R^n && \quad \text{transitive closure} \\
+    R^* &\defeq R^+ \union R^0 && \quad \text{reflexive transitive closure}
+\end{alignat*}
+%
+If we denote $R$ by an arrow, e.g., $\reduce$, then we also write ${\reduceR} \defeq (\reduce)^=$, ${\reduceT} \defeq (\reduce)^+$ and ${\reduceRT} \defeq (\reduce)^*$, and we further define
+%
+\begin{alignat*}{2}
+    {\reduceI} &\defeq (\reduce)\inv && \quad \text{inverse} \\
+    {\reduceS} &\defeq {\reduce} \union {\reduceI} && \quad \text{symmetric  closure} \\
+    {\reduceTS} &\defeq (\reduceS)^+ && \quad \text{transitive symmetric closure} \\
+    {\reduceRTS} &\defeq (\reduceS)^* && \quad \text{reflexive transitive symmetric closure}
+\end{alignat*}
+%
+Clearly $\reduceRT$ is a preorder on $X$, while $\reduceRTS$ is an equivalence relation.
+
+An \keyword{abstract reduction system} is simply a pair $(X,\reduce)$, where $X$ is a set and $\reduce$ is a binary relation on $X$. If $X$ is a set of states of a computer program, then we think of $\reduce$ as formalising computation, in the sense that if $e \reduce e'$, then $e$ reduces to $e'$ by performing some sort of computation.
+
+\begin{remarkbreak}
+    \begin{enumrem}
+        \item We say that $x \in X$ is \keyword{reducible} if there is a $y \in X$ such that $x \reduce y$, and otherwise $x$ is \keyword{irreducible} or \keyword{in normal form}. An element $y \in X$ is \keyword{a normal form} of $x$ if $x \reduceRT y$ and $y$ is in normal form. In the context of programming languages, normal forms are supposed to model the end result of a successful computation.
+        
+        \item If $x,y \in X$, then $x$ and $y$ are \keyword{joinable} if there is a $z \in X$ with $x \reduceRT z \reduceIRT y$. In this case we write $x \joinable y$. Note that this does not mean that $z$ is the join of $x$ and $y$ with respect to the preorder $\reduceRT$, but simply that $z$ is an upper bound.
+
+        We say that $\reduce$ is \keyword{Church--Rosser} if $x \reduceRTS y$ implies $x \joinable y$ for all $x,y \in X$. Seemingly a weaker property, $\reduce$ is \keyword{confluent} if instead $x \reduceIRT z \reduceRT y$ implies $x \joinable y$, but one can show that these properties are equivalent, cf. \textcite[Theorem~2.1.5]{baader-nipkow-term-rewriting}.
+
+        In a particular state of a computer program we might allow the computation to proceed to multiple different ways. For instance, we might allow the arguments to functions to be evaluated in arbitary order, and if $\reduce$ is confluent then no matter which computations are performed when, it is always possible to continue the computation in such a way that both branches end up the same place. Of course, confluence does not ensure that this happens, it only ensures that it is possible.
+
+        \item We call $\reduce$ \keyword{terminating} if there is no infinite chain $x_1 \reduce x_2 \reduce \cdots$. If every such chain terminates, then $x_1$ must have a normal form. If every $x \in X$ has a normal form, then $\reduce$ is called \keyword{normalising}, and this is clearly a strictly weaker property than being terminating.\footnote{Termination and normalisation are also called \keyword{strong} and \keyword{weak normalisation} respectively.}
+
+        Termination is of course a desirable property, but it is not exhibited by most programming languages. Neither is normalisation. Note the difference between these two properties: Termination says that any computation always terminates, normalisation says that no matter the state of the program, there is a computation which terminates the program, but the program is not required to perform this computation.
+    \end{enumrem}
+\end{remarkbreak}
+
+\begin{examplebreak}[$\lambda$-calculus]
+    In the $\lambda$-calculus there are various ways of defining a notion of reduction (for instance corresponding to call-by-value or call-by-name, cf. \cite[§5.1]{pierce-types}), but the usual is \keyword{full $\beta$-reduction}, which is nondeterministic and allows any subexpression which is not a normal form [TODO redexes?? Bader/Nipkow ch 4 + nederpelt/geuvers] to be reduced. Equipped with this notion of reduction, the untyped $\lambda$-calculus and both the first- and second-order simply typed $\lambda$-calculi are confluent, and so is the calculus of constructions.
+    
+    However, while the typed $\lambda$-calculi are terminating, the untyped $\lambda$-calculus is not. For instance, when the term $\Omega = (\lambda x.xx)(\lambda x.xx)$ is reduced we simply obtain $\Omega$ itself again. On the other hand, the termination of e.g. simply typed $\lambda$-calculus implies that it is impossible to implement recursive functions using only $\lambda$-abstraction and application (since recursive functions may not terminate), and recursive functions must instead be added to the theory \enquote{by hand}. [TODO refer to later, System F]
+    
+    We refer to \textcite{nederpelt-geuvers-types} for further discussion and proofs or references to proofs of the above claims.
+\end{examplebreak}
 
 
 
