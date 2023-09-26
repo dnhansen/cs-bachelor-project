@@ -725,6 +725,22 @@ The final construction we need is definition by recursion.\footnote{The statemen
     Hence $\mu G$ is in fact a total function solving the equation [TODO ref], which proves the theorem.
 \end{proof}
 
+We also sometimes wish to define \emph{partial} functions recursively. This is no issue, for as the following shows, there is a correspondence between partial functions and certain total functions.
+
+\newcommand{\cat}{\mathbf}
+\newcommand{\catPfn}{\cat{Pfn}}
+\newcommand{\catSet}{\cat{Set}}
+\newcommand{\catSetP}{\cat{Set}_*}
+
+\begin{example}
+    Consider a partial function $f \colon X \pto Y$, let $*$ be some element not in $Y$, and let $Y_* = Y \union \{*\}$. We then define a total function $f_* \colon X \to Y_*$ by letting $f_*(x) = f(x)$ if $x \in \dom f$, and $f_*(x) = *$ otherwise.
+
+    Conversely, given a total function $f_* \colon X \to Y_*$ we obtain the corresponding partial function $f \colon X \pto Y$ by restricting $f_*$ to the set $\set{x \in X}{f_*(x) \neq *}$.\footnote{This correspondence between partial and total functions indicates that there is some correspondence between the category $\catPfn$ of sets and partial functions and the category $\catSetP \cong 1/\catSet$ of pointed sets. Indeed, while these are not isomorphic, they are \emph{equivalent} (see e.g. \cite[Theorems~156 and 158]{smith-categories-2}).}
+\end{example}
+%
+Hence, to define a partial function $f$ recursively, we first extend the indented codomain by some new element such as $*$, and define a total function $f_*$ recursively while letting $f_*(x) = *$ whenever $f$ is supposed to be undefined at $x$. Finally restrict $f_*$ to obtain $f$.
+
+
 [TODO example? + nonexample for sigma-algebras/topologies?]
 
 
