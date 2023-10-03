@@ -135,6 +135,15 @@
     \end{assumption@theorem}\end{displayquote}%
 }
 
+\newtheorem{convention@theorem}{\protect\@convention}
+
+\newenvironment{convention}{%
+    \begin{displayquote}\begin{convention@theorem}\noindent%
+}{%
+    \end{convention@theorem}\end{displayquote}%
+}
+
+
 
 % Sectioned proofs
 \newcommand{\mylistlabelfont}[1]{{\normalfont\unboldmath\textit{#1}:}}

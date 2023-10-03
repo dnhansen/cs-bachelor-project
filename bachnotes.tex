@@ -216,7 +216,7 @@
 \DeclareMathOperator{\clSpan}{\overbar{0.5}{1.5}{span}}
 
 \newcommand\inv{^{-1}}
-\newcommand{\preim}[2][]{^{-1}\auxdelimparen[#1]{#2}}
+\newcommand{\preim}[2][]{^{-1}\auxdelimbracket[#1]{#2}}
 \newcommand{\image}[2][]{\auxdelimbracket[#1]{#2}}
 
 \newcommand{\dsupp}[2][]{\mathrm{Sp}_d\auxdelimparen[#1]{#2}}
@@ -281,6 +281,7 @@
 
 % \newcommand{\keyword}[1]{\textbf{\textit{#1}}}
 \newcommand{\pto}{\rightharpoonup}
+\newcommand{\injto}{\hookrightarrow}
 \newcommand{\dom}{\operatorname{dom}}
 \newcommand{\ran}{\operatorname{ran}}
 
@@ -324,6 +325,7 @@
 \newcommand{\setTAnn}{\mathit{TAnn}}
 \newcommand{\typeUnit}{{\normalfont\textsf{Unit}}}
 \newcommand{\freevar}[2][]{\mathit{FV}\auxdelimparen[#1]{#2}}
+\newcommand{\freevarsort}[3][]{\mathit{FV}_{#3}\auxdelimparen[#1]{#2}}
 \newcommand{\boundvar}[2][]{\mathit{BV}\auxdelimparen[#1]{#2}}
 \newcommand{\allvar}[2][]{\mathit{V}\auxdelimparen[#1]{#2}}
 \newcommand{\freeTvar}[1]{\mathit{FTV}(#1)}
@@ -850,6 +852,28 @@ saying that $x$ itself is always a UAST. For each $\phi \in \setOp$ taking $n$ a
 %
 [TODO formalise expression] We denote the set of UASTs by $\calA$. The expression $\phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n)$ is supposed to denote the application of the operator $\phi$ on the UASTs $a_1, \ldots, a_n$ in which the variables $\seq{x}_1, \ldots, \seq{x}_n$ have been bound.
 
+\newcommand{\hassort}[2]{#1 : #2}
+
+Using unsorted ASTs we also define \keyword{(well-sorted) abstract syntax trees}, or \keyword{ASTs} for short, as following. We recursively define a relation on $\calA \prod \setSort$, where we write an element $(a,s)$ by $\hassort{a}{s}$: For each sort $s \in \setSort$ and variable $x \in \setVar_s$ of sort $s$ we have the rule
+%
+\begin{equation}
+    \inferrule*{ }{
+        \hassort{x}{s}
+    }
+\end{equation}
+%
+Next, consider an operator $\phi \in \setOp_\alpha$ where $\alpha = (v_1 ; \ldots ; v_n)s$ and $v_i = (s_{i1}, \ldots, s_{ik_i})s_i$. If we apply $\phi$ to ASTs of the proper sorts and bind in each argument the correct number of variables of the right sorts, then the resulting UAST should also be well-sorted with sort $s$: Hence, if $\seq{x}_i$ is a sequence of variables $(x_{i1}, \ldots, x_{ik_i})$ where $x_{ij}$ has sort $s_{ij}$, then we have the rule
+%
+\begin{equation}
+    \inferrule*{
+        \hassort{a_1}{s_1} \and \cdots \and \hassort{a_n}{s_n}
+    }{
+        \hassort{\phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n)}{s}
+    }
+\end{equation}
+%
+If $\hassort{a}{s}$, then we say that $a$ is \keyword{well-sorted} with sort $s$.
+
 We next define the set of \keyword{free variables}. This will be a function $\freevar{} \colon \calA \to \powerset{\setVar}$ defined recursively using \cref{thm:recursive-definitions}. According to this theorem, we must specify for each inference rule $R$ a function $h_R \colon \calA \prod \powerset{\setVar}^{\rho(R)} \to \powerset{\setVar}$. If $R$ is a rule as in \cref{eq:UAST-var}, then $\rho(R) = 0$ and we let $h_R(a) = \{a\}$. If instead $R$ is as in \cref{eq:UAST-op}, then we let
 %
 \begin{equation*}
@@ -894,48 +918,25 @@ For $y,z \in \setVar$ we define the \keyword{renaming map} $a \mapsto a^{y \to z
 %
 where $a_i' = a_i$ if $y \in \seq{x}$ and $a_i' = a_i^{y \to z}$ otherwise. We think of this map as renaming all the \emph{free} occurrences of $y$ in a UAST. This way of informally defining the renaming map makes it seem like there is an issue of well-definition: That is, if $a \in \calA$ do we indeed have $a^{y \to z} \in \calA$? But this \enquote{problem} disappears if we formulate the definition in the precise manner prescribed by \cref{thm:recursive-definitions}. For a sequence of variables we also define $(x_1, \ldots, x_n)^{y \to z} = (x_1', \ldots, x_n')$, where $x_i' = z$ if $x_i = y$ and $x_i' = x_i$ if $x_i \neq y$.
 
-Renaming free variables in $a$ changes the set $\freevar{a}$ in a predictable way:
+If $a$ is well-sorted and we rename a variable in $a$ to a variable of the same sort, then the result should certainly be well-sorted of the same sort, and this is indeed the case:
 
 \begin{lemma}
-    \label{lem:renaming-freevars}
-    $\freevar{a^{y \to z}} \subseteq (\freevar{a} \setminus \{y\}) \union \{z\}$. In particular, if $y \neq z$ then $y \not\in \freevar{a^{y \to z}}$.
+    \label{lem:renaming-sorts}
+    Let $\hassort{a}{s}$, and let $y,z$ be variables of the same sort. Then $\hassort{a^{y \to z}}{s}$.
 \end{lemma}
 
 \begin{proof}
-    We prove the claim by rule induction in $a$. If $a = x$ is a variable and $x = y$, then
+    Induction on the definition of UASTs. If $a = x$ is a variable such that $x = y$, then $x$ and $z$ have the same sort, so $x^{y \to z} = z$ has the same sort as $x$. [TODO need that variables have only one sort!] If instead $x \neq y$, then $x^{y \to z} = x$ certainly has the same sort as $x$.
+
+    Assume that $a = \phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n)$ and that the claim holds for $a_1, \ldots, a_n$. Since $a$ is assumed well-sorted with some sort $s$, inversion [TODO ref] on the definition of ASTs implies that $\hassort{a_i}{s_i}$ for appropriate sorts $s_i$. Now consider
     %
     \begin{equation*}
-        \freevar{x^{y \to z}}
-            = \freevar{z}
-            = \{z\}
-            \subseteq (\freevar{x} \setminus \{y\}) \union \{z\}.
+        a^{y \to z}
+            = \phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n)^{y \to z}
+            = \phi(\seq{x}_1.a_1' ; \ldots ; \seq{x}_n.a_n'),
     \end{equation*}
     %
-    If instead $x \neq y$, then
-    %
-    \begin{equation*}
-        \freevar{x^{y \to z}}
-            = \freevar{x}
-            \subseteq (\freevar{x} \setminus \{y\}) \union \{z\},
-    \end{equation*}
-    %
-    since $y \not\in \{x\} = \freevar{x}$. Finally we have
-    %
-    \begin{equation*}
-        \freevar[\big]{\phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n)^{y \to z}}
-            = \freevar[\big]{\phi(\seq{x}_1.a_1' ; \ldots ; \seq{x}_n.a_n')}
-            = \bigunion_{i=1}^n (\freevar{a_i'} \setminus \seq{x}_i).
-    \end{equation*}
-    %
-    For each $i$ we either have $y \in \seq{x}_i$ and $\freevar{a_i'} = \freevar{a_i}$, or else $y \not\in \seq{x}_i$ and $a_i' = a_i^{y \to z}$. In the former case $\freevar{a_i'} \setminus \seq{x}_i \subseteq (\freevar{a_i'} \setminus \seq{x}_i) \setminus \{y\}$. In the latter case we have $\freevar{a_i'} \subseteq (\freevar{a_i} \setminus \{y\}) \union \{z\}$, so that $\freevar{a_i'} \setminus \seq{x}_i \subseteq ((\freevar{a_i} \setminus \seq{x}_i) \setminus \{y\}) \union \{z\}$. Hence
-    %
-    \begin{align*}
-        \bigunion_{i=1}^n (\freevar{a_i'} \setminus \seq{x}_i)
-            &\subseteq \Bigl(\bigunion_{i=1}^n (\freevar{a_i} \setminus \seq{x}_i) \setminus \{y\} \Bigr) \union \{z\} \\
-            &= \Bigl( \freevar[\big]{\phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n)} \setminus \{y\} \Bigr) \union \{z\},
-    \end{align*}
-    %
-    as claimed.
+    where $a_i'$ are as in the definition of renaming. If $a_i' = a_i$, then there is nothing to prove. If instead $a_i' = a_i^{y \to z}$, then by induction $a_i'$ has the same sort as $a_i$. But then [TODO rule AST] implies that $a^{y \to z}$ has the same sort as $a$.
 \end{proof}
 
 
@@ -994,7 +995,7 @@ As mentioned, even if substitution is undefined for some UAST, we can always fin
 
 \begin{lemma}
     \label{lem:substitution-alpha-defined}
-    If $a[b/x]$ is undefined, then there is an $a' \in \calA$ with $a =_\alpha a'$ such that $a'[b/x]$ is defined.
+    If $a[b/x]$ is undefined, then there is an $a' \in \calA$ with $a =_\alpha a'$ such that $a'[b/x]$ is defined. If $\hassort{a}{s}$, then we may also choose $\hassort{a'}{s}$.
 \end{lemma}
 
 \begin{proof}
@@ -1013,12 +1014,57 @@ As mentioned, even if substitution is undefined for some UAST, we can always fin
     \end{equation*}
     %
     and such that $\seq{x}_i' \disj \freevar{b}$. Now substitution is possible.
+
+    For the final claim we note how to modify the above proof to obtain the stronger conclusion. This is first of all clear for variables. Then choose $a_i'$ to have the same sort as $a_i$. Finally choose the new variables in $\seq{x}_i'$ and $a_i''$ to have the same sorts as the old variables, in which case \cref{lem:renaming-sorts} implies that $a_i''$ has the same sort as $a_i'$. Applying [TODO rule] yields the claim.
 \end{proof}
 
 
 \newpar
 
-We next prove some lemmas on substitution.
+We next prove some lemmas on renaming and substitution. First, renaming free variables in $a$ changes the set $\freevar{a}$ in a predictable way:
+
+\begin{lemma}
+    \label{lem:renaming-freevars}
+    $\freevar{a^{y \to z}} \subseteq (\freevar{a} \setminus \{y\}) \union \{z\}$. In particular, if $y \neq z$ then $y \not\in \freevar{a^{y \to z}}$.
+\end{lemma}
+
+\begin{proof}
+    We prove the claim by rule induction in $a$. If $a = x$ is a variable and $x = y$, then
+    %
+    \begin{equation*}
+        \freevar{x^{y \to z}}
+            = \freevar{z}
+            = \{z\}
+            \subseteq (\freevar{x} \setminus \{y\}) \union \{z\}.
+    \end{equation*}
+    %
+    If instead $x \neq y$, then
+    %
+    \begin{equation*}
+        \freevar{x^{y \to z}}
+            = \freevar{x}
+            \subseteq (\freevar{x} \setminus \{y\}) \union \{z\},
+    \end{equation*}
+    %
+    since $y \not\in \{x\} = \freevar{x}$. Finally we have
+    %
+    \begin{equation*}
+        \freevar[\big]{\phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n)^{y \to z}}
+            = \freevar[\big]{\phi(\seq{x}_1.a_1' ; \ldots ; \seq{x}_n.a_n')}
+            = \bigunion_{i=1}^n (\freevar{a_i'} \setminus \seq{x}_i).
+    \end{equation*}
+    %
+    For each $i$ we either have $y \in \seq{x}_i$ and $\freevar{a_i'} = \freevar{a_i}$, or else $y \not\in \seq{x}_i$ and $a_i' = a_i^{y \to z}$. In the former case $\freevar{a_i'} \setminus \seq{x}_i \subseteq (\freevar{a_i'} \setminus \seq{x}_i) \setminus \{y\}$. In the latter case we have $\freevar{a_i'} \subseteq (\freevar{a_i} \setminus \{y\}) \union \{z\}$, so that $\freevar{a_i'} \setminus \seq{x}_i \subseteq ((\freevar{a_i} \setminus \seq{x}_i) \setminus \{y\}) \union \{z\}$. Hence
+    %
+    \begin{align*}
+        \bigunion_{i=1}^n (\freevar{a_i'} \setminus \seq{x}_i)
+            &\subseteq \Bigl(\bigunion_{i=1}^n (\freevar{a_i} \setminus \seq{x}_i) \setminus \{y\} \Bigr) \union \{z\} \\
+            &= \Bigl( \freevar[\big]{\phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n)} \setminus \{y\} \Bigr) \union \{z\},
+    \end{align*}
+    %
+    as claimed.
+\end{proof}
+
 
 \begin{lemma}
     \label{lem:substitution-not-free}
@@ -1036,6 +1082,25 @@ We next prove some lemmas on substitution.
     \label{lem:substitution-lemma}
     TODO
 \end{lemma}
+
+
+\begin{lemma}
+    If $\hassort{a}{s}$, $\hassort{b}{t}$ and $x \in \setVar_t$ such that the substitution $a[b/x]$ is defined, then $\hassort{a[b/x]}{s}$.
+\end{lemma}
+
+\begin{proof}
+    Rule induction on the definition of ASTs. If $a$ is a variable $z$, then either $z = x$ in which case $a[b/x] = b$ indeed has the same sort as $a$, or else $z \neq x$ in which case $a[b/x] = a$.
+
+    Assume that $a = \phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n)$ and that the claim holds for $a_1, \ldots, a_n$. In this case
+    %
+    \begin{equation*}
+        a[b/x]
+            = \phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n)[b/x]
+            = \phi(\seq{x}_1.a_1' ; \ldots ; \seq{x}_n.a_n'),
+    \end{equation*}
+    %
+    where each $a_i'$ is either $a_i$ or $a_i[b/x]$. By induction these have the same sort as $a_i$, so the claim follows by an application of [TODO rule].
+\end{proof}
 
 
 \newpar
@@ -1131,6 +1196,83 @@ The main reference on the $\lambda$-calculus, \textcite{barendregt-lambda}, uses
 \begin{proof}
     TODO
 \end{proof}
+
+
+\newpar
+
+It turns out to be useful to substitute an AST of one sort for a variable of another sort. This is permitted since we have defined substitution for general UASTs, but we need this operation to respect sorts in certain circumstances. To describe the next result we first define renaming of sorts in arities: If $t,u$ are sorts, then we define [TODO specify symbols]
+%
+\begin{align*}
+    s^{t \to u}
+        &\defeq \begin{cases}
+            u, & s = t, \\
+            s, & s \neq t,
+        \end{cases} \\
+    (s_1, \ldots, s_k)^{t \to u}
+        &\defeq (s_1^{t \to u}, \ldots, s_k^{t \to u}), \\
+    (\seq{s}.s)^{t \to u}
+        &\defeq \seq{s}^{t \to u}.s^{t \to u}, \\
+    \bigl( (v_1; \ldots; v_n)s \bigr)^{t \to u}
+        &\defeq (v_1^{t \to u}; \ldots, v_n^{t \to u})s^{t \to u}.
+\end{align*}
+%
+Put simply, substituting one sort $t$ with another $u$ in an arity $\alpha$ just means going through the arity and replacing every occurrence of $t$ with $u$.
+
+Consider now an AST $a$ of sort $t$ with a single free variable $y$ of sort $t$, and assume that all operators in $a$ have two arities of a particular type: Each operator can be thought of as taking arguments of sort $t$ and returning sort $t$, \emph{as well as} taking arguments of sort $u$ and returning sort $u$. In this case we can substitute $y$ for another variable $z$ of sort $u$, and the result $a^{y \to z}$ will then have sort $u$ instead. [TODO refer forward to application]
+
+\newcommand{\allops}[1]{\Phi(#1)}
+
+\begin{lemma}
+    Assume that
+    %
+    \begin{enumlem}
+        \item $\hassort{a}{t}$,
+        
+        \item $a$ has a single free variable $y$ of sort $t$,
+
+        \item $z$ is a variable of sort $u$, and
+
+        \item every operator in $\allops{a}$ [TODO define this] has an arity $\alpha$ which takes precisely one argument of sort $t$, it also has arity $\alpha^{t \to u}$, and it does not bind any variables of sort $t$ [TODO make more precise].
+        
+        % has both arity $\alpha$ and $\alpha^{t \to u}$, where the arity $\alpha$ binds no variables of sort $t$ [TODO make more precise].
+    \end{enumlem}
+    %
+    Then $\hassort{a^{y \to z}}{u}$.
+\end{lemma}
+
+\begin{proof}
+    Rule induction on the definition of ASTs. If $a$ is a variable $z$, then the only free variable in $a$ is $z$, and so $z = y$. But then $a^{y \to z} = z$, and this indeed has sort $u$.
+
+    Assume instead that $a = \phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n)$ and that the claim holds for $a_1, \ldots, a_n$. Furthermore, write
+    %
+    \begin{equation*}
+        a^{y \to z}
+            = \phi(\seq{x}_1.a_1 ; \ldots ; \seq{x}_n.a_n)^{y \to z}
+            = \phi(\seq{x}_1.a_1' ; \ldots ; \seq{x}_n.a_n'),
+    \end{equation*}
+    %
+    where the $a_i'$ are as in the definition of renaming.
+    
+    
+    
+    
+    By definition of free variables we must have [TODO define notation for sorts]
+    %
+    \begin{equation*}
+        \bigunion_{i=1}^n (\freevarsort{a_i}{t} \setminus \seq{x}_i)
+            = \freevarsort{a}{t}
+            = \{y\},
+    \end{equation*}
+    %
+    so that $\freevarsort{a_i}{t} \setminus \seq{x}_i \subseteq \{y\}$ for each $i$. If $\freevarsort{a_i}{t} \setminus \seq{x}_i = \emptyset$, then either $y$ is not free in $a_i$, in which case $a_i' = a_i^{y \to z} = a_i$ by \cref{lem:substitution-not-free} [TODO formulate for renaming, not just for substitution], or else $y \in \seq{x}_i$, in which case also $a_i' = a_i$.
+
+    Otherwise we have $\freevarsort{a_i}{t} \setminus \seq{x}_i = \{y\}$. Since $\phi$ binds no variables of sort $t$, $\seq{x}_i$ contains no variables of sort $t$, and so $\freevarsort{a_i}{t} = \{y\}$. Hence we may apply the induction hypothesis to $a_i$, implying that $\hassort{a_i^{y \to z}}{u}$. [TODO TODO TODO]
+\end{proof}
+
+
+\begin{convention}
+    Abstract syntax trees that are $\alpha$-equivalent are identified.
+\end{convention}
 
 
 \section{Abstract reduction systems}
@@ -1940,6 +2082,390 @@ Call by value: $Z = \lambda f . (\lambda x . f (\lambda y. x x y)) (\lambda x. f
         &= g (\lambda f . (\lambda x . f (\lambda y. x x y)) (\lambda x. f (\lambda y. x x y)) g) \\
         &\step g ((\lambda x . g (\lambda y. x x y)) (\lambda x. g (\lambda y. x x y)))
 \end{align*}
+
+
+\appendix
+
+\chapter{Topology stuff}
+
+\section{Objects}
+
+If $P$ is a poset and $x \in P$, then we write
+%
+\begin{equation*}
+    x^\downarrow
+        \defeq \set{y \in P}{y \leq x}
+    \quad \text{and} \quad
+    x^\uparrow
+        \defeq \set{y \in P}{x \leq y}.
+\end{equation*}
+
+
+\begin{definition}
+    A poset $P$ is called
+    %
+    \begin{enumdef}
+        \item \keyword{$\omega$-complete}, for short an \keyword{$\omega$-cpo}, if every nonempty $\omega$-chain in $P$ has a join,
+        
+        \item \keyword{chain-complete}, for short a \keyword{ccpo}, if every nonempty chain in $P$ has a join, and
+        
+        \item \keyword{directedly-complete}, for short a \keyword{dcpo}, if every $\omega$-chain in $P$ has a join.
+    \end{enumdef}
+\end{definition}
+%
+A chain-complete poset is also said to be \keyword{inductive} or \keyword{inductively ordered}. If a poset with one of the above properties also has a least element, then we say that they are \keyword{pointed} and add an extra \enquote{p} to their abbreviations, so that we get $\omega$-cppo, ccppo and dcppo.
+
+
+\section{Arrows}
+
+\begin{proposition}
+    Let $P$ and $Q$ be posets and let $f \colon P \to Q$ be a function. Then the following are equivalent:
+    %
+    \begin{enumlem}
+        \item $f$ is monotone.
+        \item If $B \subseteq Q$ is upward closed, then $f\preim{B}$ is also upward closed.
+        \item If $B \subseteq Q$ is downward closed, then $f\preim{B}$ is also downward closed.
+    \end{enumlem}
+\end{proposition}
+
+\begin{proof}
+    First assume that $f$ is monotone, let $B \subseteq Q$ be upward closed, and let $y \in f\preim{B}$. If $x \leq y$, then $f(x) \leq f(y)$, and so $f(x) \in B$. But then $x \in f\preim{B}$ as required.
+
+    Conversely assume that the preimage under $f$ of an upward closed set is upward closed, and let $x,y \in P$ with $x \leq y$. Then $f(y)^\downarrow$ is downward closed, and hence so is $f\preim{f(y)^\downarrow}$. But then $x \in f\preim{f(y)^\downarrow}$, so $f(x) \in f(y)^\downarrow$, implying that $f(x) \leq f(y)$.
+
+    Since the complement of an upward closed set is downward closed, and vice-versa, the last two properties are clearly equivalent.
+\end{proof}
+
+
+\begin{definition}
+    Let $P$ be a poset. A subset $U \subseteq P$ is said to be
+    %
+    \begin{enumdef}
+        \item \keyword{inaccessible by joins of $\omega$-chains} if $\bigjoin C \in U$ implies $C \intersect U \neq \emptyset$ for all $\omega$-chains $C \subseteq P$,
+
+        \item \keyword{inaccessible by joins of chains} if $\bigjoin C \in U$ implies $C \intersect U \neq \emptyset$ for all chains $C \subseteq P$, and
+
+        \item \keyword{inaccessible by directed joins} if $\bigdjoin D \in U$ implies $D \intersect U \neq \emptyset$ for all directed sets $D \subseteq P$.
+    \end{enumdef}
+    %
+    [TODO nonempty chains??]
+\end{definition}
+%
+When we write e.g. $\bigjoin C$ we implicitly assume that the join in fact exists.
+
+Let $\calT$ be the collection of subsets of $P$ that are upward closed and inaccessible by directed joins. Then $\calT$ is closed under arbitrary unions, since if $D \subseteq P$ is directed and $\bigdjoin D \in \bigunion_{i \in I} U_i$ with $U_i \in \calT$, then $\bigdjoin D \in U_i$ for some $i$, and hence $\emptyset \neq \bigdjoin D \intersect U_i \subseteq \bigdjoin D \intersect \bigunion_{i \in I} U_i$. Similarly, if $U,V \in \calT$ and $\bigdjoin D \in U \intersect V$, then there are elements $x \in D \intersect U$ and $y \in D \intersect V$. And since $D$ is directed $x$ and $y$ have an upper bound $z$ in $D$, and since $U$ and $V$ are upward closed we have $z \in U \intersect V$. That is, $\calT$ is a topology on $P$.
+
+We similarly find that the collections of subsets of $P$ that are upwards closed and inaccessible by joins of ($\omega$-)chains also constitute topologies on $P$. At least the latter two topologies are known as the \keyword{Scott topology}, but we use this name for any of the three topologies. To disambiguate, we also call them the \keyword{$\omega$-}, \keyword{chain}, and \keyword{directed Scott topologies} respectively. If $f \colon P \to Q$ is a map between posets, then we say that $f$ is \keyword{$\omega$-}, \keyword{chain}, and \keyword{directedly Scott continuous} if $f$ is continuous when $P$ and $Q$ are equipped with the relevant Scott topology. If $f$ is continuous in any of these ways, then we simply call $f$ \keyword{Scott continuous}.
+
+It is also useful to note that a subset $F \subset P$ is closed in e.g. the directed Scott topology if and only if is downward closed and $\bigdjoin D \in F$ for all directed subsets $D \subseteq F$. Note that if $x \in P$, then $x^\downarrow$ is closed: It is clearly downward closed, and $x$ is an upper bound of every subset $A \subseteq x^\downarrow$, so the join of $A$ (if it exists) also lies in $x^\downarrow$. This in particular leads to the following:
+
+\begin{lemma}
+    If $f \colon P \to Q$ is Scott continuous, then $f$ is monotone.
+\end{lemma}
+
+\begin{proof}
+    Let $x,y \in P$ with $x \leq y$. The set $f(y)^\downarrow$ is closed in $Q$, so its preimage $f\preim{f(y)^\downarrow}$ is closed in $P$ and is in particular downward closed. Hence it contains $x$, and so $f(x) \in f(y)^\downarrow$, which means that $f(x) \leq f(y)$.
+\end{proof}
+%
+In particular, if $f$ is continuous and $B \subseteq Q$ is upward/downward closed, then $f\preim{B}$ is also upward/downward closed by [TODO ref].
+
+There is a different characterisation of continuous maps between posets. If $f \colon P \to Q$ is a map between posets, then we say that $f$ \keyword{preserves existing joins} if whenever $\bigjoin A$ exists in $P$ for a subset $A \subseteq P$, then $\bigjoin f\image{A}$ exists in $Q$ and $f(\bigjoin A) = \bigjoin f\image{A}$. We often consider slightly different properties where we require $f$ to preserve certain properties of subsets as well as existing joins of subsets with these properties. For instance, we say that $f$ \keyword{preserves existing directed joins} if, whenever $D \subseteq P$ is directed and $\bigdjoin D$ exists in $P$, then $f\image{D}$ is also directed, $\bigdjoin f\image{D}$ exists in $Q$ and $f(\bigdjoin D) = \bigdjoin f\image{D}$. This leads to the following definition:
+
+\begin{definition}
+    For posets $P$ and $Q$, a function $f \colon P \to Q$ is called
+    %
+    \begin{enumdef}
+        \item \keyword{$\omega$-continuous} if $f$ preserves existing joins of $\omega$-chains.
+        
+        \item \keyword{chain-continuous} if $f$ preserves existing joins of chains.
+        
+        \item \keyword{directedly-continuous} if $f$ preserves existing directed joins.
+    \end{enumdef}
+\end{definition}
+%
+If $f$ has any of the above properties, then we simply call $f$ \keyword{continuous}. Again continuous maps are monotone:
+
+\begin{lemma}
+    If $f \colon P \to Q$ is continuous, then $f$ is monotone.
+\end{lemma}
+
+\begin{proof}
+    If $x,y \in P$ with $x \leq y$, then $\{x,y\}$ is a directed set with $\bigdjoin \{x,y\} = y$, and so $f(y) = \bigdjoin \{f(x),f(y)\}$. In particular, $f(x) \leq f(y)$.
+\end{proof}
+%
+However, while continuous functions are automatically Scott continuous, the converse does not generally hold. We need to make a further assumption on the codomain of the function in question, namely that is has one of the following properties:
+
+[TODO moved]
+
+\begin{proposition}
+    Let $P$ and $Q$ be posets. If $f \colon P \to Q$ is $\omega$-, chain- or directedly-continuous, then $f$ is $\omega$-, chain or directedly Scott continuous, respectively.
+
+    If $Q$ is $\omega-$, chain- or directedly-complete, respectively, then the converse also holds.
+\end{proposition}
+
+\begin{proof}
+    We prove the claim in the case where $f$ is directedly-continuous or directedly Scott continuous. The other cases are similar.
+    
+    First assume that $f$ is directedly-continuous, and let $F \subseteq Q$ be closed in the directed Scott topology. Assume that $D \subseteq f\preim{F}$ is directed and that $\bigdjoin D$ exists in $P$. Then $f\image{D} \subseteq F$, so
+    %
+    \begin{equation*}
+        f \bigl( \bigdjoin D \bigr)
+            = \bigdjoin f\image{D}
+            \subseteq F,
+    \end{equation*}
+    %
+    which implies that $\bigdjoin D \in f\preim{F}$. By [TODO ref], $f\preim{F}$ is also closed.
+
+    Conversely assume that $Q$ is directedly-complete and that $f$ is directedly Scott continuous. Let $D \subseteq P$ be directed such that $\bigdjoin D$ exists in $P$. By [TODO ref] $f$ is monotone so $f\image{D}$ also directed, and hence the join $z \defeq \bigdjoin f\image{D}$ exists in $Q$. Notice that $D \subseteq f\preim{z^\downarrow}$, implying that $\bigdjoin D \in f\preim{z^\downarrow}$ since $f\preim{z^\downarrow}$ is closed. But then $f(\bigdjoin D) \leq z = \bigdjoin f\image{D}$, so $f$ is directedly-continuous.
+\end{proof}
+
+
+\section{Fixed-point theorems}
+
+\begin{theorem}[Knaster--Tarski's fixed-point theorem]
+    If $L$ is a complete lattice and $F \colon L \to L$ is monotone, then $F$ has a least and a greatest fixed-point, and these are given by
+    %
+    \begin{equation*}
+        \mu F
+            = \bigmeet \set{x \in L}{F(x) \leq x}
+        \quad \text{and} \quad
+        \nu F
+            = \bigjoin \set{x \in L}{x \leq F(x)}.
+    \end{equation*}
+    %
+    In particular, $\mu F$ is the smallest $F$-closed element and $\nu F$ is the greatest $F$-consistent element in $L$.
+\end{theorem}
+
+\begin{prooffootnote}{This proof is based on \textcite[Theorem~2.35]{davey-priestley-order}.}
+    Denote the meet above by $\alpha$. If $x$ is $F$-closed, then $\alpha \leq x$, so $F(\alpha) \leq F(x) \leq x$. Taking the meet of $x$ we get $F(\alpha) \leq \alpha$, so $\alpha$ is closed. It follows that $F(F(\alpha)) \leq F(\alpha)$, so $F(\alpha)$ is also closed, and so $\alpha \leq F(\alpha)$. Hence $\alpha$ is a fixed-point. Since every other fixed-point is in particular closed, $\alpha$ is the least fixed-point.
+\end{prooffootnote}
+
+
+\begin{theorem}[Kleene's fixed-point theorem I]
+    If $P$ is an $\omega$-cppo and $F \colon P \to P$ is $\omega$-continuous, then $F$ has a least fixed-point given by\footnote{This theorem is an immediate generalisation of \textcite[Theorem~8.15]{davey-priestley-order} from dcppo's to $\omega$-cppo's.}
+    %
+    \begin{equation*}
+        \mu F
+            = \bigjoin_{n \in \naturals} F^n(\bot).
+    \end{equation*}
+\end{theorem}
+
+\begin{proof}
+    First notice that, since $F$ is continuous,
+    %
+    \begin{equation*}
+        F \Bigl( \bigjoin_{n \in \naturals} F^n(\bot) \Bigr)
+            = \bigjoin_{n \in \naturals} F^{n+1}(\bot)
+            = \bigjoin_{n \in \naturals^+} F^n(\bot)
+            = \bigjoin_{n \in \naturals} F^n(\bot),
+    \end{equation*}
+    %
+    where we use that $F^0(\bot) = \bot$. Hence $\bigjoin_{n \in \naturals} F^n(\bot)$ is indeed a fixed-point of $F$. If $\beta$ is any fixed-point of $F$, then $\bot \leq \beta$, and hence $F^n(\bot) \leq F^n(\beta) = \beta$ since $F$ is monotone. Taking the join on the left-hand side yields $\bigjoin_{n \in \naturals} F^n(\bot) \leq \beta$ as desired.
+\end{proof}
+%
+In the case where $F$ is $\omega$-continuous, it is thus easy to show that $F$ has a fixed-point and even give a fairly explicit formula for it. If $F$ is not continuous, we are not so lucky. However, since $\omega = (\naturals,\leq)$ is an ordinal we may be inspired to extend the recursive definition of $F^n(\bot)$ to ordinal powers $F^\alpha(\bot)$ and attempt to find a fixed-point among these elements. This is indeed possible, but since we cannot be sure that $\alpha$ is countable, we must assume that $P$ is chain-complete. The proof is also significantly more involved, requiring transfinite recursion and induction.
+
+We present a proof based on \textcite[Exercise~8.19]{davey-priestley-order}. For a proof of the existence of a least fixed-points using Zermelo [TODO], see \textcite[Theorem~7.36]{moschovakis-set-theory}
+
+\begin{theorem}[Kleene's fixed-point theorem II]
+    Let $P$ be a ccppo and let $F \colon P \to P$ be monotone. Let
+    %
+    \begin{alignat*}{2}
+        F^0(\bot)
+            &= \bot, \\
+        F^{\alpha}(\bot)
+            &= F(F^{\alpha-1}(\bot))
+            \quad &&\text{if $\alpha$ is a successor}, \\
+        F^\alpha(\bot)
+            &= \bigjoin_{\beta < \alpha} F^\beta(\bot)
+            \quad &&\text{if $\alpha$ is a limit},
+    \end{alignat*}
+    %
+    for all ordinals $\alpha$. Then $\mu F = F^\alpha(\bot)$ for some ordinal $\alpha$.
+\end{theorem}
+%
+Notice that if $F$ is continuous, then [TODO Kleene I] says that $\mu F = F^\omega(\bot)$. Indeed, examining the proof below we see that the definition of $F^\alpha(\bot)$ for \emph{countable} $\alpha$ only requires $P$ to be an $\omega$-cppo.
+
+\begin{prooffootnote}{This proof is }
+    We first show that the above definition of $F^\alpha(\bot)$ makes sense. More generally, let $x \in P$. We define a binary (definite [TODO define]) operation $H$ taking as arguments an ordinal $\alpha$ and a function $g \colon \alpha \to P$: We first let $H(g,0) = x$. If $\alpha$ has an immediate predecessor $\beta$, then we let $H(g,\alpha) = F(g(\beta))$. If $\alpha$ is a limit ordinal and $g$ is monotone, then we let $H(g,\alpha) = \bigjoin_{\beta < \alpha} g(\beta)$. (Note that we indeed take the join of a chain since $\alpha$ is a chain and $g$ is assumed monotone.) Finally, if $\alpha$ is a limit ordinal but $g$ is not monotone, then we let $H(g,\alpha)$ be some arbitrary element of $P$ (we will not need to consider such $g$). By transfinite recursion [TODO ref] there thus exists a unary (definite) operation $G$ such that
+    %
+    \begin{equation*}
+        G(\alpha)
+            = H(G|_\alpha, \alpha)
+    \end{equation*}
+    %
+    for all $\alpha$.
+    
+    We prove by transfinite induction that $G|_\alpha$ is monotone for all $\alpha$. For $\alpha = 0$ this is obvious, so assume that $G|_\xi$ is monotone for all $\xi < \alpha$ and let $\beta < \gamma < \alpha$. We consider three cases:
+    %
+    \begin{proofsec}
+        \item[$\beta$ and $\gamma$ are successors]
+        Then $G|_\gamma$ is monotone, and since $F$ is also monotone we have
+        %
+        \begin{equation*}
+            G(\beta)
+                = F(G(\beta-1))
+                \leq F(G(\gamma-1))
+                = G(\gamma).
+        \end{equation*}
+
+        \item[$\beta$ is a limit, $\gamma$ is a successor]
+        Since $\beta$ is the union of all \emph{successor} ordinals smaller than it\footnote{This follows since if $\xi < \beta$, then also $\xi + 1 < \beta$.}, it suffices to show that $G(\xi) \leq G(\gamma)$ if $\xi < \beta$ is a successor ordinal. But since $G|_\gamma$ is monotone, we similarly to above find that
+        %
+        \begin{equation*}
+            G(\xi)
+                = F(G(\xi-1))
+                \leq F(G(\gamma-1))
+                = G(\gamma).
+        \end{equation*}
+
+        \item[$\beta$ is a successor, $\gamma$ is a limit]
+        Let $\xi$ be a successor ordinal with $\beta \leq \xi < \gamma$. Since $G|_\gamma$ is monotone, we again have
+        %
+        \begin{equation*}
+            G(\beta)
+                = F(G(\beta-1))
+                \leq F(G(\xi-1))
+                = G(\xi),
+        \end{equation*}
+        %
+        which implies that
+        %
+        \begin{equation*}
+            G(\beta)
+                \leq \bigjoin_{\xi < \gamma} G(\xi)
+                = G(\gamma).
+        \end{equation*}
+    \end{proofsec}
+    %
+    Since $G|_\alpha$ is always monotone, we always have $G(\alpha) = \bigjoin_{\beta < \alpha} G(\beta)$ when $\alpha$ is a limit ordinal. Writing $F^\alpha(x) \defeq G(\alpha)$ we thus obtain a map $F^\alpha \colon P \to P$ given by
+    %
+    \begin{alignat*}{2}
+        F^0(x)
+            &= \bot, \\
+        F^{\alpha}(x)
+            &= F(F^{\alpha-1}(x))
+            \quad &&\text{if $\alpha$ is a successor}, \\
+        F^\alpha(\bot)
+            &= \bigjoin_{\beta < \alpha} F^\beta(x)
+            \quad &&\text{if $\alpha$ is a limit},
+    \end{alignat*}
+    %
+    for all $x \in P$ and ordinals $\alpha$.
+
+    We next show that $F^\alpha(\bot)$ is a fixed-point of $F$ for some $\alpha$. By Hartogs' theorem\footnote{TODO} there is some ordinal $\alpha$ such that there is no injection $\alpha \injto P$. On the other hand, $\beta \mapsto F^\beta(\bot)$ is a function $\alpha \to P$, so this cannot be injective. Hence there are distinct ordinals $\beta,\gamma < \alpha$ with $F^\beta(\bot) = F^\gamma(\bot)$. Because $\alpha$ is totally ordered we may assume without loss of generality that $\beta < \gamma$. Since the map $\beta \mapsto F^\beta(\bot)$ is monotone and $\beta + 1 \leq \gamma$, this implies that
+    %
+    \begin{equation*}
+        F^\beta(\bot)
+            \leq F^{\beta+1}(\bot)
+            \leq F^\gamma(\bot),
+    \end{equation*}
+    %
+    and hence
+    %
+    \begin{equation*}
+        F(F^\beta(\bot))
+            = F^{\beta+1}(\bot)
+            = F^\beta(\bot).
+    \end{equation*}
+    %
+    Thus $F^\beta(\bot)$ is a fixed-point of $F$.
+
+    Finally we show that $F$ has a \emph{least} fixed-point. First we show that the map $F^\alpha$ is monotone for all ordinals $\alpha$, i.e. that if $x,y \in P$ with $x \leq y$, then $F^\alpha(x) \leq F^\alpha(y)$. If $\alpha = 0$, then this is obvious, so assume that it hold for all ordinals $\beta < \alpha$. If $\alpha$ is a successor, then
+    %
+    \begin{equation*}
+        F^\alpha(x)
+            = F(F^{\alpha-1}(x))
+            \leq F(F^{\alpha-1}(y))
+            = F^\alpha(y).
+    \end{equation*}
+    %
+    If instead $\alpha$ is a limit, then
+    %
+    \begin{equation*}
+        F^\beta(x)
+            \leq F^\beta(y)
+            \leq \bigjoin_{\beta < \alpha} F^\beta(y)
+            = F^\alpha(y),
+    \end{equation*}
+    %
+    and taking the join on the left-hand side we again get $F^\alpha(x) \leq F^\alpha(y)$. Now if $x$ is any fixed-point of $F$, then it is clear that $F^\alpha(x) = x$ for any $\alpha$. Hence if $F^\alpha(\bot)$ is a fixed-point, then $\bot \leq x$, and so
+    %
+    \begin{equation}
+        F^\alpha(\bot)
+            \leq F^\alpha(x)
+            = x,
+    \end{equation}
+    %
+    so $F^\alpha(\bot)$ is indeed the least fixed-point of $F$.
+\end{prooffootnote}
+
+A natural question might be whether we can use this extension of Kleene's fixed-point theorem to obtain inversion-type results for all monotone maps, not just those that are continuous. We might, for instance, allow inference rules to have infinitely many antecedents. If $X$ is the ground set, $S \subseteq X$ and $y \in X$, then we write $\myinfrule{R}{S}{y}$ to denote that the inference rule $R$ has as antecedents the elements in $S$, and $y$ as consequent. Given a collection $\calR$ of such inference rules, we may again define a function $F \colon \powerset{X} \to \powerset{X}$ by letting $F(A)$ consist of those $y \in X$ such that there is a rule $\myinfrule{}{S}{y}$ in $\calR$ with $S \subseteq A$. Clearly $F$ is then monotone, but it is not clear that it is continuous (and indeed it often is not).
+
+We quickly see that there is no general inversion lemma for $F$: In the continuous case, all elements of $\omega$ are successor ordinals, so if $y \in F^n(\bot)$ for some $n \in \omega$, then we know that $y \in F(F^{n-1}(\bot))$, and hence there is a rule $\myinfrule{}{\seq{x}}{y}$ with $\seq{x} \subseteq F^{n-1}(\bot)$. And for successor ordinals in the continuous case we may draw a similar conclusion. But if $\alpha$ is a limit ordinal and $y \in F^\alpha(\bot)$, then $y \in \bigunion_{\beta < \alpha} F^\beta(\bot)$, which only tells us that $y \in F^\beta(\bot)$ for some $\beta < \alpha$. And while we may assume that $\beta$ is a successor ordinal, this may be the eventual successor of another limit ordinal, and this process may repeat itself infinitely many times. This implies that there is no way to derive $y$ with only \emph{finitely many} applications of the inference rules.
+
+
+A map $f \colon P \to P$ on a poset $P$ is called \keyword{expansive} if $x \leq f(x)$ for all $x \in P$.\footnote{Some authors also use the adjectives \keyword{extensive}, \keyword{inflationary} or even \keyword{increasing}.}
+
+\begin{theorem}[Zermelo's fixed-point theorem]
+    If $P$ is a chain-complete poset and $F \colon P \to P$ is expansive, then $F$ has a fixed-point.\footnote{In \textcite{davey-priestley-order} this is known as \enquote{CPO Fixpoint Theorem III}, and they add the hypothesis that $P$ be a dcppo, but also claim that then $F$ has a \emph{minimal} fixed-point. But this is false: Consider for instance the poset $P = (\omega^\partial)_\bot$, i.e., the set $\naturals \union \{\bot\}$ equipped with the ordering $\preceq$ given by
+    %
+    \begin{equation*}
+        \bot \prec \cdots \prec n \prec n-1 \prec \cdots \prec 1 \prec 0.
+    \end{equation*}
+    %
+    This is clearly a dcppo since every nonempty subset even has a maximum. Define $F \colon P \to P$ by letting $F(\bot) = 0$ and $F(n) = n$ for $n \in \naturals$. Then $F$ is obviously expansive, but every natural number, of which there is no minimal with respect to $\preceq$, is a fixed-point. In the context of the proof below, \citeauthor{davey-priestley-order} claim that the smallest $F$-invariant sub-dcppo of $P$, here $\{\bot, 0\}$, has a greatest element, here $0$, and that this is a minimal fixed-point of $F$. But this is false, since e.g. $1$ is also a fixed-point. \par Our proof of Zermelo's theorem is, however, based on \textcite[Exercise~8.20]{davey-priestley-order}. Note that e.g. \textcite[Theorem~7.35]{moschovakis-set-theory} proves our version of the theorem, but using the theory of well-orderings. \par The above counterexample is taken from \textcite{hansen-zermelo-stackexchange}.}
+\end{theorem}
+
+\begin{proof}
+    Consider instead the lift $P_\bot$, which is chain-complete and also pointed. Extend $F$ ot $P_\bot$ by letting $F(\bot)$ be some element of $P$ (that is, $F(\bot) \neq \bot$). Let $P_0$ be the smallest $F$-invariant subset of $P_\bot$ that is also a ccppo.
+    
+    We will call an element $x \in P_0$ a \keyword{roof} if $y < x$ implies $F(y) \leq x$ for all $y \in P_0$. For a roof $x$ we consider the set
+    %
+    \begin{equation*}
+        Z_x
+            = \set{y \in P_0}{y \leq x \text{ or } F(x) \leq y}.
+    \end{equation*}
+    %
+    We claim that $Z_x$ is an $F$-invariant ccppo, so let $y \in Z_x$. If $y \leq x$, then either $y = x$ in which case $F(x) \leq F(y)$, or else $y < x$ so that $F(y) \leq x$ since $x$ is a roof. If instead $F(x) \leq y$, then since $F$ is expansive we have $F(x) \leq F(y)$. Hence $F(y) \in Z_x$, so $Z_x$ is $F$-invariant. Next let $C \subseteq Z_x$ be a chain. If $y \leq x$ for all $y \in x$, then we also have $\bigjoin C \subseteq x$. If instead there is some $y \in C$ with $F(x) \leq y$, then we clearly have $F(x) \leq \bigjoin C$. Thus $Z_x$ is a ccppo, so by minimality of $P_0$ we have $P_0 = Z_x$.
+
+    Next we claim that every element in $P_0$ is a roof. Consider the set
+    %
+    \begin{equation*}
+        Z
+            = \set{x \in P_0}{\text{$x$ is a roof}}.
+    \end{equation*}
+    %
+    We show that $Z$ is an $F$-invariant ccppo. If $x$ is a roof and $y \in P_0$, then $y \in Z_x$ and so either $y \leq x$ or $F(x) \leq y$. If $y < F(x)$ then we must have $y \leq x \leq F(x)$, so that $F(x)$ is also a roof, and so $Z$ is $F$-invariant. If $C \subseteq Z$ is a chain and $y < \bigjoin C$, then there is some $x \in C$ with $y < x \leq \bigjoin C$, so $Z$ is also chain-complete. Again by minimality we have $P_0 = Z$.
+
+    Now notice that $P_0$ is a chain: If $x,y \in P_0$, then $x$ is a roof and so $y \in Z_x$, which implies that either $y \leq x$ or $x \leq F(x) \leq y$. Since $P_\bot$ is chain-complete, $P_0$ has a greatest element $\top$, which is then also a roof. Since $F$ is expansive and $P_0$ is $F$-invariant we have $\top \leq F(\top) \leq \top$, so $\top$ is a fixed-point of $F$.
+
+    Finally notice that since $F(\bot) \neq \bot$, $\bot$ is not a fixed-point of $F$, and so $F$ has a fixed-point lying in $P$, proving the original claim.
+\end{proof}
+
+
+% \begin{proof}
+%     Consider instead the lift $P_\bot$, which is chain-complete and also pointed. Extend $F$ ot $P_\bot$ by letting $F(\bot)$ be some element of $P$ (that is, $F(\bot) \neq \bot$). Let $P_0$ be the smallest $F$-invariant subset of $P_\bot$ that is also a ccppo.
+    
+%     We will call an element $x \in P_0$ a \keyword{roof} if $y < x$ implies $F(y) \leq x$ for all $y \in P_0$. For a roof $x$ we consider the set
+%     %
+%     \begin{equation*}
+%         Z_x
+%             = \set{y \in P_0}{y \leq x \text{ or } F(x) \leq y}.
+%     \end{equation*}
+%     %
+%     We claim that $Z_x$ is an $F$-invariant ccppo, so let $y \in Z_x$. If $y \leq x$, then either $y = x$ in which case $F(x) \leq F(y)$, or else $y < x$ so that $F(y) \leq x$. If instead $F(x) \leq y$, then since $F$ is expansive we have $F(x) \leq F(y)$. Hence $F(y) \in Z_x$, so $Z_x$ is $F$-invariant. Next let $C \subseteq Z_x$ be a chain. If $y \leq x$ for all $y \in x$, then we also have $\bigjoin C \subseteq x$. If instead there is some $y \in C$ with $F(x) \leq y$, then we clearly have $F(x) \leq \bigjoin C$. Thus $Z_x$ is a ccppo, so by minimality of $P_0$ we have $P_0 \subseteq Z_x$.
+
+%     We next claim that every element in $P_0$ is a roof. Consider the set
+%     %
+%     \begin{equation*}
+%         Z
+%             = \set{x \in P_0}{\text{$x$ is a roof}}.
+%     \end{equation*}
+%     %
+%     We show that $Z$ is an $F$-invariant ccppo. If $x$ is a roof and $y \in P_0$, then either $y \leq x$ or $F(x) \leq y$. If $y < F(x)$ then we must have $y \leq x \leq F(x)$, so that $F(x)$ is also a roof.
+% \end{proof}
+
 
 
 \nocite{*}
