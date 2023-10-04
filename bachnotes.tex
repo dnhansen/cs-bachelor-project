@@ -83,9 +83,11 @@
 \DeclarePairedDelimiterX{\auxdelimparencomma}[2]{(}{)}{#1,#2}
 \DeclarePairedDelimiter{\auxdelimbracket}{[}{]}
 \DeclarePairedDelimiterX{\auxdelimbracketcomma}[2]{[}{]}{#1,#2}
+\DeclarePairedDelimiter{\auxdelimbbracket}{\llbracket}{\rrbracket}
 \newcommand{\powerset}[2][]{\calP\auxdelimparen[#1]{#2}}
 \newcommand{\powersetcard}[3][]{\calP_{#2}\auxdelimparen[#1]{#3}}
 \newcommand{\powersetfin}[2][]{\powersetcard[#1]{\omega}{#2}}
+\newcommand{\powersetcount}[2][]{\powersetcard[#1]{\omega_1}{#2}}
 \newcommand{\borel}[2][]{\calB\auxdelimparen[#1]{#2}}
 \newcommand{\meas}[2][]{\calM\auxdelimparen[#1]{#2}}
 \newcommand{\measC}[2][]{\calM_\complex\auxdelimparen[#1]{#2}}
@@ -299,10 +301,14 @@
 \newcommand{\objOp}[1]{\operatorname{\objlang{#1}}}
 \newcommand{\objDelim}[1]{\objlang{(}#1\objlang{)}}
 
-\newcommand{\objFst}[1]{\objOp{fst}#1}
-\newcommand{\objSnd}[1]{\objOp{snd}#1}
-\newcommand{\objInl}[1]{\objOp{inj}_{\objlang{1}}#1}
-\newcommand{\objInr}[1]{\objOp{inj}_{\objlang{2}}#1}
+% \newcommand{\objFst}[1]{\objOp{fst}#1}
+% \newcommand{\objInl}[1]{\objOp{inj}_{\objlang{1}}#1}
+% \newcommand{\objSnd}[1]{\objOp{snd}#1}
+% \newcommand{\objInr}[1]{\objOp{inj}_{\objlang{2}}#1}
+\newcommand{\objFst}[1]{\textcolor{objlangcolor}{\pi_1}\,#1}
+\newcommand{\objSnd}[1]{\textcolor{objlangcolor}{\pi_2}\,#1}
+\newcommand{\objInl}[1]{\textcolor{objlangcolor}{\iota_1}\,#1}
+\newcommand{\objInr}[1]{\textcolor{objlangcolor}{\iota_2}\,#1}
 
 \newcommand{\objPair}[2]{\objDelim{#1\mathpunct{\objlang{,}}#2}}
 \newcommand{\objUnit}{\objlang{()}}
@@ -358,7 +364,7 @@
 
 \chapter{Preliminaries}
 
-If $X$ is a set, then we denote by $\powerset{X}$ the power set of $X$, and for a cardinal $\kappa$ we furthermore write $\powersetcard{\kappa}{X}$ for the collection of subsets of $X$ with cardinality strictly less than $\kappa$. If $A \in \powersetcard{\kappa}{X}$, then we also write $A \subseteq_\kappa X$. We do not distinguish between the ordinal $\omega$ and the cardinal $\aleph_0$, so $\powersetfin{X}$ denotes the set of finite subsets of $X$. If $Y$ is another set, then we denote the set of partial maps from $X$ to $Y$ by $\pmaps{X}{Y}$. For $f \in \pmaps{X}{Y}$ we let $\dom f$ and $\ran f$ denote the domain and range of $f$, respectively. We also write $\pmaps[\kappa]{X}{Y}$ for the partial functions $f \in \pmaps{X}{Y}$ with $\dom f \subseteq_\kappa X$. For $x_0 \in X$ and $y_0 \in Y$ we denote by $f[x_0 \mapsto y_0]$ the partial map given by
+If $X$ is a set, then we denote by $\powerset{X}$ the power set of $X$, and for a cardinal $\kappa$ we furthermore write $\powersetcard{\kappa}{X}$ for the collection of subsets of $X$ with cardinality strictly less than $\kappa$. If $A \in \powersetcard{\kappa}{X}$, then we also write $A \subseteq_\kappa X$. For ordinals $\alpha$ we do not distinguish between the ordinal $\omega_\alpha$ and the cardinal $\aleph_\alpha$, and we write $\omega \defeq \omega_0$. Hence $\powersetfin{X}$ denotes the set of finite subsets of $X$, and $\powersetcount{X}$ the set of countable subsets. If $Y$ is another set, then we denote the set of partial maps from $X$ to $Y$ by $\pmaps{X}{Y}$. For $f \in \pmaps{X}{Y}$ we let $\dom f$ and $\ran f$ denote the domain and range of $f$, respectively. We also write $\pmaps[\kappa]{X}{Y}$ for the partial functions $f \in \pmaps{X}{Y}$ with $\dom f \subseteq_\kappa X$. For $x_0 \in X$ and $y_0 \in Y$ we denote by $f[x_0 \mapsto y_0]$ the partial map given by
 %
 \begin{equation*}
     f[x_0 \mapsto y_0](x) =
@@ -1667,7 +1673,7 @@ Notice the significance of the inversion lemma: While an expression can generall
     \begin{enumlem}
         \item\label{enum:canonical-unit} If $\tau = \typeUnit$, then $v = \objUnit$.
 
-        \item\label{enum:canonical-product} If $\tau = \tau_1 \prod \tau_2$, then $v = (v_1,v_2)$.
+        \item\label{enum:canonical-product} If $\tau = \tau_1 \prod \tau_2$, then $v = \objPair{v_1}{v_2}$.
         
         \item\label{enum:canonical-sum} If $\tau = \tau_1 + \tau_2$, then either $v = \objInl{v'}$ or $v = \objInr{v'}$.
 
@@ -2084,11 +2090,208 @@ Call by value: $Z = \lambda f . (\lambda x . f (\lambda y. x x y)) (\lambda x. f
 \end{align*}
 
 
+\chapter{Logical Relations}
+
+Be sure to distinguish between values and irrs! That is the whole point of progress.
+
+But prove: val => irr
+
+
+% \renewcommand{\objApp}[2]{#1 \mathbin{\textcolor{objlangcolor}{\ensuremath{\$}} #2}}
+\renewcommand{\objRec}[3]{\objlang{\ensuremath{\lambda}}#2\objlang{.}#3}
+\renewcommand{\objUnit}{\textcolor{objlangcolor}{1}}
+
+
+
+\newcommand{\syntype}[3]{#1 \vDash #2 : #3}
+\newcommand{\semtype}[3]{#1 \vDash #2 : #3}
+\newcommand{\recTODO}{f}
+\newcommand{\typeFunc}[2]{#1 \to #2}
+\newcommand{\typeProd}[2]{#1 \prod #2}
+\newcommand{\typeSum}[2]{#1 + #2}
+
+\newcommand{\expInt}[1]{\calE\auxdelimbbracket{#1}}
+\newcommand{\valInt}[1]{\calV\auxdelimbbracket{#1}}
+\newcommand{\envInt}[1]{\calG\auxdelimbbracket{#1}}
+
+\begin{equation*}
+    \valInt{\typeProd{\tau_1}{\tau_2}}
+        = \set{\objPair{v_1}{v_2}}{v_1 \in \valInt{\tau_1}, v_2 \in \valInt{\tau_1}}.
+\end{equation*}
+
+\begin{equation*}
+    \valInt{\typeSum{\tau_1}{\tau_2}}
+        = \set{\objInl{v}}{v \in \valInt{\tau_1}} \union \set{\objInr{v}}{v \in \valInt{\tau_2}}.
+\end{equation*}
+%
+Notice that this union is disjoint.
+
+\begin{equation*}
+    \valInt{\typeFunc{\tau_1}{\tau_2}}
+        = \set{\objRec{\recTODO}{x}{e}}{\forall v \in \valInt{\tau_1} \colon e[v/x] \in \expInt{\tau_2}}.
+\end{equation*}
+
+
+\begin{lemma}
+    If $e \in \expInt{\tau}$ is irreducible, then $e \in \valInt{\tau}$.
+\end{lemma}
+
+\begin{proof}
+    Since $e \step^* e$ and $e$ is irreducible, this follows directly from the definition of $\expInt{\tau}$.
+\end{proof}
+
+
+TODO: define gamma(e), envInt, expInt
+
+\begin{theorem}[Fundamental property]
+    If $\syntype{\Gamma}{e}{\tau}$, then $\semtype{\Gamma}{e}{\tau}$.
+\end{theorem}
+
+\begin{proof}
+    TODO
+\end{proof}
+
+\renewcommand{\objMatch}[4]{\objlang{match}(#1;#2.#3;#2.#4)}
+\newcommand{\objProj}[2]{\textcolor{objlangcolor}{\pi_{#1}}\,#2} % TODO do I want "i" in red?
+
+\begin{lemma}
+    If $\objPair{e_1}{e_2} \step^* e'$, then there are expressions $e_1'$ and $e_2'$ such that $e' = \objPair{e_1'}{e_2'}$, and such that $e_i \step^* e_i'$.
+
+    If $\objFst{e} \step^* e'$, then either $e' = v_1$ is a value and $e \step^* \objPair{v_1}{v_2}$, or else $e' = \objFst{e''}$ such that $e \step^* e''$.
+
+    If $\objApp{e_1}{e_2} \step^* e'$, then either $\objApp{e_1}{e_2} \step^* e''[v/x] \step^* e'$ where $e_1 \step^* \objRec{\recTODO}{x}{e''}$ and $e_2 \step^* v$, or else $e' = \objApp{e_1'}{e_2'}$ where $e_i \step^* e_i'$.
+
+    If $\objInl{e} \step^* e'$, then $e' = \objInl{e''}$ and $e \step^* e''$ for some $e''$.
+
+    If $\objMatch{e}{x}{e_1}{e_2} \step^* e'$, then either $\objMatch{e}{x}{e_1}{e_2} \step^* e_i[v/x] \step^* e'$ where $e \step^* \objProj{i}{v}$, or else $\objMatch{e''}{x}{e_1'}{e_2'}$ where $e \step^* e''$.
+\end{lemma}
+
+\begin{proof}
+    By induction on the length of the reduction $\objPair{e_1}{e_2} \step^* e'$, it suffices to prove the claim when this is a one-step reduction. There exists an evaluation context $K$ and expressions $d$ and $d'$ such that $\objPair{e_1}{e_2} = K[d]$ and $e' = K[d']$, and such that $d \headstep d'$. Notice that $K$ must either be on the form $\objPair{K'}{e''}$ or $\objPair{v}{K'}$ for an evaluation context $K'$, an expression $e''$ and a value $v$ [TODO make connection between $K$ and $K[e]$]. In the former case we have $K[d] = \objPair{K'[d]}{e''}$, so we must have $e_1' = K'[d]$ and $e_2' = e''$. We similarly have $e' = \objPair{K'[d']}{e''}$, and we notice that $K'[d] \step^* K'[d']$ (indeed this happens in one step) and $e'' \step^* e''$ as desired. If instead $K = \objPair{v}{K'}$, then the argument is similar.
+
+    The proof is by induction on the length $n$ of the reduction $\objFst{e} \step^* e'$. For $n = 0$ we have $e' = \objFst{e}$ and $e \step^* e$, so the claim holds. Assuming that it holds for some $n$, suppose that $\objFst{e} \step^n e_1' \step e_2'$. Then $e_1'$ cannot be a value since values are irreducible [TODO lemma ref], so $e_1' = \objFst{e_1''}$ with $e \step^* e_1''$ by induction. Now, $e_1' = K[d_1]$ and $e_2' = K[d_2]$ with $d_1 \headstep d_2$, where $K$ is either the hole or on the form $\objFst{K'}$. If $K$ is the hole, then $\objFst{e_1''} \headstep e_2'$, which is only possible if $e_1'' = \objPair{v_1}{v_2}$ and $e_2' = v_1$. In this case we thus indeed have $e \step^* \objPair{v_1}{v_2}$. If instead $K = \objFst{K'}$, then $e_1' = \objFst{K'[d_1]}$ and $e_2' = \objFst{K'[d_2]}$, the first of which implies that $e_1'' = K'[d]$ by the induction hypothesis. But since $d_1 \headstep d_2$ we also have $K'[d_1] \step K'[d_2]$, and so $e \step^* e_1'' = K'[d_1] \step K'[d_2]$ as desired.
+
+    By induction on the length $n$ of the reduction $\objApp{e_1}{e_2} \step^* e'$. If $n = 0$ then the claim is obvious, so assume that is holds for some $n$ and that $\objApp{e_1}{e_2} \step^n e' \step e'''$. We consider each disjunct in the induction hypothesis: First assume that $\objApp{e_1}{e_2} \step^* e''[v/x] \step^* e' \step e'''$, where $e_1 \step^* \objRec{\recTODO}{x}{e''}$ and $e_2 \step^* v$. Then we have $e''[v/x] \step^* e'''$, proving the claim. Instead assume that $e' = \objApp{e_1'}{e_2'}$ and $e_i \step^* e_i'$. Then $\objApp{e_1'}{e_2'} \step e'''$, so $\objApp{e_1'}{e_2'} = K[d]$ and $e''' = K[d']$ with $d \headstep d'$, and $K$ is either the hole or on one of the forms $\objApp{K'}{e_2''}$ and $\objApp{v_1}{K'}$. If $K$ is the hole, then we must have $e_1' = \objRec{\recTODO}{x}{e''}$ and $e_2' = v_2$, in which case $e''' = e''[v_2/x]$. If instead $K = \objApp{K'}{e_2''}$, then $\objApp{e_1'}{e_2'} = \objApp{K'[d]}{e_2''}$ and $e''' = \objApp{K'[d']}{e_2''}$, implying that $e_1' = K'[d] \step K'[d']$ and $e_2' = e_2''$ as desired. The final case is similar.
+
+    Induction on the length of the reduction. If $\objInl{e} \step e'$, then $\objInl{e} = K[d]$ and $e' = K[d']$ with $d \headstep d'$. But then we must have $K = \objInl{K'}$, so $e = K'[d]$ and $e' = \objInl{K'[d']}$, and hence $e \step K'[d']$.
+
+    Induction on the length of the reduction. If $\objMatch{e}{x}{e_1}{e_2} \step e'$, then $\objMatch{e}{x}{e_1}{e_2} = K[d]$ and $e' = K[d']$ with $d \headstep d'$. Then $K$ is either the hole or on the form $\objMatch{K'}{x}{e_1}{e_2}$. In the former case we must have $e = \objProj{i}{v}$ and $e' = e_i[v/x]$. In the latter case we have $e = K'[d]$, and so $e \step K'[d']$.
+\end{proof}
+
+
+
+\begin{lemma}[Compatibility]
+    If $(x : \tau) \in \Gamma$, then $\syntype{\Gamma}{x}{\tau}$.
+
+    $\syntype{\Gamma}{\objUnit}{\typeUnit}$
+
+    If $\syntype{\Gamma, x : \tau_1}{e}{\tau_2}$, then $\syntype{\Gamma}{\objRec{\recTODO}{x}{e}}{\typeFunc{\tau_1}{\tau_2}}$.
+
+    If $\syntype{\Gamma}{e_1}{\tau_1}$ and $\syntype{\Gamma}{e_2}{\tau_2}$, then $\syntype{\Gamma}{\objPair{e_1}{e_2}}{\typeProd{\tau_1}{\tau_2}}$.
+
+    If $\syntype{\Gamma}{e}{\typeProd{\tau_1}{\tau_2}}$, then $\syntype{\Gamma}{\objFst{e}}{\tau_1}$.
+
+    If $\syntype{\Gamma}{e_1}{\typeFunc{\tau_1}{\tau_2}}$ and $\syntype{\Gamma}{e_2}{\tau_1}$, then $\syntype{\Gamma}{\objApp{e_1}{e_2}}{\tau_2}$.
+
+    If $\syntype{\Gamma}{e}{\tau_1}$, then $\syntype{\Gamma}{\objInl{e}}{\typeSum{\tau_1}{\tau_2}}$.
+    
+    If $\syntype{\Gamma}{e}{\typeSum{\tau_1}{\tau_2}}$, $\syntype{\Gamma, x : \tau_1}{e_1}{\tau}$ and $\syntype{\Gamma, x : \tau_2}{e_2}{\tau}$, then $\syntype{\Gamma}{\objMatch{e}{x}{e_1}{e_2}}{\tau}$.
+\end{lemma}
+
+\begin{proof}
+    Let $\gamma \in \envInt{\Gamma}$. Then $x \in \dom \gamma$, so $\gamma(x)$ is a (closed[TODO]) value [TODO by definition of $\gamma$], in particular an element in $\expInt{\tau}$.
+
+    For every $\gamma \in \envInt{\Gamma}$ we have $\gamma(\objUnit) = \objUnit \in \valInt{\typeUnit}$.
+
+    %Assume that $\syntype{\Gamma, x : \tau_1}{e}{\tau_2}$,
+    Let $\gamma \in \envInt{\Gamma}$, and let $e'$ be an irreducible expression such that $\gamma(\objRec{\recTODO}{x}{e}) \step^* e'$. Since $\objRec{\recTODO}{x}{\gamma(e)}$ is irreducible [TODO proof, values are irr], $e' = \objRec{\recTODO}{x}{\gamma(e)} = \objRec{\recTODO}{x}{\gamma(e)}$. To show that this lies in $\valInt{\typeFunc{\tau_1}{\tau_2}}$, let $v \in \valInt{\tau_1}$ and notice that
+    %
+    \begin{equation*}
+        \gamma(e)[v/x]
+            = \gamma[x \mapsto v](e)
+            \in \expInt{\tau_2}
+    \end{equation*}
+    %
+    by [TODO subst lemma] and the hypothesis, since $\gamma[x \mapsto v] \in \envInt{\Gamma, x : \tau_1}$. Thus $\gamma(\objRec{\recTODO}{x}{e}) \in \expInt{\typeFunc{\tau_1}{\tau_2}}$ as desired.
+
+    Let $\gamma \in \envInt{\Gamma}$, and let $e'$ be an irreducible expression such that $\objPair{\gamma(e_1)}{\gamma(e_2)} = \gamma(\objPair{e_1}{e_2}) \step^* e'$. By [TODO ref lemma] this implies that $e' = \objPair{e_1'}{e_2'}$ for appropriate expressions $e_1'$ and $e_2'$, and furthermore that $\gamma(e_1) \step^* e_1'$ and $\gamma(e_2) \step^* e_2'$. The hypothesis then implies that $\gamma(e_i) \in \expInt{\tau_i}$. Notice that $e_1'$ and $e_2'$ are both irreducible since $e'$ is [TODO proof, doesn't hold for all subexps!], so it follows from [TODO ref lemma] that $e_i' \in \valInt{\tau_i}$. But then $\objPair{e_1}{e_2} \in \valInt{\typeProd{\tau_1}{\tau_2}}$ as desired.
+
+    Let $\gamma \in \envInt{\Gamma}$, and let $e'$ be irreducible such that $\objFst{\gamma(e)} = \gamma(\objFst{e}) \step^* e'$. We consider each case of [TODO lemma ref]: First assume that $e' = v_1$ is a value and $\gamma(e) \step^* \objPair{v_1}{v_2}$. Since $\objPair{v_1}{v_2}$ is a value, and hence irreducible by [TODO lemma], the hypothesis implies that $\objPair{v_1}{v_2} \in \valInt{\typeProd{\tau_1}{\tau_2}}$. It follows that $v_1 \in \valInt{\tau_1}$ as desired. Next assume that $e' = \objFst{e''}$ and that $\gamma(e) \step^* e''$. If $e''$ is reducible then so is $\objFst{e''}$, so assume that $e''$ is irreducible. The hypothesis then implies that $e'' \in \valInt{\typeProd{\tau_1}{\tau_2}}$, which means that $e''$ is on the form $\objPair{v_1}{v_2}$ with $v_i \in \valInt{\tau_i}$. But then $e' = \objFst{\objPair{v_1}{v_2}}$ reduces to $v_1$, which is a contradiction.\footnote{TODO remember that value interpretations are also syntactic values!! they are defined that way.}
+
+    Let $\gamma \in \envInt{\Gamma}$, and let $e'$ be irreducible such that $\objApp{\gamma(e_1)}{\gamma(e_2)} = \gamma(\objApp{e_1}{e_2}) \step^* e'$. We consider each case of [TODO lemma ref]: First assume that $\objApp{\gamma(e_1)}{\gamma(e_2)} \step^* e''[v/x] \step^* e'$ where $\gamma(e_1) \step^* \objRec{\recTODO}{x}{e''}$ and $\gamma(e_2) \step^* v$. But each of these reducts [TODO define this] are values and hence irreducible by [TODO ref], so the hypothesis implies that they lie in $\valInt{\typeFunc{\tau_1}{\tau_2}}$ and $\valInt{\tau_1}$ respectively. But then $e''[v/x] \in \expInt{\tau_2}$, and the hypothesis then implies that $e' \in \valInt{\tau_2}$ as desired. Instead assume that $e' = \objApp{e_1'}{e_2'}$ where $\gamma(e_i) \step^* e_i'$. Since $e'$ is irreducible, then so are the $e_i'$ [TODO more thorough], so the hypothesis implies that $e_1' \in \valInt{\typeFunc{\tau_1}{\tau_2}}$ and $e_2' \in \valInt{\tau_1}$. Hence $e_1'$ is on the form $\objRec{\recTODO}{x}{e_1''}$ and $e_2'$ is a value. But then $\objApp{e_1'}{e_2'}$ is reducible, which is a contradiction.
+
+    Let $\gamma \in \envInt{\typeSum{\tau_1}{\tau_2}}$, and let $e'$ be irreducible such that $\objInl{\gamma(e)} = \gamma(\objInl{e}) \step^* e'$. By [TODO lemma] we have $e' = \objInl{e''}$ with $\gamma(e) \step^* e''$, and since $e'$ is irreducible so is $e''$ [TODO], and the hypothesis thus implies that $e'' \in \valInt{\tau_1}$. But then $e' \in \valInt{\typeSum{\tau_1}{\tau_2}}$ as desired.
+
+    Let $\gamma \in \envInt{\Gamma}$, and let $e'$ be irreducible such that $\objMatch{\gamma(e)}{x}{\gamma(e_1)}{\gamma(e_2)} = \gamma(\objMatch{e}{x}{e_1}{e_2}) \step^* e'$.\footnote{Note that the domains of $\gamma$ and $\Gamma$ are the same, and this is contained in the domain of $\Gamma, x : \tau_i$. We don't need the domains to be the same to write down $\gamma(e_i)$, we just need it when using the semantic typing relation!} We consider each case in [TODO lemma]: Assume first that $\objMatch{\gamma(e)}{x}{\gamma(e_1)}{\gamma(e_2)} \step^* \gamma(e_i)[v/x] \step^* e'$ and $\gamma(e) \step^* \objProj{i}{v}$ [TODO remember to use the second one below], and notice that $\gamma(e_i)[v/x] = \gamma[x \mapsto v](e_i) \in \expInt{\tau}$. Since this reduces to $e'$ and $\gamma[x \mapsto v] \in \envInt{\Gamma, x : \tau_i}$, the hypotheses imply that $e' \in \valInt{\tau}$ as desired. If instead $e' = \objMatch{e''}{x}{e_1'}{e_2'}$ and $\gamma(e) \step^* e''$, then $e''$ must also be irreducible since $e'$ is [TODO]. The hypotheses then imply that $e'' \in \valInt{\typeSum{\tau_1}{\tau_2}}$, and is thus on the form $\objProj{i}{v}$. But then $e'$ is reducible, a contradiction.
+\end{proof}
+
+
+
 \appendix
 
-\chapter{Topology stuff}
+\chapter{Order Theory}
 
-\section{Objects}
+\section{Partial orders and lattices}
+
+If $P$ is a set, then a \keyword{partial order} on $P$ is a binary homogeneous relation $\leq$ on $P$ that is reflexive, transitive and anti-symmetric. The pair $(P,\leq)$ is called a \keyword{partially ordered set}, or simply a \keyword{poset}.
+
+If $A \subseteq P$, then an element $x \in P$ is called an \keyword{upper bound} of $A$ if $a \leq x$ for all $a \in A$. If there is a least upper bound $x$ (i.e., such that if $y$ is any other upper bound, then $x \leq y$), then $x$ is called the \keyword{supremum} or \keyword{join} of $A$. The join of $A$ is clearly unique if it exists (by anti-symmetry), and we denote it by $\bigjoin A$. We similarly define the \keyword{infimum} or \keyword{meet} of $A$, denoted $\bigmeet A$, to be the greatest lower bound of $A$, if it exists. If every two-element subset of $P$ has a join and a meet, then $P$ is called a \keyword{lattice}, and we write $x \join y \defeq \bigjoin \{x,y\}$ and $x \meet y \defeq \bigmeet \{x,y\}$. If every subset of $P$ has a join and a meet, then $P$ is a \keyword{complete lattice}.
+
+If $P$ is a poset, then a nonempty [TODO Vickers 7.2.1] subset $D \subseteq P$ is said to be \keyword{directed} if every finite subset of $D$ has an upper bound (but not necessarily a \emph{least} upper bound, i.e. a join). By induction this is equivalent to the property that, for every \emph{pair} of elements $x,y \in D$, there exists a $z \in D$ with $x \leq z$ and $y \leq z$.\footnote{This is the usual definition of directedness. As an example of why directedness in interesting, recall that a union of a collection of subspaces of a vector space is not usually a subspace itself, but it is if the collection is directed (with respect to inclusion). Similarly for subgroups and other algebraic structures, but note that the same does \emph{not} hold for e.g. topologies or $\sigma$-algebras. If we substituted \enquote{countable} for \enquote{finite} in the definition of directedness, $\sigma$-algebras would have this property as well, while we for topologies would need \enquote{arbitrary} subsets.} We further note that the image of a directed set under a monotone map\footnote{A function $f \colon P \to Q$ between posets is \keyword{monotone} if $x \leq y$ implies $f(x) \leq f(y)$ for all $x,y \in P$.} is also directed [TODO embedding]. If $D$ is a directed set whose join exists, we often write $\bigdjoin D \defeq \bigjoin D$ instead. If $\bigdjoin D$ exists for every directed subset $D$ of $P$, then $P$ is called a \keyword{directly complete partial order}, or \keyword{dcpo} for short. If $P$ also has a least element, usually written $\bot$, then $P$ is called a \keyword{dcppo} (the extra \enquote{p} is for \enquote{pointed}). Notice that complete lattices are dcppo's.
+
+If $P$ and $Q$ are dcpo's, then a map $f \colon P \to Q$ is \keyword{continuous}\footnote{Also called \keyword{Scott-continuous} after Dana Scott.} if, for every directed $D \subseteq P$, the image $f\image{D}$ is directed and
+%
+\begin{equation*}
+    f \bigl( \bigdjoin D \bigr)
+        = \bigdjoin f\image{D}.
+\end{equation*}
+%
+It is easy to show that continuous maps are monotone (notice that if $x \leq y$, then the set $\{x,y\}$ is directed). If conversely $f$ is monotone, then $f\image{D}$ is as mentioned also directed, and the inequality \enquote{$\geq$} always holds.
+
+% \newcommand{\graph}[2][]{\calG\auxdelimparen[#1]{#2}}
+
+
+\begin{examplebreak}[Products of dcpo's]
+    Let $(P_i)_{i \in I}$ be a collection dcpo's, and equip the product $P \defeq \bigprod_{i \in I} P_i$ with the product order\footnote{The \keyword{product order} on $P = \bigprod_{i \in I} P_i$ is defined as follows: For $(x_i)_{i \in I}, (y_i)_{i \in I} \in P$ we say that $(x_i)_{i \in I} \leq (y_i)_{i \in I}$ if $x_i \leq y_i$ for all $i \in I$. The projections $\pi_i \colon P \to P_i$ are thus monotone, and, as an aside, we mention that $P$ is a categorical product in the category of posets and monotone maps.}. We claim that $P$ is also a dcpo. If $D \subseteq P$ is directed, then each $\pi_i\image{D}$ is also directed and thus has a join $x_i$. Letting $x = (x_i)_{i \in I}$ it is easy to see that $x = \bigdjoin D$ in $P$: It is clear that $x$ is an upper bound of $D$, and furthermore $x \leq y$ if and only if $x_i \leq \pi_i(y)$ for all $y \in P$ and $i \in I$.
+
+    In particular,
+    %
+    \begin{equation*}
+        \pi_i \bigl( \bigdjoin D \bigr)
+            = \pi_i(x)
+            = x_i
+            = \bigdjoin \pi_i\image{D},
+    \end{equation*}
+    %
+    so $\pi_i$ is continuous.\footnote{It follows that $P$ is a product in the category of dcpo's and continuous maps.}
+\end{examplebreak}
+
+
+\begin{examplebreak}[Partial functions]
+    If $X$ and $Y$ are sets, then we order the set $\pmaps{X}{Y}$ of partial functions as follows: For $f,g \colon X \pto Y$ we let $f \leq g$ if $\dom f \subseteq \dom g$ and $f(x) = g(x)$ for all $x \in \dom f$. The \keyword{graph} of a partial function $f$ is the set
+    %
+    \begin{equation*}
+        \graph{f} = \set{(x,y) \in X \prod Y}{x \in \dom f \text{ and } f(x) = y}.
+    \end{equation*}
+    %
+    This induces a map $\calG \colon \pmaps{X}{Y} \to \powerset{X \prod Y}$ given by $f \mapsto \graph{f}$, which is clearly an order-embedding. If $D \subseteq \pmaps{X}{Y}$ is a directed set of partial functions, then it is clear that the set $\bigdjoin \calG\image{D} = \bigunion_{d \in D} \graph{d}$ is the graph of a partial function. This function is then the join of $D$ in $\pmaps{X}{Y}$, which is therefore a dcpo, and the map $\calG$ is thus continuous. In fact, $\pmaps{X}{Y}$ is a dcppo since the empty map is the least element.
+
+    Denoting the projection maps by $\pi_X \colon X \prod Y \to X$ and $\pi_Y \colon X \prod Y \to Y$, notice that $\dom f = \pi_X\image{\graph{f}}$ and $\ran f = \pi_Y\image{\graph{f}}$. Since images preserve unions, and joins in power sets are just unions, if $D \subseteq \pmaps{X}{Y}$ is directed then
+    %
+    \begin{equation*}
+        \dom \bigdjoin D
+            = \pi_X\image[\big]{\graph[\big]{\bigdjoin D}}
+            = \pi_X\image[\big]{\bigdjoin \calG\image{D}}
+            = \bigdjoin \pi_X\image[\big]{\calG\image{D}}
+            = \bigdjoin \dom\image{D},
+    \end{equation*}
+    %
+    and we similarly have $\ran \bigdjoin D = \bigdjoin \ran\image{D}$.
+\end{examplebreak}
+
+
+Let $F \colon P \to P$ be a monotone map. We think of $F$ as a \keyword{generating function}. An element $x \in P$ is said to be \keyword{$F$-closed} if $F(x) \leq x$, \keyword{$F$-consistent} if $x \leq F(x)$, and a \keyword{fixed-point} of $F$ if $F(x) = x$. If $F$ has a least fixed-point, then this is usually denoted $\mu F$. Similarly, the greatest fixed-point, if it exists, is denoted $\nu F$.
+
 
 If $P$ is a poset and $x \in P$, then we write
 %
@@ -2200,7 +2403,7 @@ However, while continuous functions are automatically Scott continuous, the conv
 \begin{proposition}
     Let $P$ and $Q$ be posets. If $f \colon P \to Q$ is $\omega$-, chain- or directedly-continuous, then $f$ is $\omega$-, chain or directedly Scott continuous, respectively.
 
-    If $Q$ is $\omega-$, chain- or directedly-complete, respectively, then the converse also holds.
+    If $Q$ is $\omega$-, chain- or directedly-complete, respectively, then the converse also holds.
 \end{proposition}
 
 \begin{proof}
@@ -2220,7 +2423,7 @@ However, while continuous functions are automatically Scott continuous, the conv
 \end{proof}
 
 
-\section{Fixed-point theorems}
+\section{A survey of fixed-point theorems}
 
 \begin{theorem}[Knaster--Tarski's fixed-point theorem]
     If $L$ is a complete lattice and $F \colon L \to L$ is monotone, then $F$ has a least and a greatest fixed-point, and these are given by
@@ -2273,7 +2476,7 @@ We present a proof based on \textcite[Exercise~8.19]{davey-priestley-order}. For
     \begin{alignat*}{2}
         F^0(\bot)
             &= \bot, \\
-        F^{\alpha}(\bot)
+        F^\alpha(\bot)
             &= F(F^{\alpha-1}(\bot))
             \quad &&\text{if $\alpha$ is a successor}, \\
         F^\alpha(\bot)
@@ -2281,72 +2484,72 @@ We present a proof based on \textcite[Exercise~8.19]{davey-priestley-order}. For
             \quad &&\text{if $\alpha$ is a limit},
     \end{alignat*}
     %
-    for all ordinals $\alpha$. Then $\mu F = F^\alpha(\bot)$ for some ordinal $\alpha$.
+    for all ordinals $\alpha$. Then $\mu F = F^\alpha(\bot)$ for some ordinal $\alpha$, and $\mu F$ is the least $F$-closed element in $P$.
 \end{theorem}
 %
 Notice that if $F$ is continuous, then [TODO Kleene I] says that $\mu F = F^\omega(\bot)$. Indeed, examining the proof below we see that the definition of $F^\alpha(\bot)$ for \emph{countable} $\alpha$ only requires $P$ to be an $\omega$-cppo.
 
-\begin{prooffootnote}{This proof is }
-    We first show that the above definition of $F^\alpha(\bot)$ makes sense. More generally, let $x \in P$. We define a binary (definite [TODO define]) operation $H$ taking as arguments an ordinal $\alpha$ and a function $g \colon \alpha \to P$: We first let $H(g,0) = x$. If $\alpha$ has an immediate predecessor $\beta$, then we let $H(g,\alpha) = F(g(\beta))$. If $\alpha$ is a limit ordinal and $g$ is monotone, then we let $H(g,\alpha) = \bigjoin_{\beta < \alpha} g(\beta)$. (Note that we indeed take the join of a chain since $\alpha$ is a chain and $g$ is assumed monotone.) Finally, if $\alpha$ is a limit ordinal but $g$ is not monotone, then we let $H(g,\alpha)$ be some arbitrary element of $P$ (we will not need to consider such $g$). By transfinite recursion [TODO ref] there thus exists a unary (definite) operation $G$ such that
+\begin{proof}
+    We first show that the above definition of $F^\alpha(\bot)$ makes sense. More generally, fix some $x \in P$. We define a binary (definite [TODO define]) operation $\Phi = \Phi_x$ taking as arguments an ordinal $\alpha$ and a function $g \colon \alpha \to P$: We first let $\Phi(g,0) = x$. If $\alpha$ has an immediate predecessor $\beta$, then we let $\Phi(g,\alpha) = F(g(\beta))$. If $\alpha$ is a limit ordinal and $g$ is monotone, then we let $\Phi(g,\alpha) = \bigjoin_{\beta < \alpha} g(\beta)$. (Note that we indeed take the join of a chain since $\alpha$ is a chain and $g$ is assumed monotone.) Finally, if $\alpha$ is a limit ordinal but $g$ is not monotone, then we let $\Phi(g,\alpha)$ be some arbitrary element of $P$ (we will not need to consider such $g$). By transfinite recursion [TODO ref] there thus exists a unary (definite) operation $\Pi = \Pi_x$ such that
     %
     \begin{equation*}
-        G(\alpha)
-            = H(G|_\alpha, \alpha)
+        \Pi(\alpha)
+            = \Phi(\Pi|_\alpha, \alpha)
     \end{equation*}
     %
     for all $\alpha$.
     
-    We prove by transfinite induction that $G|_\alpha$ is monotone for all $\alpha$. For $\alpha = 0$ this is obvious, so assume that $G|_\xi$ is monotone for all $\xi < \alpha$ and let $\beta < \gamma < \alpha$. We consider three cases:
+    We prove by transfinite induction that $\Pi|_\alpha$ is monotone for all $\alpha$. For $\alpha = 0$ this is obvious, so assume that $\Pi|_\xi$ is monotone for all $\xi < \alpha$ and let $\beta < \gamma < \alpha$. We consider three cases:
     %
     \begin{proofsec}
         \item[$\beta$ and $\gamma$ are successors]
-        Then $G|_\gamma$ is monotone, and since $F$ is also monotone we have
+        Then $\Pi|_\gamma$ is monotone, and since $F$ is also monotone we have
         %
         \begin{equation*}
-            G(\beta)
-                = F(G(\beta-1))
-                \leq F(G(\gamma-1))
-                = G(\gamma).
+            \Pi(\beta)
+                = F(\Pi(\beta-1))
+                \leq F(\Pi(\gamma-1))
+                = \Pi(\gamma).
         \end{equation*}
 
         \item[$\beta$ is a limit, $\gamma$ is a successor]
-        Since $\beta$ is the union of all \emph{successor} ordinals smaller than it\footnote{This follows since if $\xi < \beta$, then also $\xi + 1 < \beta$.}, it suffices to show that $G(\xi) \leq G(\gamma)$ if $\xi < \beta$ is a successor ordinal. But since $G|_\gamma$ is monotone, we similarly to above find that
+        Since $\beta$ is the union of all \emph{successor} ordinals smaller than it\footnote{This follows since if $\xi < \beta$, then also $\xi + 1 < \beta$.}, it suffices to show that $\Pi(\xi) \leq \Pi(\gamma)$ if $\xi < \beta$ is a successor ordinal. But since $\Pi|_\gamma$ is monotone, we similarly to above find that
         %
         \begin{equation*}
-            G(\xi)
-                = F(G(\xi-1))
-                \leq F(G(\gamma-1))
-                = G(\gamma).
+            \Pi(\xi)
+                = F(\Pi(\xi-1))
+                \leq F(\Pi(\gamma-1))
+                = \Pi(\gamma).
         \end{equation*}
 
         \item[$\beta$ is a successor, $\gamma$ is a limit]
-        Let $\xi$ be a successor ordinal with $\beta \leq \xi < \gamma$. Since $G|_\gamma$ is monotone, we again have
+        Let $\xi$ be a successor ordinal with $\beta \leq \xi < \gamma$. Since $\Pi|_\gamma$ is monotone, we again have
         %
         \begin{equation*}
-            G(\beta)
-                = F(G(\beta-1))
-                \leq F(G(\xi-1))
-                = G(\xi),
+            \Pi(\beta)
+                = F(\Pi(\beta-1))
+                \leq F(\Pi(\xi-1))
+                = \Pi(\xi),
         \end{equation*}
         %
         which implies that
         %
         \begin{equation*}
-            G(\beta)
-                \leq \bigjoin_{\xi < \gamma} G(\xi)
-                = G(\gamma).
+            \Pi(\beta)
+                \leq \bigjoin_{\xi < \gamma} \Pi(\xi)
+                = \Pi(\gamma).
         \end{equation*}
     \end{proofsec}
     %
-    Since $G|_\alpha$ is always monotone, we always have $G(\alpha) = \bigjoin_{\beta < \alpha} G(\beta)$ when $\alpha$ is a limit ordinal. Writing $F^\alpha(x) \defeq G(\alpha)$ we thus obtain a map $F^\alpha \colon P \to P$ given by
+    Since $\Pi|_\alpha$ is always monotone, we always have $\Pi(\alpha) = \bigjoin_{\beta < \alpha} \Pi(\beta)$ when $\alpha$ is a limit ordinal. Writing $F^\alpha(x) \defeq \Pi_x(\alpha)$ we thus obtain a map $F^\alpha \colon P \to P$, and we have
     %
     \begin{alignat*}{2}
         F^0(x)
-            &= \bot, \\
-        F^{\alpha}(x)
+            &= x, \\
+        F^\alpha(x)
             &= F(F^{\alpha-1}(x))
             \quad &&\text{if $\alpha$ is a successor}, \\
-        F^\alpha(\bot)
+        F^\alpha(x)
             &= \bigjoin_{\beta < \alpha} F^\beta(x)
             \quad &&\text{if $\alpha$ is a limit},
     \end{alignat*}
@@ -2371,7 +2574,7 @@ Notice that if $F$ is continuous, then [TODO Kleene I] says that $\mu F = F^\ome
     %
     Thus $F^\beta(\bot)$ is a fixed-point of $F$.
 
-    Finally we show that $F$ has a \emph{least} fixed-point. First we show that the map $F^\alpha$ is monotone for all ordinals $\alpha$, i.e. that if $x,y \in P$ with $x \leq y$, then $F^\alpha(x) \leq F^\alpha(y)$. If $\alpha = 0$, then this is obvious, so assume that it hold for all ordinals $\beta < \alpha$. If $\alpha$ is a successor, then
+    Finally we show that $F$ has a \emph{least} fixed-point. First we show that the map $F^\alpha$ is monotone for all ordinals $\alpha$, i.e. that if $x,y \in P$ with $x \leq y$, then $F^\alpha(x) \leq F^\alpha(y)$. If $\alpha = 0$, then this is obvious, so assume that it holds for all ordinals $\beta < \alpha$. If $\alpha$ is a successor, then
     %
     \begin{equation*}
         F^\alpha(x)
@@ -2386,35 +2589,83 @@ Notice that if $F$ is continuous, then [TODO Kleene I] says that $\mu F = F^\ome
         F^\beta(x)
             \leq F^\beta(y)
             \leq \bigjoin_{\beta < \alpha} F^\beta(y)
-            = F^\alpha(y),
+            = F^\alpha(y)
     \end{equation*}
     %
-    and taking the join on the left-hand side we again get $F^\alpha(x) \leq F^\alpha(y)$. Now if $x$ is any fixed-point of $F$, then it is clear that $F^\alpha(x) = x$ for any $\alpha$. Hence if $F^\alpha(\bot)$ is a fixed-point, then $\bot \leq x$, and so
+    for all $\beta < \alpha$, and taking the join on the left-hand side we again get $F^\alpha(x) \leq F^\alpha(y)$. Now if $x \in P$ is $F$-closed, then it is clear by induction that $F^\alpha(x) \leq x$ for any $\alpha$: If $\alpha$ is a successor, then
     %
-    \begin{equation}
+    \begin{equation*}
+        F^\alpha(x)
+            = F(F^{\alpha-1}(x))
+            \leq F(x)
+            \leq x,
+    \end{equation*}
+    %
+    and if $\alpha$ is a limit, then $F^\beta(x) \leq $ for all $\beta < \alpha$, and taking the join on the left-hand side yields $F^\alpha(x) \leq \alpha$. Hence if $\alpha$ is such that $F^\alpha(\bot)$ is a fixed-point, then $\bot \leq x$, and so
+    %
+    \begin{equation*}
         F^\alpha(\bot)
             \leq F^\alpha(x)
-            = x,
-    \end{equation}
+            \leq x,
+    \end{equation*}
     %
-    so $F^\alpha(\bot)$ is indeed the least fixed-point of $F$.
-\end{prooffootnote}
+    so $F^\alpha(\bot)$ is indeed the least fixed-point of $F$, as well as the least $F$-closed element in $P$.
+\end{proof}
 
-A natural question might be whether we can use this extension of Kleene's fixed-point theorem to obtain inversion-type results for all monotone maps, not just those that are continuous. We might, for instance, allow inference rules to have infinitely many antecedents. If $X$ is the ground set, $S \subseteq X$ and $y \in X$, then we write $\myinfrule{R}{S}{y}$ to denote that the inference rule $R$ has as antecedents the elements in $S$, and $y$ as consequent. Given a collection $\calR$ of such inference rules, we may again define a function $F \colon \powerset{X} \to \powerset{X}$ by letting $F(A)$ consist of those $y \in X$ such that there is a rule $\myinfrule{}{S}{y}$ in $\calR$ with $S \subseteq A$. Clearly $F$ is then monotone, but it is not clear that it is continuous (and indeed it often is not).
+A natural question might be whether we can use this extension of Kleene's fixed-point theorem to obtain inversion-type results for all monotone maps, not just those that are continuous. We might, for instance, allow inference rules to have infinitely many antecedents: If $X$ is the ground[TODO?] set, $S \subseteq X$ and $y \in X$, then we write $\myinfrule{R}{S}{y}$ to denote that the inference rule $R$ has as antecedents the elements in $S$, and $y$ as consequent. Given a collection $\calR$ of such inference rules, we may again define a function $F \colon \powerset{X} \to \powerset{X}$ by letting $F(A)$ consist of those $y \in X$ such that there is a rule $\myinfrule{}{S}{y}$ in $\calR$ with $S \subseteq A$. Clearly $F$ is then monotone, but it is not clear that it is continuous (and indeed it often is not).
 
-We quickly see that there is no general inversion lemma for $F$: In the continuous case, all elements of $\omega$ are successor ordinals, so if $y \in F^n(\bot)$ for some $n \in \omega$, then we know that $y \in F(F^{n-1}(\bot))$, and hence there is a rule $\myinfrule{}{\seq{x}}{y}$ with $\seq{x} \subseteq F^{n-1}(\bot)$. And for successor ordinals in the continuous case we may draw a similar conclusion. But if $\alpha$ is a limit ordinal and $y \in F^\alpha(\bot)$, then $y \in \bigunion_{\beta < \alpha} F^\beta(\bot)$, which only tells us that $y \in F^\beta(\bot)$ for some $\beta < \alpha$. And while we may assume that $\beta$ is a successor ordinal, this may be the eventual successor of another limit ordinal, and this process may repeat itself infinitely many times. This implies that there is no way to derive $y$ with only \emph{finitely many} applications of the inference rules.
+We quickly see that there is no general inversion lemma for $F$: In the continuous case, all elements of $\omega$ are successor ordinals, so if $y \in F^n(\emptyset)$ for some $n \in \omega$, then we know that $y \in F(F^{n-1}(\emptyset))$, and hence there is a rule $\myinfrule{}{\seq{x}}{y}$ with $\seq{x} \subseteq F^{n-1}(\emptyset)$. And for successor ordinals in the continuous case we may draw a similar conclusion. But if $\alpha$ is a limit ordinal and $y \in F^\alpha(\emptyset)$, then $y \in \bigunion_{\beta < \alpha} F^\beta(\emptyset)$, which only tells us that $y \in F^\beta(\emptyset)$ for some $\beta < \alpha$. And while we may assume that $\beta$ is a successor ordinal, this may be the eventual successor of another limit ordinal, and this process may repeat itself infinitely many times. This implies that there is no way to derive $y$ with only \emph{finitely many} applications of the inference rules.
+
+\newcommand{\myinfruleAlign}[3]{\myinfrule{#1}{#2&}{#3}}
+
+\begin{examplebreak}[$\sigma$-algebras]
+    Let $X$ be a set, and let $\calD$ be a collection of subsets of $X$. Consider the inference rules (with potentially infinitely many antecedents)
+    %
+    \begin{alignat*}{2}
+        \myinfruleAlign{}{}{X}, \\
+        \myinfruleAlign{}{}{D} && \quad \text{for $D \in \calD$}, \\
+        \myinfruleAlign{}{A}{X \setminus A} && \quad \text{for $A \subseteq X$}, \\
+        \myinfruleAlign{}{\calA}{\bigunion \calA} && \quad \text{for $\calA \subseteq \powersetcount{X}$}.
+    \end{alignat*}
+    %
+    The function $F$ generated by these rules then has at its least fixed-point the $\sigma$-algebra $\sigma(\calD)$ generated by $\calD$. We claim that $\sigma(\calD) = F^{\omega_1}(\emptyset)$. To show the inclusion \enquote{$\supseteq$}, notice that since $\omega_1$ is the union of all countable ordinals it suffices to show that $F^\alpha(\emptyset) \subseteq \sigma(\calD)$ for all countable $\alpha$, which easily follows by transfinite induction. The opposite inclusion follows by rule induction: If $(A_n)_{n \in \naturals}$ is a sequence in $\sigma(\calD)$ with $A_n \in F^{\omega_1}(\emptyset)$, then $A_n \in F^{\alpha_n}(\emptyset)$ for some countable $\alpha_n$. Letting $\alpha = \bigunion_{n \in \naturals} \alpha_n$, the ordinal $\alpha$ is also countable. Hence $A_n \in F^\alpha(\emptyset)$, and so $\bigunion_{n \in \naturals} A_n \in F^{\alpha+1}(\emptyset) \subseteq F^{\omega_1}(\emptyset)$.\footnote{This example is \textcite[Proposition~1.23]{folland-real-analysis}.}
+
+    Of course, this does not show that $\omega_1$ is the smallest ordinal $\alpha$ such that $\sigma(\calD) = F^\alpha(\emptyset)$. But notice that if $\alpha$ is countable, then (at least assuming the axiom of countable choice) it follows by induction that $F^\alpha(\emptyset)$ is also countable. And it is easy to show that if a $\sigma$-algebra is infinite, then it is uncountable (see e.g. \cite[Exercise~1.3]{folland-real-analysis}), so it cannot equal $F^\alpha(\emptyset)$.
+\end{examplebreak}
+
+
+\begin{examplebreak}[Topologies]
+    Let $X$ be a set, and let $\calS$ be a collection of subsets of $X$, and consider the inference rules
+    %
+    \begin{alignat*}{2}
+        \myinfruleAlign{}{}{\emptyset}, \\
+        \myinfruleAlign{}{}{X}, \\
+        \myinfruleAlign{}{}{S} && \quad \text{for $S \in \calS$}, \\
+        \myinfruleAlign{}{U,V}{U \intersect V} && \quad \text{for $U,V \subseteq X$}, \\
+        \myinfruleAlign{}{\calU}{\bigunion \calU} && \quad \text{for $\calU \subseteq \powerset{X}$}.
+    \end{alignat*}
+    %
+    Let $F$ be the represented generating function, and let $\calT$ be its least fixed-point, i.e. the topology generated by $\calS$. Then $\calS$ is a subbasis for $\calT$, so every element $U \in \calT$ is a union of finite intersections of elements in $\calS$, that is, $U$ is on the form
+    %
+    \begin{equation*}
+        U
+            = \bigunion_{i \in I} (U_{i1} \intersect \cdots \intersect U_{ij_i})
+    \end{equation*}
+    %
+    for appropriate $U_{ij} \in \calS$. Notice that $\calS \subseteq F(\emptyset)$, so intersections of $n$ sets from $\calS$ lie in $F^n(\emptyset)$, and hence all finite intersections are contained in $F^\omega(\emptyset)$. Applying $F$ a final time yields the union of these intersections, so $\calT = F^{\omega+1}(\emptyset)$.
+\end{examplebreak}
 
 
 A map $f \colon P \to P$ on a poset $P$ is called \keyword{expansive} if $x \leq f(x)$ for all $x \in P$.\footnote{Some authors also use the adjectives \keyword{extensive}, \keyword{inflationary} or even \keyword{increasing}.}
 
 \begin{theorem}[Zermelo's fixed-point theorem]
-    If $P$ is a chain-complete poset and $F \colon P \to P$ is expansive, then $F$ has a fixed-point.\footnote{In \textcite{davey-priestley-order} this is known as \enquote{CPO Fixpoint Theorem III}, and they add the hypothesis that $P$ be a dcppo, but also claim that then $F$ has a \emph{minimal} fixed-point. But this is false: Consider for instance the poset $P = (\omega^\partial)_\bot$, i.e., the set $\naturals \union \{\bot\}$ equipped with the ordering $\preceq$ given by
+    If $P$ is a chain-complete poset and $F \colon P \to P$ is expansive, then $F$ has a fixed-point.\footnote{\Textcite{davey-priestley-order} give this result the name \enquote{CPO Fixpoint Theorem III}, and they add the hypothesis that $P$ be a dcppo, but also claim that then $F$ has a \emph{minimal} fixed-point. But this is false: Consider for instance the poset $P = (\omega+1)^\partial$, i.e., the set $\omega \union \{\omega\}$ equipped with the ordering $\preceq$ given by
     %
     \begin{equation*}
-        \bot \prec \cdots \prec n \prec n-1 \prec \cdots \prec 1 \prec 0.
+        \omega \prec \cdots \prec n \prec n-1 \prec \cdots \prec 1 \prec 0.
     \end{equation*}
     %
-    This is clearly a dcppo since every nonempty subset even has a maximum. Define $F \colon P \to P$ by letting $F(\bot) = 0$ and $F(n) = n$ for $n \in \naturals$. Then $F$ is obviously expansive, but every natural number, of which there is no minimal with respect to $\preceq$, is a fixed-point. In the context of the proof below, \citeauthor{davey-priestley-order} claim that the smallest $F$-invariant sub-dcppo of $P$, here $\{\bot, 0\}$, has a greatest element, here $0$, and that this is a minimal fixed-point of $F$. But this is false, since e.g. $1$ is also a fixed-point. \par Our proof of Zermelo's theorem is, however, based on \textcite[Exercise~8.20]{davey-priestley-order}. Note that e.g. \textcite[Theorem~7.35]{moschovakis-set-theory} proves our version of the theorem, but using the theory of well-orderings. \par The above counterexample is taken from \textcite{hansen-zermelo-stackexchange}.}
+    This is clearly a dcppo since every nonempty subset even has a maximum. Define $F \colon P \to P$ by letting $F(\omega) = 0$ and $F(n) = n$ for $n \in \omega$. Then $F$ is obviously expansive, but every natural number, of which there is no minimal with respect to $\preceq$, is a fixed-point. In the context of the proof below, \citeauthor{davey-priestley-order} claim that the smallest $F$-invariant sub-dcppo of $P$, here $\{\omega, 0\}$, has a greatest element, here $0$, and that this is a minimal fixed-point of $F$. But this is false, since e.g. $1$ is also a fixed-point. \par Our proof of Zermelo's theorem is, however, based on \textcite[Exercise~8.20]{davey-priestley-order}. Note that e.g. \textcite[Theorem~7.35]{moschovakis-set-theory} proves our version of the theorem, but using the theory of well-orderings. \par The above counterexample is taken from \textcite{hansen-zermelo-stackexchange}.}
 \end{theorem}
 
 \begin{proof}
