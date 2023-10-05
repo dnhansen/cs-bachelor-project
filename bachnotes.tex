@@ -732,6 +732,8 @@ The final construction we need is definition by recursion.\footnote{The statemen
     %
     Hence $\mu G$ is in fact a total function solving the equation [TODO ref], which proves the theorem.
 \end{proof}
+%
+[TODO something about solving fixed-point equations when recursion doesn't work, Moschovakis 6.31.]
 
 We also sometimes wish to define \emph{partial} functions recursively. This is no issue, for as the following shows, there is a correspondence between partial functions and certain total functions.
 
@@ -2096,6 +2098,8 @@ Be sure to distinguish between values and irrs! That is the whole point of progr
 
 But prove: val => irr
 
+[TODO background info on logical predicates/relations]
+
 
 % \renewcommand{\objApp}[2]{#1 \mathbin{\textcolor{objlangcolor}{\ensuremath{\$}} #2}}
 \renewcommand{\objRec}[3]{\objlang{\ensuremath{\lambda}}#2\objlang{.}#3}
@@ -2103,7 +2107,7 @@ But prove: val => irr
 
 
 
-\newcommand{\syntype}[3]{#1 \vDash #2 : #3}
+\newcommand{\syntype}[3]{#1 \vdash #2 : #3}
 \newcommand{\semtype}[3]{#1 \vDash #2 : #3}
 \newcommand{\recTODO}{f}
 \newcommand{\typeFunc}[2]{#1 \to #2}
@@ -2114,22 +2118,58 @@ But prove: val => irr
 \newcommand{\valInt}[1]{\calV\auxdelimbbracket{#1}}
 \newcommand{\envInt}[1]{\calG\auxdelimbbracket{#1}}
 
-\begin{equation*}
-    \valInt{\typeProd{\tau_1}{\tau_2}}
-        = \set{\objPair{v_1}{v_2}}{v_1 \in \valInt{\tau_1}, v_2 \in \valInt{\tau_1}}.
-\end{equation*}
+\newcommand{\setCVal}{\mathit{CVal}}
 
+\renewcommand{\objMatch}[4]{\objlang{match}(#1;#2.#3;#2.#4)}
+\newcommand{\objProj}[2]{\textcolor{objlangcolor}{\pi_{#1}}\,#2} % TODO do I want "i" in red?
+\newcommand{\objInj}[2]{\textcolor{objlangcolor}{\iota_{#1}}\,#2} % TODO do I want "i" in red?
+
+
+To each type $\tau$ we associate a set $\valInt{\tau}$ of closed values called its \keyword{value interpretation}, which induces a logical predicate $\valInt{\hole} \colon \setType \to \powerset{\setCVal}$ [TODO define CVal]. We begin by defining the value interpretations of the base types, which for us means just the unit type:
+%
 \begin{equation*}
-    \valInt{\typeSum{\tau_1}{\tau_2}}
-        = \set{\objInl{v}}{v \in \valInt{\tau_1}} \union \set{\objInr{v}}{v \in \valInt{\tau_2}}.
+    \valInt{\typeUnit}
+        \defeq \{ \objUnit \}.
 \end{equation*}
 %
-Notice that this union is disjoint.
+Given types $\tau_1$ and $\tau_2$, we can also immediately define the value interpretations of the product and sum of $\tau_1$ and $\tau_2$. This is done recursively by letting
+%
+\begin{align*}
+    \valInt{\typeProd{\tau_1}{\tau_2}}
+        &\defeq \set{\objPair{v_1}{v_2}}{v_1 \in \valInt{\tau_1}, v_2 \in \valInt{\tau_1}}, \\
+    \valInt{\typeSum{\tau_1}{\tau_2}}
+        &\defeq \set{\objInl{v}}{v \in \valInt{\tau_1}} \union \set{\objInr{v}}{v \in \valInt{\tau_2}}.
+\end{align*}
+%
+These definitions should seem fairly natural. While we cannot let $\valInt{\typeProd{\tau_1}{\tau_2}}$ be the \emph{Cartesian} product of $\valInt{\tau_1}$ and $\valInt{\tau_2}$ (since \enquote{mathematical} pairs\footnote{Consider using different notation for object pairs to ensure readability in black/white. Also, do I even want punctuation in a different font?} $(v_1,v_2)$ of values are not even expressions in the language, let alone closed values), the obvious solution is to let this set be the pairs in the \emph{object} language. But notice that these are isomorphic as sets: Indeed, $\valInt{\typeProd{\tau_1}{\tau_2}}$ as defined above is a categorical product of $\valInt{\tau_1}$ and $\valInt{\tau_2}$ when equipped with the projections $\objPair{v_1}{v_2} \mapsto v_i$. On the other hand, disjoint unions are usually only defined up to isomorphism, and we notice that $\valInt{\typeSum{\tau_1}{\tau_2}}$ is in fact a disjoint union of the sets $\valInt{\tau_1}$ and $\valInt{\tau_2}$, the operators $\objInl{}$ and $\objInr{}$ [TODO spacing when no argument] serving as the \enquote{tags} that create isomorphic copies of $\valInt{\tau_1}$ and $\valInt{\tau_2}$. These of course give rise to the injections $v \mapsto \objInj{i}{v}$.
 
+Before we can define the value interpretation of function types, we need an additional logical predicate: The \keyword{expression interpretation} of a type $\tau$ is the set $\expInt{\tau}$ of expressions $e$ with the property that if $e'$ is an irreducible expression and $e \step^* e'$, then $e' \in \valInt{\tau}$. That is, we get another logical predicate $\expInt{\hole} \colon \setType \to \powerset{\setExp}$. We thus define:
+%
 \begin{equation*}
     \valInt{\typeFunc{\tau_1}{\tau_2}}
-        = \set{\objRec{\recTODO}{x}{e}}{\forall v \in \valInt{\tau_1} \colon e[v/x] \in \expInt{\tau_2}}.
+        \defeq \set{\objRec{\recTODO}{x}{e}}{\forall v \in \valInt{\tau_1} \colon e[v/x] \in \expInt{\tau_2}}.
 \end{equation*}
+%
+Notice that we cannot do without the expression interpretation, since the body of a function, even with the argument substituted for the formal parameter, is not generally a value.
+
+Of course, it is not immediate that the sets of expression and value interpretations are well-defined since they are defined mutually recursively. And we cannot simply use the form of mutual recursion described in [TODO], since $\expInt{\tau}$ is defined in terms of $\valInt{\tau}$ for the \emph{same} type $\tau$. But notice that the definition of $\valInt{\tau}$ only refers to expression interpretations of types that are \emph{strictly} smaller than $\tau$. This enables us to do the following: Let $\eta \colon \powerset{\setCVal} \to \powerset{\setExp}$ be the map that to a set $V$ of closed values associates the set $\eta(V)$ of expressions $e$ such that if $e'$ is irreducible and $e \step^* e'$, then $e' \in V$. In particular, $\expInt{\tau} = \eta(\valInt{\tau})$.
+
+As in [TODO], we perform the mutual recursion by defining a function $f \colon \setType \prod \powerset{\setCVal} \prod \powerset{\setExp} \to \powerset{\setCVal} \prod \powerset{\setExp}$. Considering for instance the inference rule $\myinfrule{}{\tau_1,\tau_2}{\typeFunc{\tau_1}{\tau_2}}$, the corresponding function $h$ we use for recursion [TODO rewrite this] is then
+%
+\begin{align*}
+    h(\tau, (V_1, V_2), (E_1, E_2))
+        &= (V,\eta(V)), \quad \text{where} \\
+    V
+        &= \set{\objRec{\recTODO}{x}{e}}{\forall v \in V_1 \colon e[v/x] \in E_2}.
+\end{align*}
+%
+Notice that we do not explicitly use the type $\tau$, nor the sets $V_2$ and $E_1$, in this definition. Inference rules for the other types are handled similarly.
+
+[TODO we do recursion for all inference rules for ASTs, not just the ones for types.]
+
+[TODO more types]
+
+[TODO environment int]
 
 
 \begin{lemma}
@@ -2150,9 +2190,6 @@ TODO: define gamma(e), envInt, expInt
 \begin{proof}
     TODO
 \end{proof}
-
-\renewcommand{\objMatch}[4]{\objlang{match}(#1;#2.#3;#2.#4)}
-\newcommand{\objProj}[2]{\textcolor{objlangcolor}{\pi_{#1}}\,#2} % TODO do I want "i" in red?
 
 \begin{lemma}
     If $\objPair{e_1}{e_2} \step^* e'$, then there are expressions $e_1'$ and $e_2'$ such that $e' = \objPair{e_1'}{e_2'}$, and such that $e_i \step^* e_i'$.
