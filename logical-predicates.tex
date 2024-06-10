@@ -1,0 +1,668 @@
+\chapter[Type safety II: Logical predicates][Type safety II: Logical predicates]{\vspace{-\baselineskip}Type Safety II:\\ Logical Predicates}\label{chap:logical-predicates}
+
+\renewcommand{\typerel}[4]{%
+    \ifstrempty{#1}{%
+        #2 \vdash #3 : #4%
+    }{%
+        #1 \mid #2 \vdash #3 : #4%
+    }%
+}
+
+In this chapter we use the method of logical relations, or more property logical \emph{predicates}, to prove type safety for the language \langpure{} we presented in \cref{sec:langpure}.
+
+The logical predicates allow us to define an alternative \enquote{semantic} notion of type safety, which turns out to be stronger than the \enquote{syntactic} notion of type safety we studied in the previous chapter. The goal is then to prove that well-typed closed expressions are semantically type safe, which as it turns out is quite simple.
+
+
+\section{A logical predicate}
+
+% \newcommand{\valInt}[1]{\calV\llbracket#1\rrbracket}
+% \newcommand{\expInt}[1]{\calE\llbracket#1\rrbracket}
+% \newcommand{\conInt}[1]{\calG\llbracket#1\rrbracket}
+
+% \subsubsection{Context interpretation}
+
+% The third and final logical predicate we need is the \keyword{context interpretation} $\conInt{\Gamma}$ of a typing context $\Gamma$. The interpretation of $\Gamma$ should capture the assignment of types to free variables, and since types are interpreted using values, an element of $\Gamma$ should assign a value to each free variable. To formalise this we introduce the notion of a \keyword{substitution}, which is a finite partial map $\gamma \colon \setVar \ptofin \setCVal$. We extend this to a map $\setExp \to \setExp$ as follows:\blfootnote{We could also use \cref{thm:recursive-definitions} to define the extension of $\gamma$, but this would not yield the explicit characterisation of $\gamma$ that we will need.} % TODO Should I call it a *value* substitution, and then later rho a *type* substitution?
+
+% \begin{definition}
+%     Let $\gamma \colon \setVar \ptofin \setCVal$ be a substitution. If $\dom\gamma = \{x_1, \ldots, x_n\}$ and $e \in \setExp$, then we define
+%     %
+%     \begin{equation*}
+%         \gamma(e)
+%             \defeq e[\gamma(x_1)/x_1] \cdots [\gamma(x_n)/x_n],
+%     \end{equation*}
+%     %
+%     yielding a map $\gamma \colon \setExp \to \setExp$.
+% \end{definition}
+% %
+% That is, we apply $\gamma$ to $e$ by substituting each variable $x_i$ in the domain of $\gamma$ with the closed value $\gamma(x_i)$. Notice that this is well-defined by [TODO substitution lemma-ish] since each $\gamma(x_i)$ is a value, so the order of the substitutions does not matter. Furthermore, this is indeed an extension of $\gamma$ since $x_i[\gamma(x_i)/x_i] = \gamma(x_i)$ by the definition of substitution.
+
+% We can now define the interpretation of a typing context:
+% %
+% \begin{equation*}
+%     \conInt{\Gamma}
+%         \defeq \set[\big]{\gamma \colon \dom{\Gamma} \to \setCVal}{\forall x \in \dom{\Gamma} \colon \gamma(x) \in \valInt{\Gamma(x)}}. % TODO WTF, \big makes mathit into mathcal when abssymb is loaded?? Only when mathcal is in second entry of \set
+% \end{equation*}
+% %
+% In case $\Gamma = \bot$, notice that $\conInt{\Gamma} = \{\bot\}$.
+
+
+
+
+% \subsection{Semantic typing}
+
+% TODO define safety in previous chapter
+
+% We use the three logical predicates to define a second kind of typing relation:
+
+% \newcommand{\syntype}[3]{#1 \vdash #2 : #3}
+% \newcommand{\semtype}[3]{#1 \vDash #2 : #3}
+
+% \begin{definition}[Semantic typing]
+%     Let $\Gamma$ be a type context, and let $e \in \setExp$ and $\tau \in \setType$. Then we write
+%     %
+%     \begin{equation*}
+%         \semtype{\Gamma}{e}{\tau}
+%         \quad \text{if and only if} \quad
+%         \forall \gamma \in \conInt{\Gamma} \colon \gamma(e) \in \expInt{\tau}.
+%     \end{equation*}
+% \end{definition} % TODO spacing
+% %
+% In case $\Gamma = \bot$ we simply write $\semtype{}{e}{\tau}$, which just means that $e \in \expInt{\tau}$ since the only substitution in $\Gamma$ is $\bot$, which leaves $e$ unchanged. The significance of this definition is captured by the following result:
+
+% \begin{proposition}
+%     % \label{prop:semantic-welltype-implies-safe}
+%     If $\semtype{}{e}{\tau}$, then $e$ is safe.
+% \end{proposition}
+
+% \begin{proof}
+%     Assuming that $e \step^* e'$ we must show that $e'$ is either reducible or a value. If $e'$ is irreducible, then since $e \in \expInt{\tau}$ we have $e' \in \valInt{\tau}$ by the definition of the expression interpretation. In particular, $e'$ is a value as desired.
+% \end{proof}
+
+
+% To prove that the \emph{syntactic} typing relation $\vdash$ captures type safety, it thus suffices to show that $\syntype{}{e}{\tau}$ implies $\semtype{}{e}{\tau}$ for all expressions $e$ and types $\tau$. Our approach in the proof of this result is to prove a series of \emph{compatibility lemmas}: These essentially state that the \emph{semantic} typing relation satisfies the same inference rules that were used to define the \emph{syntactic} typing relation. For instance, we will prove that $\semtype{\Gamma}{e}{\typeProd{\tau_1}{\tau_2}}$ implies $\semtype{\Gamma}{\expProjl{e}}{\tau_1}$. This is where the majority of work lies. There are at least two ways we might go about this:
+% %
+% \begin{itemize}
+%     \item If $\syntype{\Gamma}{e}{\tau}$ holds, then one way to obtain $\semtype{\Gamma}{e}{\tau}$ is by induction on the inference rules. For example, $\syntype{\Gamma}{\expProjl{e}}{\tau_1}$ is the conclusion of the rule \ruleref{Tprojl}, so by the inversion lemma the premise $\syntype{\Gamma}{e}{\typeProd{\tau_1}{\tau_2}}$ must also hold. By induction we have $\semtype{\Gamma}{e}{\typeProd{\tau_1}{\tau_2}}$, so applying the appropriate compatibility lemma we thus obtain $\semtype{\Gamma}{\expProjl{e}}{\tau_1}$. This approach is outlined in \cref{fig:fundamental-property-proof}.
+
+%     \begin{figure}
+%         \begin{sidecaption}{First proof of the fundamental property for the case \ruleref{Tprojl}.}[fig:fundamental-property-proof]
+%             \centering
+%             \begin{tikzpicture}
+%                 \tikzset{edge node/.style={midway,fill=white,font=\footnotesize}}
+%                 \tikzset{implies edge/.style={-implies,double equal sign distance}}
+%                 \node (synAnte) at (0,0) {$\syntype{\Gamma}{e}{\typeProd{\tau_1}{\tau_2}}$};
+%                 \node (synConcl) at (0,-2) {$\syntype{\Gamma}{\expProjl{e}}{\tau_1}$};
+%                 \node (semAnte) at (4,0) {$\semtype{\Gamma}{e}{\typeProd{\tau_1}{\tau_2}}$};
+%                 \node (semConcl) at (4,-2) {$\semtype{\Gamma}{\expProjl{e}}{\tau_1}$};
+%                 \draw[implies edge] (synConcl) -- (synAnte) node[edge node] {inversion};
+%                 \draw[implies edge] (synAnte) -- (semAnte) node[edge node,yshift=1em] {induction};
+%                 \draw[implies edge] (semAnte) -- (semConcl) node[edge node] {compatibility lemma};
+%             \end{tikzpicture}
+%         \end{sidecaption}
+%     \end{figure}
+
+%     \item Alternatively, if $\vdash$ and $\vDash$ denote the syntactic and semantic typing relations, respectively, then the fundamental property just says that ${\vdash} \subseteq {\vDash}$. The syntactic typing relation is by definition the smallest fixed-point of the generating function represented by the inference rules, so we can instead appeal to \cref{thm:rule-induction} and use rule induction to prove the above inclusion. More precisely, we must prove that for every inference rule
+%     %
+%     \begin{equation*}
+%         \inferrule*{
+%             (\Gamma_1,e_1,\tau_1) \and \cdots \and (\Gamma_n,e_n,\tau_n)
+%         }{
+%             (\Gamma,e,\tau)
+%         }
+%     \end{equation*}
+%     %
+%     if every $(\Gamma_i,e_i,\tau_i)$ lies in $\vDash$ \textdash that is, if $\semtype{\Gamma_i}{e_i}{\tau_i}$ for all $i$ \textdash then $(\Gamma,e,\tau)$ also lies in $\vDash$, i.e., $\semtype{\Gamma}{e}{\tau}$. But this is precisely the statement of the compatibility lemmas.
+% \end{itemize}
+% %
+% We will take the second approach.
+
+% In order to perform this induction, then since the semantic typing relation is intimately tied up with the operational semantics, we must first get a better understanding of which reductions are possible for various kinds of expressions. We begin by proving a series of technical results on reductions that should nevertheless be very natural.
+
+
+% \begin{lemma}
+%     \label{lem:subexpression-step}
+%     \begin{enumlemma}
+%         \item\label{enum:pair-subexpression-step} If $\expPair{e_1}{e_2} \step^* e'$, then there are expressions $e_1'$ and $e_2'$ such that $e' = \expPair{e_1'}{e_2'}$, and such that $e_i \step^* e_i'$.
+        
+%         \item\label{enum:proj-subexpression-step} If $\expProjl{e} \step^* e'$, then either $e' = v_1$ is a value and $e \step^* \expPair{v_1}{v_2}$, or else $e' = \expProjl{e''}$ such that $e \step^* e''$.
+
+%         \item\label{enum:app-subexpression-step} If $\expApp{e_1}{e_2} \step^* e'$, then either $\expApp{e_1}{e_2} \step^* e''[v/x] \step^* e'$ where $e_1 \step^* \expLam{x}{e''}$ and $e_2 \step^* v$, or else $e' = \expApp{e_1'}{e_2'}$ where $e_i \step^* e_i'$. % TODO weird label name??
+%     \end{enumlemma}
+
+
+    
+
+%     % If $\objInl{e} \step^* e'$, then $e' = \objInl{e''}$ and $e \step^* e''$ for some $e''$.
+
+%     % If $\objMatch{e}{x}{e_1}{e_2} \step^* e'$, then either $\objMatch{e}{x}{e_1}{e_2} \step^* e_i[v/x] \step^* e'$ where $e \step^* \objProj{i}{v}$, or else $\objMatch{e''}{x}{e_1'}{e_2'}$ where $e \step^* e''$.
+% \end{lemma}
+
+% \begin{proof}
+% \begin{proofsec*}
+%     \item[Proof of \itemref{enum:pair-subexpression-step}]
+%     By induction on the length of the reduction $\expPair{e_1}{e_2} \step^* e'$, it suffices to prove the claim when this is a one-step reduction. There exists an evaluation context $E$ and expressions $d$ and $d'$ such that $\expPair{e_1}{e_2} = E[d]$ and $e' = E[d']$, and such that $d \headstep d'$. Notice that $E$ must either be on the form $\expPair{E'}{e''}$ or $\expPair{v}{E'}$ for an evaluation context $E'$, an expression $e''$ and a value $v$. In the former case we have $E[d] = \expPair{E'[d]}{e''}$, so we must have $e_1' = E'[d]$ and $e_2' = e''$. We similarly have $e' = \expPair{E'[d']}{e''}$, and we notice that $E'[d] \step^* E'[d']$ (indeed this happens in one step) and $e'' \step^* e''$ as desired. If instead $E = \expPair{v}{E'}$, then the argument is similar.
+    
+%     \item[Proof of \itemref{enum:proj-subexpression-step}]
+%     The proof is by induction on the length $n$ of the reduction $\expProjl{e} \step^* e'$. For $n = 0$ we have $e' = \expProjl{e}$ and $e \step^* e$, so the claim holds. Assuming that it holds for some $n$, suppose that $\expProjl{e} \step^n e_1' \step e_2'$. Then $e_1'$ cannot be a value since values are irreducible by \cref{prop:value-implies-irreducible}, so $e_1' = \expProjl{e_1''}$ with $e \step^* e_1''$ by induction. Now, $e_1' = E[d_1]$ and $e_2' = E[d_2]$ with $d_1 \headstep d_2$, where $E$ is either the hole or on the form $\expProjl{E'}$. If $E$ is the hole, then $\expProjl{e_1''} \headstep e_2'$, which is only possible if $e_1'' = \expPair{v_1}{v_2}$ and $e_2' = v_1$. In this case we thus indeed have $e \step^* \expPair{v_1}{v_2}$. If instead $E = \expProjl{E'}$, then $e_1' = \expProjl{E'[d_1]}$ and $e_2' = \expProjl{E'[d_2]}$, the first of which implies that $e_1'' = E'[d]$ by the induction hypothesis. But since $d_1 \headstep d_2$ we also have $E'[d_1] \step E'[d_2]$, and so $e \step^* e_1'' = E'[d_1] \step E'[d_2]$ as desired.
+
+%     \item[Proof of \itemref{enum:app-subexpression-step}]
+%     By induction on the length $n$ of the reduction $\expApp{e_1}{e_2} \step^* e'$. If $n = 0$ then the claim is obvious, so assume that is holds for some $n$ and that $\expApp{e_1}{e_2} \step^n e' \step e'''$. We consider each disjunct in the induction hypothesis: First assume that $\expApp{e_1}{e_2} \step^* e''[v/x] \step^* e' \step e'''$, where $e_1 \step^* \expLam{x}{e''}$ and $e_2 \step^* v$. Then we have $e''[v/x] \step^* e'''$, proving the claim.
+    
+%     Instead assume that $e' = \expApp{e_1'}{e_2'}$ and $e_i \step^* e_i'$. Then $\expApp{e_1'}{e_2'} \step e'''$, so $\expApp{e_1'}{e_2'} = E[d]$ and $e''' = E[d']$ with $d \headstep d'$, and $E$ is either the hole or on one of the forms $\expApp{E'}{e_2''}$ and $\expApp{v_1}{E'}$. If $E$ is the hole, then we must have $e_1' = \expLam{x}{e''}$ and $e_2' = v_2$, in which case $e''' = e''[v_2/x]$. If instead $E = \expApp{E'}{e_2''}$, then $\expApp{e_1'}{e_2'} = \expApp{E'[d]}{e_2''}$ and $e''' = \expApp{E'[d']}{e_2''}$, implying that $e_1' = E'[d] \step E'[d']$ and $e_2' = e_2''$ as desired. The final case is similar.
+% \end{proofsec*}
+
+
+    
+
+%     % Induction on the length of the reduction. If $\objInl{e} \step e'$, then $\objInl{e} = K[d]$ and $e' = K[d']$ with $d \headstep d'$. But then we must have $K = \objInl{K'}$, so $e = K'[d]$ and $e' = \objInl{K'[d']}$, and hence $e \step K'[d']$.
+
+%     % Induction on the length of the reduction. If $\objMatch{e}{x}{e_1}{e_2} \step e'$, then $\objMatch{e}{x}{e_1}{e_2} = K[d]$ and $e' = K[d']$ with $d \headstep d'$. Then $K$ is either the hole or on the form $\objMatch{K'}{x}{e_1}{e_2}$. In the former case we must have $e = \objProj{i}{v}$ and $e' = e_i[v/x]$. In the latter case we have $e = K'[d]$, and so $e \step K'[d']$.
+% \end{proof}
+
+% \begin{lemma}[Compatibility]
+%     The semantic typing relation $\vDash$ satisfies all inference rules in \cref{sec:static-semantics}. % TODO not all of them!
+% \end{lemma}
+
+% \begin{proof}
+% \begin{proofsec*}
+%     \item[\ruleref{Tvar}]
+%     Assume that $\hastype*{x}{e} \in \Gamma$ and let $\gamma \in \conInt{\Gamma}$. Then $x \in \dom \gamma$, so $\gamma(x)$ is a closed value, in particular an element in $\expInt{\tau}$.
+
+%     \item[\ruleref{Tunit}]
+%     Since $\expUnit$ is a value, this follows. % TODO more thorough
+
+%     \item[\ruleref{Trec}] % TODO rule for non-recursive lambda
+%         %Assume that $\syntype{\Gamma, x : \tau_1}{e}{\tau_2}$,
+%     Let $\gamma \in \conInt{\Gamma}$, and let $e'$ be an irreducible expression such that $\gamma(\expLam{x}{e}) \step^* e'$. Since $\expLam{x}{\gamma(e)}$ is a value it is irreducible by \cref{prop:value-implies-irreducible}, so $e' = \gamma(\expLam{x}{e}) = \expLam{x}{\gamma(e)}$.\blfootnote{In writing $\Gamma, \hastype{x}{\tau}$ it is implicit that $x \not\in \dom\Gamma$. Hence $\gamma(\expLam{x}{e}) = \expLam{x}{\gamma(e)}$. TODO reminder box + fix colors in margin} To show that this lies in $\valInt{\typeFunc{\tau_1}{\tau_2}}$, let $v \in \valInt{\tau_1}$ and notice that
+%     %
+%     \begin{equation*}
+%         \gamma(e)[v/x]
+%             = \gamma[x \mapsto v](e)
+%             \in \expInt{\tau_2}
+%     \end{equation*}
+%     %
+%     by the induction hypothesis, since $\gamma[x \mapsto v] \in \conInt{\Gamma, \hastype{x}{\tau_1}}$. Thus $\gamma(\expLam{x}{e}) \in \expInt{\typeFunc{\tau_1}{\tau_2}}$ as desired.
+
+%     \item[\ruleref{Tpair}]
+%     Let $\gamma \in \conInt{\Gamma}$, and let $e'$ be an irreducible expression such that $\expPair{\gamma(e_1)}{\gamma(e_2)} = \gamma(\expPair{e_1}{e_2}) \step^* e'$. By \cref{enum:pair-subexpression-step} this implies that $e' = \expPair{e_1'}{e_2'}$ for appropriate expressions $e_1'$ and $e_2'$, and furthermore that $\gamma(e_1) \step^* e_1'$ and $\gamma(e_2) \step^* e_2'$. The hypothesis then implies that $\gamma(e_i) \in \expInt{\tau_i}$. Notice that $e_1'$ and $e_2'$ are both irreducible since $e'$ is,\footnote{Some irreducible expressions have reducible subexpressions, but in this case, if either $e_1'$ or $e_2'$ were reducible then $e'$ would clearly also be.} so $e_i' \in \valInt{\tau_i}$ by definition of expression interpretations. But then $e' = \expPair{e_1'}{e_2'} \in \valInt{\typeProd{\tau_1}{\tau_2}}$, which implies that $\gamma(\expPair{e_1}{e_2}) \in \expInt{\typeProd{\tau_1}{\tau_2}}$ as desired.
+
+%     \item[\ruleref{Tprojl} and \ruleref{Tprojr}]
+%     Both cases are proved in the same way, so we only prove the case \ruleref{Tprojl}.
+
+%     Assume that $\semtype{\Gamma}{e}{\typeProd{\tau_1}{\tau_2}}$, let $\gamma \in \conInt{\Gamma}$, and let $e'$ be irreducible such that $\expProjl{\gamma(e)} = \gamma(\expProjl{e}) \step^* e'$. We consider each case of \cref{enum:proj-subexpression-step}: First assume that $e' = v_1$ is a value and $\gamma(e) \step^* \expPair{v_1}{v_2}$. Since $\expPair{v_1}{v_2}$ is a value, and hence irreducible by \cref{prop:value-implies-irreducible}, the hypothesis implies that\footnote{Note that we cannot conclude directly that $\expPair{v_1}{v_2} \in \valInt{\typeProd{\tau_1}{\tau_2}}$ by using that the $v_i$ are values of type $\tau_i$, since this requires that types are preserved under reductions. TODO don't assume preservation} $\expPair{v_1}{v_2} \in \valInt{\typeProd{\tau_1}{\tau_2}}$. It follows that $v_1 \in \valInt{\tau_1}$, so $\gamma(\expProjl{e}) \in \expInt{\tau_1}$ as desired.
+    
+%     Next assume that $e' = \expProjl{e''}$ and that $\gamma(e) \step^* e''$. If $e''$ is reducible then so is $\expProjl{e''}$, so assume that $e''$ is irreducible. The hypothesis then implies that $e'' \in \valInt{\typeProd{\tau_1}{\tau_2}}$, which means that $e''$ is on the form $\expPair{v_1}{v_2}$ with $v_i \in \valInt{\tau_i}$. But then $e' = \expProjl{\expPair{v_1}{v_2}}$ reduces to $v_1$, which is a contradiction.
+
+%     \item[\ruleref{Tapp}]
+%     Let $\gamma \in \conInt{\Gamma}$, and let $e'$ be irreducible such that $\expApp{\gamma(e_1)}{\gamma(e_2)} = \gamma(\expApp{e_1}{e_2}) \step^* e'$. We consider each case of \cref{enum:app-subexpression-step}: First assume that $\expApp{\gamma(e_1)}{\gamma(e_2)} \step^* e''[v/x] \step^* e'$ where $\gamma(e_1) \step^* \expLam{x}{e''}$ and $\gamma(e_2) \step^* v$. Each of the expressions on the right-hand sides are values and hence irreducible by \cref{prop:value-implies-irreducible}, so the hypothesis implies that they lie in $\valInt{\typeFunc{\tau_1}{\tau_2}}$ and $\valInt{\tau_1}$ respectively. But then $e''[v/x] \in \expInt{\tau_2}$, so since $e'$ is irreducible it lies in $\valInt{\tau_2}$ as desired.
+    
+%     Instead assume that $e' = \expApp{e_1'}{e_2'}$ where $\gamma(e_i) \step^* e_i'$. Since $e'$ is irreducible, then so are the $e_i'$,\footnote{Again this does not always hold, but in the present case of function application it does.} so the hypothesis implies that $e_1' \in \valInt{\typeFunc{\tau_1}{\tau_2}}$ and $e_2' \in \valInt{\tau_1}$. Hence $e_1'$ is on the form $\expLam{x}{e_1''}$ and $e_2'$ is a value. But then $\expApp{e_1'}{e_2'}$ is reducible, which is a contradiction.
+% \end{proofsec*}
+% \end{proof}
+
+
+
+
+
+A \keyword{logical predicate}\index[subject]{logical predicate} is more properly a \emph{type-indexed} predicate\index[subject]{type-indexed predicate} on expressions: Roughly speaking, for each type $\tau$ there is a predicate, or property, $P_\tau$ whose extension is somehow determined by $\tau$. For us the predicate will also strictly speaking depend on a set of type variables and a type context.
+
+In some applications an expression $e$ having the property $P_\tau$ requires $e$ to be well-typed with type $\tau$. One such application is the proof of strong normalisation of the simply typed $\lambda$-calculus (cf. \cite[§12.1]{pierce-types}), in which the predicate $P_\tau$ is defined recursively on $\tau$ in a fairly straightforward way. Since our goal is precisely to study type safety, we will not be making any assumptions about well-typedness.
+
+
+\subsection{Interpretations of syntax}\label{sec:interpretations-of-syntax-predicates}
+
+\newcommand{\setSType}{\mathit{SemType}}
+\newcommand{\templateInt}[4]{%
+    \ifstrempty{#2}{%
+        #1\llbracket#3\rrbracket%
+    }{%
+        #1\llbracket#2\triangleright #3\rrbracket_{#4}%
+    }%
+}
+\newcommand{\valInt}[3]{\templateInt{\calV}{#1}{#2}{#3}}
+\newcommand{\expInt}[3]{\templateInt{\calE}{#1}{#2}{#3}}
+\newcommand{\conInt}[3]{\templateInt{\calG}{#1}{#2}{#3}}
+\newcommand{\tvarInt}[1]{\calD\llbracket#1\rrbracket}
+% \renewcommand{\semtype}[4]{#1 \mid #2 \vDash #3 : #4}
+\newcommand{\semtype}[4]{%
+    \ifstrempty{#1}{%
+        #2 \vDash #3 : #4%
+    }{%
+        #1 \mid #2 \vDash #3 : #4%
+    }%
+}
+
+We first define a type-indexed \keyword{expression interpretation}, which will somehow capture those expressions that have a given type. As we will see, this definition will depend on a \keyword{value interpretation}, and this will be defined recursively on types, sometimes also depending on the \emph{expression} interpretations of smaller types.
+
+The definition of the expression interpretation is \enquote{uniform}, in the sense that it is defined in the exact same way for all types. On the other hand, the value interpretations are constructed to capture the values of each type individually. For closed types this is straightforward, but since our language includes polymorphic types, we first of all need a way to interpret type variables, and second of all a way to keep track of the interpretations of type variables inside the expression and value interpretations.
+
+Furthermore, it will turn out that value interpretations must include only \emph{closed} values, so we need a way to \enquote{close} values. Since all free variables are assigned types in the type context, we do this by defining a \keyword{context interpretation}.
+
+We will see how to do this below. For now, since the expression and value interpretations are defined by mutual recursion,\blfootnote{The symbol \enquote{$\triangleright$} only serves as a delimiter between the set of type variables and the type itself. Another natural choice would be \enquote{$\vdash$}, but we follow \textcite{gunter-semantics} in preferring a different symbol, not to confuse it with the \enquote{$\vdash$} from various typing relations.} we fix notation: Let $\Xi$ be a finite set of type variables, $\tau$ a type, and $\Gamma$ a type context. We write $\tvarInt{\Xi}$ for the interpretation of the type variables in $\Xi$, and for $\rho \in \tvarInt{\Xi}$ we write $\expInt{\Xi}{\tau}{\rho}$ and $\valInt{\Xi}{\tau}{\rho}$ for the expression and value interpretations respectively of $\tau$ with respect to $\rho$. Finally, the interpretation of $\Gamma$ is denoted $\conInt{\Xi}{\Gamma}{\rho}$. If $\Xi$ is empty, and thus $\rho = \bot$, we also write $\expInt{}{\tau}{}$ and similarly for the other interpretations.
+
+
+\subsubsection{Interpretation of type variables}\index[subject]{interpretation of type variables!logical predicate}
+
+We begin by defining the interpretation of type variables, since its definition will turn out to not depend on the definition of the other interpretations.
+
+Since a type variable $\alpha$ is supposed to represent any type whatsoever, if $\alpha$ is not bound then we must \emph{choose} its interpretation, just as we choose the type of variables in a type context $\Gamma$. We might hope that we could define the interpretation of $\alpha$ in terms of value interpretations\footnote{Or in terms of \emph{expression} interpretations. But the idea is that a type is determined by its values, so we might as well use the value interpretation.}: Simply choose a type $\tau$ and let the interpretation of $\alpha$ be the value interpretation of $\tau$, i.e., the set of value of type $\tau$.
+
+This is however not a possibility. For recall that we need the interpretation of type variables in order to even define the expression interpretation of universal types. For the recursion to be well-founded, we thus cannot choose $\tau$ to be a universal type, which of course contradicts the idea that $\alpha$ should represent an \emph{arbitrary} type.
+
+Instead we \enquote{model} the interpretation of $\alpha$ on value interpretations. The value interpretation of a type is (as it will turn out) just a set of closed values, so we just let $\alpha$ be an arbitrary set of closed values, called a \keyword{semantic type}\index[subject]{semantic type}\index[subject]{type!semantic}. We let $\setSType \defeq \powerset{\setCVal}$\index[notation]{SemType@$\setSType$} be the set of all such semantic types. % TODO compare comprehension in second-order logic, see shapiro ed.?
+
+The interpretation of a type variable is thus just a semantic type. More generally, if $\Xi$ is a (usually finite) set of type variables, then we let
+%
+\begin{equation*}
+    \tvarInt{\Xi}
+        \defeq \set{\rho \colon \setTVar \pto \setSType}{\dom{\rho} = \Xi}. \index[notation]{dzzz-DXi@$\tvarInt{\Xi}$}
+\end{equation*}
+%
+That is, an element $\rho$ of $\tvarInt{\Xi}$ is a map that assigns to each variable in $\Xi$ a semantic type, so that $\rho$ is a simultaneous interpretation of all variables in $\Xi$. % TODO give rho a name (also, go through and make sure I use the right names everywhere)
+
+
+\subsubsection{Expression interpretation}\label{sec:expression-interpretation-predicate}\index[subject]{expression interpretation!logical predicate}
+
+Let $\Xi$ be a set of type variables, and let $\rho \in \tvarInt{\Xi}$. We assume below that all types are well-formed with respect to $\Xi$ (cf. \cref{sec:free-type-var}). The \keyword{expression interpretation} of $\tau$ is the set $\expInt{\Xi}{\tau}{\rho}$ of closed\footnote{We make sense of this assumption in \cref{sec:logical-predicate-value-interpretation} below.} expressions $e$ with the property that if $e'$ is an irreducible expression and $e \step^* e'$, then $e' \in \valInt{\Xi}{\tau}{\rho}$. That is,
+%
+\begin{equation*}
+    \expInt{\Xi}{\tau}{\rho}
+        \defeq \set{e \in \setCExp}{\forall e' \in \setIrr \colon e \step^* e' \implies e' \in \valInt{\Xi}{\tau}{\rho}}. \index[notation]{ezzz-EXitaurho@$\expInt{\Xi}{\tau}{\rho}$}
+\end{equation*}
+
+
+An\blfootnote{The original definition is taken from \textcite[§3.2]{skorstengaard-logical-relations}, while this alternative is adapted from \textcite[§4.4]{skorstengaard-logical-relations}.} alternative definition of the expression interpretation is
+%
+\begin{equation*}
+    \expInt{\Xi}{\tau}{\rho}
+        \defeq \set{e \in \setCExp}{\exists v \in \valInt{\Xi}{\tau}{\rho} \colon e \step^* v}.
+\end{equation*}
+%
+Compared to the original definition above, this on the one hand postulates the \emph{existence} of a value (belonging to the correct value interpretation) to which $e$ reduces, and on the other it only talks about a \emph{single} such value.
+
+We return to the differences between these two definitions in \cref{sec:forall-vs-exists}.
+
+
+\subsubsection{Value interpretation}\index[subject]{value interpretation!logical predicate}\label{sec:logical-predicate-value-interpretation}
+
+The \keyword{value interpretation} of $\tau$ will be a set of closed\footnote{In the proof of \cref{lem:logical-predicate-compatibility} we will see why the assumption of closedness is necessary.} values of our language of type $\tau$. For most types this is simply a case of looking at the syntax in \cref{sec:syntax} and collecting all values of that type.
+
+It is easy to define the value interpretation for the unit type, and for products and sums:\blfootnote{Notice that $\valInt{\Xi}{\typeProd{\tau_1}{\tau_2}}{\rho}$ is just the Cartesian product
+%
+\begin{equation*}
+    \valInt{\Xi}{\tau_1}{\rho} \prod \valInt{\Xi}{\tau_2}{\rho},
+\end{equation*}
+%
+where we use the pair operator $\expPair{-}{-}$ as a pairing scheme instead of the usual Kuratowski pairs $(a,b) = \{ \{a\}, \{a,b\} \}$. \par Similarly, $\valInt{\Xi}{\typeSum{\tau_1}{\tau_2}}{\rho}$ is the disjoint union
+%
+\begin{equation*}
+    \valInt{\Xi}{\tau_1}{\rho} \disjunion \valInt{\Xi}{\tau_2}{\rho},
+\end{equation*}
+%
+where the \enquote{tags} are provided by the injections $\iota_1$ and $\iota_2$.}
+% TODO spacing after injections with no argument. I've hacked it because I don't want to spend time fixing it
+\begin{align*}
+    \valInt{\Xi}{\typeUnit}{\rho}
+        &\defeq \{ \expUnit \}, \\ \index[notation]{vzzz-VXitaurho@$\valInt{\Xi}{\tau}{\rho}$}
+    \valInt{\Xi}{\typeProd{\tau_1}{\tau_2}}{\rho}
+        &\defeq \set{\expPair{v_1}{v_2}}{v_1 \in \valInt{\Xi}{\tau_1}{\rho}, v_2 \in \valInt{\Xi}{\tau_2}{\rho}}, \\
+    \valInt{\Xi}{\typeSum{\tau_1}{\tau_2}}{\rho}
+        &\defeq \set{\expInjl{v}}{v \in \valInt{\Xi}{\tau_1}{\rho}} \union \set{\expInjr{v}}{v \in \valInt{\Xi}{\tau_2}{\rho}}.
+\end{align*}
+%
+Notice that each value interpretation is well-defined, since they are defined in terms of the value interpretations of strictly smaller types.
+
+For function types things are slightly more complicated: A value of type $\typeFunc{\tau_1}{\tau_2}$ is an expression $\expLam{x}{e}$, where $e$ is an expression in which the variable $x$ may be free, and which has type $\tau_2$ if $\hastype{x}{\tau_1}$. This means that we may substitute $x$ for expressions of type $\tau_1$, but since our language is call-by-value we only need to consider \emph{values} of type $\tau_1$. That is, $e$ should be such that $e[v/x]$ is an expression of type $\tau_2$ whenever $v$ is a value of type of $\tau_1$:\footnote{We see here why the expression interpretation had to contain only \emph{closed} expressions: For notice that then the expression $\expProjl{\expPair{\expUnit}{y}}$ would lie in $\expInt{}{\typeUnit}{}$ since it reduces to $\expUnit$. Hence the open value $\expLam{x}{\expProjl{\expPair{\expUnit}{y}}}$ would be an element of $\valInt{}{\typeFunc{\tau}{\typeUnit}}{}$, which is not allowed.}
+%
+\begin{equation*}
+    \valInt{\Xi}{\typeFunc{\tau_1}{\tau_2}}{\rho}
+        \defeq \set{\expLam{x}{e}}{\forall v \in \valInt{\Xi}{\tau_1}{\rho} \colon e[v/x] \in \expInt{\Xi}{\tau_2}{\rho}}.
+\end{equation*}
+%
+This is again well-defined, since $\expInt{\Xi}{\tau_2}{\rho}$ is defined directly in terms of $\valInt{\Xi}{\tau_2}{\rho}$, and $\tau_2$ is a strictly smaller type than $\typeFunc{\tau_1}{\tau_2}$.
+
+We finally consider type variables and universal types. Recall that we already have an interpretation of type variables as semantic types, so we simply let\footnote{Recalling that $\alpha$ is assumed to be well-formed with respect to $\Xi$, which in this case just means that $\alpha \in \Xi$.}
+%
+\begin{equation*}
+    \valInt{\Xi}{\alpha}{\rho}
+        \defeq \rho(\alpha).
+\end{equation*}
+%
+Thus we finally see the reason for indexing value (and hence expression) interpretations by $\rho$. Next, if $\alpha$ is \emph{not} an element of $\Xi$, then we define
+%
+\begin{equation*}
+    \valInt{\Xi}{\typeForall{\alpha}{\tau}}{\rho}
+        \defeq \set{ \expForall{\alpha}{e} }{ \forall T \in \setSType \colon e \in \expInt{\Xi,\alpha}{\tau}{\rho[\alpha \mapsto T]} }.
+\end{equation*}
+%
+Recall that the set $\Xi,\alpha$ is only well-defined if $\alpha \not\in \Xi$. Of course we can always $\alpha$-convert $\typeForall{\alpha}{\tau}$ so that this is the case (since $\Xi$ is finite), in which case $\alpha$ may be free in $\tau$.
+
+Let us pause to consider the definition of $\valInt{\Xi}{\typeForall{\alpha}{\tau}}{\rho}$: A value of type $\typeForall{\alpha}{\tau}$ is of course on the form $\expForall{\alpha}{e}$ for some \emph{expression} $e$ of the proper type. Notice that the only type variable that can be free in the type of $e$ but not in the type of $\expForall{\alpha}{e}$ is $\alpha$, so assuming that we already know how to deal with the free type variables in $\typeForall{\alpha}{\tau}$ \textdash i.e., the variables in $\Xi$ \textdash it suffices to consider how to extend this with an extra type variable. That is, we must consider how to extend an interpretation of $\Xi$ to an interpretation of $\Xi,\alpha$. But this is easy: If $\rho$ is an interpretation of $\Xi$, just choose any semantic type $T$ and extend this interpretation to $\rho[\alpha \mapsto T]$.
+
+Notice also that since expressions of our language do not contain types as subexpressions (that is, they do not contain explicit type annotations), they in particular cannot contain type variables. When choosing an interpretation of a type variable we thus do not need to consider how this should affect expressions containing that type variable.
+
+
+\subsubsection{Context interpretation}\index[subject]{context interpretation!logical predicate}\label{sec:context-interpretation-predicates}
+
+In order to close an expression we use a \keyword{value substitution}\index[subject]{substitution!value}, which is a finite partial map $\gamma \colon \setVar \ptofin \setCVal$. Given a type context $\Gamma$, the collection of all such $\gamma$ with $\dom{\gamma} = \dom{\Gamma}$ \emph{interprets} $\Gamma$, and we call this collection the \keyword{context interpretation} of $\Gamma$. If $\Xi$ is a set of type variables, $\rho \in \tvarInt{\Xi}$, and $\Gamma$ is well-formed with respect to $\Xi$, then we define
+%
+\begin{equation*}
+    \conInt{\Xi}{\Gamma}{\rho}
+        \defeq \set{ \gamma \colon \dom{\Gamma} \to \setCVal }{ \forall x \in \dom{\Gamma} \colon \gamma(x) \in \valInt{\Xi}{\Gamma(x)}{\rho} }. \index[notation]{gzzz-GXiGammarho@$\conInt{\Xi}{\Gamma}{\rho}$}
+\end{equation*}
+
+Given a value substitution $\gamma \in \conInt{\Xi}{\Gamma}{\rho}$, we extend this to a map $\setExp \to \setExp$ as follows:\blfootnote{We could also use \cref{thm:recursive-definitions} to define the extension of $\gamma$, but this would not yield the explicit characterisation of $\gamma$ that we will need.} % TODO Should I call it a *value* substitution, and then later rho a *type* substitution?
+
+\begin{definition}
+    Let $\gamma \in \conInt{\Xi}{\Gamma}{\rho}$. If $\dom\gamma = \{x_1, \ldots, x_n\}$ and $e \in \setExp$, then we define
+    %
+    \begin{equation*}
+        \gamma(e)
+            \defeq e[\gamma(x_1)/x_1] \cdots [\gamma(x_n)/x_n],
+    \end{equation*}
+    %
+    yielding a map $\gamma \colon \setExp \to \setExp$.
+\end{definition}
+%
+That is, we apply $\gamma$ to $e$ by substituting each variable $x_i$ in the domain of $\gamma$ with the closed value $\gamma(x_i)$. Notice that this is well-defined since each $\gamma(x_i)$ is closed\footnote{Again we rely on an appeal to intuition in lieu of a precise definition of substitution.}, so the order of the substitutions does not matter. Furthermore, this is indeed an extension of $\gamma$ since $x_i[\gamma(x_i)/x_i] = \gamma(x_i)$ by the definition of substitution.
+
+
+\subsection{Semantic typing}\index[subject]{semantic type}
+
+We are finally in a position to define the logical predicate we will study:
+
+\renewcommand{\semtype}[4]{%
+    \ifstrempty{#1}{%
+        #2 \vDash #3 : #4%
+    }{
+        #1 \mid #2 \vDash #3 : #4%
+    }%
+}
+
+\begin{definition}[Semantic typing]\index[subject]{typing relation!semantic}
+    Let $\Xi$ be a finite set of type variables, $\Gamma$ a type context with $\wellformed{\Xi}{\Gamma}$, and let $e \in \setExp$ and $\tau \in \setType$. Then we write
+    %
+    \begin{equation*}
+        \semtype{\Xi}{\Gamma}{e}{\tau} \index[notation]{***-semtype@$\vDash$ (semantic typing relation)}
+    \end{equation*}
+    %
+    if and only if
+    %
+    \begin{equation*}
+        \forall \rho \in \tvarInt{\Xi},
+            \gamma \in \conInt{\Xi}{\Gamma}{\rho} \colon
+            \gamma(e) \in \expInt{\Xi}{\tau}{\rho}.
+    \end{equation*}
+\end{definition}
+%
+In case $\Xi = \emptyset$ or $\Gamma = \bot$ we simply write $\semtype{}{\Gamma}{e}{\tau}$ or  $\semtype{}{}{e}{\tau}$ as appropriate. The significance of this definition is captured by the following result:
+
+\begin{proposition}
+    \label{prop:semantic-welltype-implies-safe}
+    If $\semtype{}{}{e}{\tau}$, then $e$ is safe.
+\end{proposition}
+
+\begin{proof}
+    Assuming that $e \step^* e'$ we must show that $e'$ is either reducible or a value. If $e'$ is irreducible, then since $e \in \expInt{}{\tau}{}$ we have $e' \in \valInt{}{\tau}{}$ by the definition of the expression interpretation. In particular, $e'$ is a value as desired.
+\end{proof}
+%
+Hence to prove that the \emph{syntactic} notion of well-typedness implies safety, it suffices to show that syntactic well-typedness implies semantic well-typedness. This is called the \keyword{fundamental property}\index[subject]{fundamental property!of logical predicates} of the semantic typing relation, and it is the goal of the rest of this chapter. The proof method is obviously rule induction, and the induction itself it phrased in terms of a series of \keyword{compatibility lemmas}\index[subject]{compatibility!of logical predicates}.
+
+
+\subsection{Properties of interpretations}
+
+Before moving on we note some technical properties of the objects we have defined so far.
+
+\begin{lemma}
+    \begin{enumlemma}
+        \item\label{enum:value-int-in-expression-int} $\valInt{\Xi}{\tau}{\rho} \subseteq e \in \expInt{\Xi}{\tau}{\rho}$.
+        
+        \item\label{enum:irreducible-expression-int-in-value-int} If $e \in \expInt{\Xi}{\tau}{\rho}$ is irreducible, then $e \in \valInt{\Xi}{\tau}{\rho}$.
+    \end{enumlemma}
+\end{lemma}
+
+\begin{proof}
+    Both parts follow from the definition of the expression interpretation since values are irreducible (\cref{prop:value-implies-irreducible}).
+\end{proof}
+
+
+\begin{lemma}
+    \label{lem:interpretations-type-variables}
+    Let $\Xi \subseteq \Phi$ be finite sets of type variables, and let $\rho \in \tvarInt{\Xi}$ and $\rho' \in \tvarInt{\Phi}$ with $\rho \leq \rho'$. Furthermore let $\tau$ be a type and $\Gamma$ a type context that are well-formed with respect to $\Xi$. Then we have the inclusions
+    %
+    \begin{align*}
+        \valInt{\Xi}{\tau}{\rho}
+            &\subseteq \valInt{\Phi}{\tau}{\rho'}, \\
+        \expInt{\Xi}{\tau}{\rho}
+            &\subseteq \expInt{\Phi}{\tau}{\rho'}, \\ 
+        \conInt{\Xi}{\Gamma}{\rho}
+            &\subseteq \conInt{\Phi}{\Gamma}{\rho'}
+    \end{align*}
+\end{lemma}
+
+\begin{proof}
+    \marginbox{Reminder}{The set $\pmapsfin{\setTVar}{\setSType}$ is ordered by inclusion of graphs, so $\rho \leq \rho'$ means that $\dom\rho \subseteq \dom\rho'$ and $\rho(\alpha) = \rho'(\alpha)$ for all $\alpha \in \dom\rho$.}%
+    The first two inclusions are proved by induction in $\tau$. This is clear if $\tau$ is either $\typeUnit$ or a type variable, and the induction step is obvious for product and sum types. It is also easy to see that the induction step for function types holds by considering their value interpretation.
+
+    Next consider the type $\typeForall{\alpha}{\tau}$ with $\alpha \not\in \Phi$. The second inclusion follows easily. Furthermore, $\Xi,\alpha \subseteq \Phi,\alpha$ and $\rho[\alpha \mapsto T] \leq \rho'[\alpha \mapsto T]$ for all $T \in \setSType$, so the first inclusion also follows.
+
+    The third inclusion follows directly from the first.
+\end{proof}
+
+
+\begin{lemma}[Compositionality]\index[subject]{compositionality}
+    \label{lem:compositionality}
+    Let $T = \valInt{\Xi}{\tau'}{\rho}$, and assume that $\wellformed{\Xi}{\tau'}$. Then
+    %
+    \begin{align*}
+        \valInt{\Xi}{\tau[\tau'/\alpha]}{\rho}
+            &= \valInt{\Xi,\alpha}{\tau}{\rho[\alpha \mapsto T]}, \\
+        \expInt{\Xi}{\tau[\tau'/\alpha]}{\rho}
+            &= \expInt{\Xi,\alpha}{\tau}{\rho[\alpha \mapsto T]}.
+    \end{align*}
+\end{lemma}
+
+\begin{proof}
+    The proof is by induction in $\tau$. The only case that is nontrivial is the case $\typeForall{\beta}{\tau}$ with $\beta \neq \alpha$ and $\beta \not\in \Xi$. Since $\tau'$ is well-formed with respect to $\Xi$, $\beta$ is not free in $\tau'$. Hence $(\typeForall{\beta}{\tau})[\tau'/\alpha] = \typeForall{\beta}{\tau[\tau'/\alpha]}$, and so
+    %
+    \begin{align*}
+        \valInt{\Xi}{(\typeForall{\beta}{\tau})[\tau'/\alpha]}{\rho}
+            &= \valInt{\Xi}{\typeForall{\beta}{\tau[\tau'/\alpha]}}{\rho} \\
+            &= \set[\Bigg]{
+                \expForall{\beta}{e}
+            }{
+                \begin{aligned}
+                    & \forall S \in \setSType \colon \\
+                    & e \in \expInt{\Xi,\beta}{\tau[\tau'/\alpha]}{\rho[\beta \mapsto S]}
+                \end{aligned}
+            } \\
+            &= \set[\Bigg]{
+                \expForall{\beta}{e}
+            }{
+                \begin{aligned}
+                    & \forall S \in \setSType \colon \\
+                    & e \in \expInt{\Xi,\beta,\alpha}{\tau}{\rho[\beta \mapsto S,\alpha \mapsto T]}
+                \end{aligned}
+            } \\
+            &= \valInt{\Xi,\alpha}{\typeForall{\beta}{\tau}}{\rho[\alpha \mapsto T]}.
+    \end{align*}
+\end{proof}
+
+
+\section{Compatibility}
+
+The reader that is less interested in details or is prepared to take things purely on intuition may feel free to skip the following lemma and only consider the cases \ruleref{Tvar}, \ruleref{Tmatch}, \ruleref{Tlam}, \ruleref{TTlam} and \ruleref{TTapp} of \cref{lem:logical-predicate-compatibility}.
+
+
+\begin{lemma}
+    \label{lem:subexpression-step}
+    \begin{enumlemma}
+        \item\label{enum:pair-subexpression-step} If $\expPair{e_1}{e_2} \step^* e'$, then there are expressions $e_1'$ and $e_2'$ such that $e' = \expPair{e_1'}{e_2'}$, and such that $e_i \step^* e_i'$.
+        
+        \item\label{enum:proj-subexpression-step} If $\expProjl{e} \step^* e'$, then either $e' = v_1$ is a value and $e \step^* \expPair{v_1}{v_2}$, or else $e' = \expProjl{e''}$ such that $e \step^* e''$.
+
+        \item\label{enum:app-subexpression-step} If $\expApp{e_1}{e_2} \step^* e'$, then either $\expApp{e_1}{e_2} \step^* e''[v/x] \step^* e'$ where $e_1 \step^* \expLam{x}{e''}$ and $e_2 \step^* v$, or else $e' = \expApp{e_1'}{e_2'}$ where $e_i \step^* e_i'$.
+    \end{enumlemma}
+\end{lemma}
+
+\begin{proof}
+\begin{proofsec*}
+    \item[Proof of \itemref{enum:pair-subexpression-step}]
+    The proof is by induction on the length of the reduction $\expPair{e_1}{e_2} \step^* e'$, it suffices to prove the claim when this is a one-step reduction. There exists an evaluation context $E$ and expressions $d$ and $d'$ such that $\expPair{e_1}{e_2} = E[d]$ and $e' = E[d']$, and such that $d \headstep d'$. Notice that $E$ must either be on the form $\expPair{E'}{e''}$ or $\expPair{v}{E'}$ for an evaluation context $E'$, an expression $e''$ and a value $v$. In the former case we have $E[d] = \expPair{E'[d]}{e''}$, so we must have $e_1' = E'[d]$ and $e_2' = e''$. We similarly have $e' = \expPair{E'[d']}{e''}$, and we notice that $E'[d] \step^* E'[d']$ (indeed this happens in one step) and $e'' \step^* e''$ as desired. If instead $E = \expPair{v}{E'}$, then the argument is similar.
+    
+    \item[Proof of \itemref{enum:proj-subexpression-step}]
+    The proof is by induction on the length $n$ of the reduction $\expProjl{e} \step^* e'$. For $n = 0$ we have $e' = \expProjl{e}$ and $e \step^* e$, so the claim holds. Assuming that it holds for some $n$, suppose that $\expProjl{e} \step^n e_1' \step e_2'$. Then $e_1'$ cannot be a value since values are irreducible by \cref{prop:value-implies-irreducible}, so $e_1' = \expProjl{e_1''}$ with $e \step^* e_1''$ by induction. Now, $e_1' = E[d_1]$ and $e_2' = E[d_2]$ with $d_1 \headstep d_2$, where $E$ is either the hole or on the form $\expProjl{E'}$. If $E$ is the hole, then $\expProjl{e_1''} \headstep e_2'$, which is only possible if $e_1'' = \expPair{v_1}{v_2}$ and $e_2' = v_1$. In this case we thus indeed have $e \step^* \expPair{v_1}{v_2}$. If instead $E = \expProjl{E'}$, then $e_1' = \expProjl{E'[d_1]}$ and $e_2' = \expProjl{E'[d_2]}$, the first of which implies that $e_1'' = E'[d]$ by the induction hypothesis. But since $d_1 \headstep d_2$ we also have $E'[d_1] \step E'[d_2]$, and so $e \step^* e_1'' = E'[d_1] \step E'[d_2]$ as desired.
+
+    \item[Proof of \itemref{enum:app-subexpression-step}]
+    By induction on the length $n$ of the reduction $\expApp{e_1}{e_2} \step^* e'$. If $n = 0$ then the claim is obvious, so assume that is holds for some $n$ and that $\expApp{e_1}{e_2} \step^n e' \step e'''$. We consider each disjunct in the induction hypothesis: First assume that $\expApp{e_1}{e_2} \step^* e''[v/x] \step^* e' \step e'''$, where $e_1 \step^* \expLam{x}{e''}$ and $e_2 \step^* v$. Then we have $e''[v/x] \step^* e'''$, proving the claim.
+    
+    Instead assume that $e' = \expApp{e_1'}{e_2'}$ and $e_i \step^* e_i'$. Then $\expApp{e_1'}{e_2'} \step e'''$, so $\expApp{e_1'}{e_2'} = E[d]$ and $e''' = E[d']$ with $d \headstep d'$, and $E$ is either the hole or on one of the forms $\expApp{E'}{e_2''}$ and $\expApp{v_1}{E'}$. If $E$ is the hole, then we must have $e_1' = \expLam{x}{e''}$ and $e_2' = v_2$, in which case $e''' = e''[v_2/x]$. If instead $E = \expApp{E'}{e_2''}$, then $\expApp{e_1'}{e_2'} = \expApp{E'[d]}{e_2''}$ and $e''' = \expApp{E'[d']}{e_2''}$, implying that $e_1' = E'[d] \step E'[d']$ and $e_2' = e_2''$ as desired. The final case is similar.
+\end{proofsec*}
+\end{proof}
+
+
+\begin{lemma}[Compatibility]\index[subject]{compatibility!of logical predicates}
+    \label{lem:logical-predicate-compatibility}
+    The semantic typing relation $\vDash$ satisfies all inference rules in \cref{sec:static-semantics} pertaining to the language \langpure.\footnote{We trust that the reader is able to discern which inference rules are relevant.}
+\end{lemma}
+
+\begin{proof}
+\begin{proofsec*}
+    \item[\ruleref{Tvar}]
+    Assume that $\wellformed{\Xi}{\Gamma}$ and that $\Gamma(x) = \tau$. Let $\rho \in \tvarInt{\Xi}$ and $\gamma \in \conInt{\Xi}{\Gamma}{\rho}$. By definition of the context interpretation we have $\gamma(x) \in \valInt{\Xi}{\Gamma(x)}{\rho} = \valInt{\Xi}{\tau}{\rho}$, which implies that $\gamma(x) \in \expInt{\Xi}{\tau}{\rho}$ by \cref{enum:value-int-in-expression-int}.
+
+    \item[\ruleref{Tunit}]
+    Since $\expUnit$ is a closed value, this follows immediately from \cref{enum:value-int-in-expression-int}.
+
+    \item[\ruleref{Tpair}]
+    Let $\gamma \in \conInt{\Xi}{\Gamma}{\rho}$, and let $e'$ be an irreducible expression such that $\expPair{\gamma(e_1)}{\gamma(e_2)} = \gamma(\expPair{e_1}{e_2}) \step^* e'$. By \cref{enum:pair-subexpression-step} this implies that $e' = \expPair{e_1'}{e_2'}$ for appropriate expressions $e_1'$ and $e_2'$, and furthermore that $\gamma(e_1) \step^* e_1'$ and $\gamma(e_2) \step^* e_2'$. By induction we then have $\gamma(e_i) \in \expInt{\Xi}{\tau_i}{\rho}$. Notice that $e_1'$ and $e_2'$ are both irreducible since $e'$ is,\footnote{Some irreducible expressions have reducible subexpressions, but in this case, if either $e_1'$ or $e_2'$ were reducible then $e'$ would clearly also be.} so $e_i' \in \valInt{\Xi}{\tau_i}{\rho}$ by definition of expression interpretations. But then $e' = \expPair{e_1'}{e_2'} \in \valInt{\Xi}{\typeProd{\tau_1}{\tau_2}}{\rho}$, which implies that $\gamma(\expPair{e_1}{e_2}) \in \expInt{\Xi}{\typeProd{\tau_1}{\tau_2}}{\rho}$ as desired.
+
+    \item[\ruleref{Tprojl} and \ruleref{Tprojr}]
+    Both cases are proved in the same way, so we only prove the case \ruleref{Tprojl}.
+
+    Assume that $\semtype{\Xi}{\Gamma}{e}{\typeProd{\tau_1}{\tau_2}}$, let $\gamma \in \conInt{\Xi}{\Gamma}{\rho}$, and let $e'$ be irreducible such that $\expProjl{\gamma(e)} = \gamma(\expProjl{e}) \step^* e'$. We consider each case of \cref{enum:proj-subexpression-step}: First assume that $e' = v_1$ is a value and $\gamma(e) \step^* \expPair{v_1}{v_2}$. Since $\expPair{v_1}{v_2}$ is a value, and hence irreducible by \cref{prop:value-implies-irreducible}, the hypothesis implies that\footnote{Note that we cannot conclude directly that $\expPair{v_1}{v_2} \in \valInt{\Xi}{\typeProd{\tau_1}{\tau_2}}{\rho}$ by using that the $v_i$ are values of type $\tau_i$, since this requires that types are preserved under reductions. Of course we know this from \cref{thm:preservation}, but we do not want to assume this result here.} $\expPair{v_1}{v_2} \in \valInt{\Xi}{\typeProd{\tau_1}{\tau_2}}{\rho}$. It follows that $v_1 \in \valInt{\Xi}{\tau_1}{\rho}$, so $\gamma(\expProjl{e}) \in \expInt{\Xi}{\tau_1}{\rho}$ as desired.
+    
+    Next assume that $e' = \expProjl{e''}$ and that $\gamma(e) \step^* e''$. If $e''$ is reducible then so is $\expProjl{e''}$, so assume that $e''$ is irreducible. The hypothesis then implies that $e'' \in \valInt{\Xi}{\typeProd{\tau_1}{\tau_2}}{\rho}$, which means that $e''$ is on the form $\expPair{v_1}{v_2}$ with $v_i \in \valInt{\Xi}{\tau_i}{\rho}$. But then $e' = \expProjl{\expPair{v_1}{v_2}}$ reduces to $v_1$, which is a contradiction.
+
+    \item[\ruleref{Tinjl} and \ruleref{Tinjr}]
+    These cases are almost identical to \ruleref{Tpair}, so we omit it.
+
+    \item[\ruleref{Tmatch}]
+    This case is similar to \ruleref{Tprojl} and \ruleref{Tprojr}, so we only sketch the proof. Assume that $\semtype{\Xi}{\Gamma}{e}{\typeSum{\tau_1}{\tau_2}}$ and that $\semtype{\Xi}{\Gamma, \hastype{x}{\tau_i}}{e_i}{\tau}$ for $i \in \{1,2\}$. Choosing $x \not\in \dom{\Gamma}$ we have
+    %
+    \begin{equation*}
+        \gamma \bigl( \expMatch{e}{x}{e_1}{e_2} \bigr)
+            = \expMatch{\gamma(e)}{x}{\gamma(e_1)}{\gamma(e_2)}.
+    \end{equation*}
+    %
+    When this reduces\footnote{Here we appeal to the reader's intuition instead of proving an appropriate version of \cref{lem:subexpression-step}.} we first reduce $\gamma(e)$, and by induction this reduces to an element of $\valInt{\Xi}{\typeSum{\tau_1}{\tau_2}}{\rho}$, i.e., an expression on the form $\expInjl{v}$ or $\expInjr{v}$ for a closed value $v$. Applying \ruleref{Ematchinjl} or \ruleref{Ematchinjr} we obtain either $\gamma(e_1)[v/x]$ or $\gamma(e_2)[v/x]$, and these reduce\footnote{Here we use that $v$ is a \emph{closed} value so that we may commute the substitution $x \mapsto v$ with the substitutions defining $\gamma(e_i)$. Notice that the same assumption is needed in the case \ruleref{Tlam} below.} to an element of $\valInt{\Xi}{\tau}{\rho}$ by induction, as desired.
+
+    \item[\ruleref{Tlam}]
+    Let $\gamma \in \conInt{\Xi}{\Gamma}{\rho}$, and let $e'$ be an irreducible expression such that $\gamma(\expLam{x}{e}) \step^* e'$. Notice that by choosing $x \not\in \dom{\Gamma}$ we have $\gamma(\expLam{x}{e}) = \expLam{x}{\gamma(e)}$. Since $\expLam{x}{\gamma(e)}$ is a value it is irreducible by \cref{prop:value-implies-irreducible}, so $e' = \expLam{x}{\gamma(e)}$. To show that this lies in $\valInt{\Xi}{\typeFunc{\tau_1}{\tau_2}}{\rho}$, let $v \in \valInt{\Xi}{\tau_1}{\rho}$ and notice that
+    %
+    \begin{equation*}
+        \gamma(e)[v/x]
+            = \gamma[x \mapsto v](e)
+            \in \expInt{\Xi}{\tau_2}{\rho}
+    \end{equation*}
+    %
+    by the induction hypothesis, since $\gamma[x \mapsto v] \in \conInt{\Xi}{\Gamma, \hastype{x}{\tau_1}}{\rho}$. Thus $\gamma(\expLam{x}{e}) \in \expInt{\Xi}{\typeFunc{\tau_1}{\tau_2}}{\rho}$ as desired.
+
+    \item[\ruleref{Tapp}]
+    Let $\gamma \in \conInt{\Xi}{\Gamma}{\rho}$, and let $e'$ be an irreducible expression such that $\expApp{\gamma(e_1)}{\gamma(e_2)} = \gamma(\expApp{e_1}{e_2}) \step^* e'$. We consider in turn each case of \cref{enum:app-subexpression-step}: First assume that $\expApp{\gamma(e_1)}{\gamma(e_2)} \step^* e''[v/x] \step^* e'$ where $\gamma(e_1) \step^* \expLam{x}{e''}$ and $\gamma(e_2) \step^* v$. Each of the expressions on the right-hand sides are values and hence irreducible by \cref{prop:value-implies-irreducible}, so the hypothesis implies that they lie in $\valInt{\Xi}{\typeFunc{\tau_1}{\tau_2}}{\rho}$ and $\valInt{\Xi}{\tau_1}{\rho}$ respectively. But then $e''[v/x] \in \expInt{\Xi}{\tau_2}{\rho}$, so since $e'$ is irreducible it lies in $\valInt{\Xi}{\tau_2}{\rho}$ as desired.
+    
+    Instead assume that $e' = \expApp{e_1'}{e_2'}$ where $\gamma(e_i) \step^* e_i'$. Since $e'$ is irreducible, then so are the $e_i'$, so the hypothesis implies that $e_1' \in \valInt{\Xi}{\typeFunc{\tau_1}{\tau_2}}{\rho}$ and $e_2' \in \valInt{\Xi}{\tau_1}{\rho}$. Hence $e_1'$ is on the form $\expLam{x}{e_1''}$ and $e_2'$ is a value. But then $\expApp{e_1'}{e_2'}$ is reducible, which is a contradiction.
+
+    \item[\ruleref{TTlam}]
+    Assume that $\semtype{\Xi,\alpha}{\Gamma}{e}{\tau}$ holds, and consider $\rho \in \tvarInt{\Xi}$ and a $\gamma \in \conInt{\Xi}{\Gamma}{\rho}$. Assume that $e'$ is an irreducible expression with $\gamma(\expForall{\alpha}{e}) \to^* e'$. Since $\gamma(\expForall{\alpha}{e}) = \expForall{\alpha}{\gamma(e)}$ is a value it is irreducible, so it must equal $e'$.
+    
+    Now let $T \in \setSType$. By \cref{lem:interpretations-type-variables} we also have $\gamma \in \conInt{\Xi,\alpha}{\Gamma}{\rho[\alpha \mapsto T]}$, so the hypothesis implies that $\gamma(e) \in \expInt{\Xi,\alpha}{\tau}{\rho[\alpha \mapsto T]}$, as desired.
+
+    \item[\ruleref{TTapp}]
+    Assume that $\semtype{\Xi}{\Gamma}{e}{\typeForall{\alpha}{\tau}}$ holds. Consider a $\rho \in \tvarInt{\Xi}$ and a $\gamma \in \conInt{\Xi}{\Gamma}{\rho}$. We then have $\gamma(\expTapp{e}{\alpha}) = \expTapp{\gamma(e)}{\alpha}$, and by induction\footnote{Again we are only sketching the proof to avoid proving another case of \cref{lem:subexpression-step}.} $\gamma(e)$ reduces to an element $\expForall{\alpha}{e'} \in \valInt{\Xi}{\typeForall{\alpha}{\tau}}{\rho}$. Hence $\expTapp{\gamma(e)}{\alpha}$ reduces to $e' \in \expInt{\Xi,\alpha}{\tau}{\rho[\alpha \mapsto T]}$ for any $T \in \setSType$. This in turn reduces to an element of $\valInt{\Xi,\alpha}{\tau}{\rho[\alpha \mapsto T]}$, which then lies in $\valInt{\Xi}{\tau[\tau'/\alpha]}{\rho}$ by \cref{lem:compositionality}. Hence it follows that $\gamma(\expTapp{e}{\alpha}) \in \valInt{\Xi}{\tau[\tau'/\alpha]}{\rho}$ as desired.
+\end{proofsec*}
+\end{proof}
+
+
+We finally arrive at the promised result:
+
+\begin{theoremnoproof}[Fundamental property]\index[subject]{fundamental property!of logical predicates}
+    If $\typerel{\Xi}{\Gamma}{e}{\tau}$, then $\semtype{\Xi}{\Gamma}{e}{\tau}$.
+\end{theoremnoproof}
+
+
+% Assume that $e'$ is irreducible such that $\expTapp{\gamma(e)}{\alpha} = \gamma(\expTapp{e}{\alpha}) \step^* e'$. We consider each case of [TODO lemma on op sem]: First assume that $\expTapp{\gamma(e)}{\alpha} \step^* e''' \step^* e'$ where $\gamma(e) \step^* \expForall{\alpha}{e'''}$. The expression $\expForall{\alpha}{e'''}$ is a value and hence irreducible by [TODO lemma for polymorphic types], so the hypothesis implies that it lies in $\valInt{\Xi}{\typeForall{\alpha}{\tau}}{\rho}$. If $T \in \setSType$, then $e'''$ thus lies in $\expInt{\Xi,\alpha}{\tau}{\rho[\alpha \mapsto T]}$, and since $e''' \step^* e'$ and $e'$ is irreducible we have $e' \in \valInt{\Xi,\alpha}{\tau}{\rho[\alpha \mapsto T]}$. But this set equals $\valInt{\Xi}{\tau[\tau'/\alpha]}{\rho}$ by \cref{lem:compositionality}, so it follows that $\gamma(\expTapp{e}{\alpha}) \in \expInt{\Xi}{\tau[\tau'/\alpha]}{\rho}$ as desired.
+    
+% Instead assume that $e' = \expTapp{e''}{\alpha}$ where $\gamma(e) \step^* e''$. Since $e'$ is irreducible so is $e''$,\footnote{We remind the reader again that this holds in this case but not in general. TODO better} so the hypothesis implies that $e'' \in \valInt{\Xi}{\typeForall{\alpha}{\tau}}{\rho}$. Hence $e''$ is on the form $\expForall{\alpha}{e'''}$. But then $\expApp{e''}{\alpha}$ is reducible, which is a contradiction.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% \section{Universal types} % TODO Just System F, right?
+% % TODO write something about if we had type annotations, we would need to apply rho to expressions as well! Cf Lau p. 27 (for example)
+
+
+% Universe of semantic types $\setSType = \powerset{\setCVal}$. And $\rho \colon \setTVar \ptofin \setSType$.
+
+% Expression interpretation: For $\alpha \in \Xi$ and $\dom\rho = \Xi$,
+% %
+% \begin{equation*}
+%     \expInt{\Xi}{\tau}{\rho}
+%         \defeq \set{e \in \setExp}{\forall e' \in \setIrr \colon e \step^* e' \implies e' \in \valInt{\Xi}{\tau}{\rho}}.
+% \end{equation*}
+
+
+% Value interpretation: Same for old types. Type variables: $\alpha \in \Xi$ and $\dom\rho = \Xi$, then
+% %
+% \begin{equation*}
+%     \valInt{\Xi}{\alpha}{\rho}
+%         \defeq \rho(\alpha).
+% \end{equation*}
+% %
+% Universal types: TODO need alpha not in Xi for this to make sense
+% %
+% \begin{equation*}
+%     \valInt{\Xi}{\typeForall{\alpha}{\tau}}{\rho}
+%         \defeq \set{ \expForall{\alpha}{e} }{ \forall R \in \setSType \colon e \in \expInt{\Xi,\alpha}{\tau}{\rho[\alpha \mapsto R]} }.
+% \end{equation*}
+
+
+% TODO context interpretation + sem typing
+
+
+
+
+
+% \begin{lemma}[Compatibility]
+%     TODO
+% \end{lemma}
+
+% \begin{proof}
+% \begin{proofsec*}
+%     \item[\ruleref{TTlam}]
+%     Assume that $\semtype{\Xi,\alpha}{\Gamma}{e}{\tau}$ holds, and consider a $\rho \colon \setTVar \ptofin \setSType$ with $\dom\rho = \Xi$ and a $\gamma \in \conInt{\Xi}{\Gamma}{\rho}$. Assume that $e'$ is an irreducible expression with $\gamma(\expForall{\alpha}{e}) \to^* e'$. Since $\gamma(\expForall{\alpha}{e}) = \expForall{\alpha}{\gamma(e)}$ is a value it is irreducible, so it must equal $e'$.
+    
+%     Now let $R \in \setSType$. By \cref{lem:interpretations-type-variables} we also have $\gamma \in \conInt{\Xi,\alpha}{\Gamma}{\rho[\alpha \mapsto R]}$, so the hypothesis implies that $\gamma(e) \in \expInt{\Xi,\alpha}{\tau}{\rho[\alpha \mapsto R]}$, as desired.
+
+%     \item[\ruleref{TTapp}]
+%     Assume that $\semtype{\Xi}{\Gamma}{e}{\typeForall{\alpha}{\tau}}$ holds. Consider a $\rho \colon \setTVar \ptofin \setSType$ with $\dom\rho = \Xi$ and a $\gamma \in \conInt{\Xi}{\Gamma}{\rho}$. Assume that $e'$ is irreducible such that $\expTapp{\gamma(e)}{\alpha} = \gamma(\expTapp{e}{\alpha}) \step^* e'$. We consider each case of [TODO lemma on op sem]: First assume that $\expTapp{\gamma(e)}{\alpha} \step^* e''' \step^* e'$ where $\gamma(e) \step^* \expForall{\alpha}{e'''}$. The expression $\expForall{\alpha}{e'''}$ is a value and hence irreducible by [TODO lemma for polymorphic types], so the hypothesis implies that it lies in $\valInt{\Xi}{\typeForall{\alpha}{\tau}}{\rho}$. If $R \in \setSType$, then $e'''$ thus lies in $\expInt{\Xi,\alpha}{\tau}{\rho[\alpha \mapsto R]}$, and since $e''' \step^* e'$ and $e'$ is irreducible we have $e' \in \valInt{\Xi,\alpha}{\tau}{\rho[\alpha \mapsto R]}$. But this set equals $\valInt{\Xi}{\tau[\tau'/\alpha]}{\rho}$ by \cref{lem:compositionality}, so it follows that $\gamma(\expTapp{e}{\alpha}) \in \expInt{\Xi}{\tau[\tau'/\alpha]}{\rho}$ as desired.
+    
+%     Instead assume that $e' = \expTapp{e''}{\alpha}$ where $\gamma(e) \step^* e''$. Since $e'$ is irreducible so is $e''$,\footnote{We remind the reader again that this holds in this case but not in general. TODO better} so the hypothesis implies that $e'' \in \valInt{\Xi}{\typeForall{\alpha}{\tau}}{\rho}$. Hence $e''$ is on the form $\expForall{\alpha}{e'''}$. But then $\expApp{e''}{\alpha}$ is reducible, which is a contradiction.
+% \end{proofsec*}
+% \end{proof}

@@ -1,0 +1,318 @@
+\chapter[Type safety I: Progress and preservation][Type safety I: Progress and preservation]{\vspace{-\baselineskip}Type Safety I:\\ Progress {\titlefontsmall and} Preservation}\label{chap:progress-preservation}
+
+Having become acquainted with \langrecref{} we being our study of type safety. In this chapter we take a classical approach to type safety, by proving the properties \emph{progress} and \emph{preservation}.
+
+
+\section{Safety and well-typedness}
+
+\subsection{Safety defined}
+
+It is important to consider what kinds of safety a type system is supposed to give us. For instance, we are not so ambitious as to require of the type system that it is able to catch algorithmic errors, or errors in logic.
+
+On the other hand, well-typedness of programs is supposed to tell us something about how its subexpressions are combined to form a complete program. For instance, in a language with numbers and strings we would hope that if a program is well-typed, then that program does not attempt to e.g. perform arithmetic with strings or index into numbers. In other words, the program does not attempt to perform \enquote{illegal} operations. Conversely, the operational semantics of the language is supposed to capture the \emph{legal} operations.
+
+Furthermore, we analyse well-formed programs into two categories: Those in which there is computation still to be done, and those in which there is not. While we cannot hope that all programs will eventually reach the latter state, it turns out well-typed programs do not get \enquote{stuck}. Either they do indeed terminate in a \enquote{finished} state, or else they run forever. More precisely we have the following:
+
+\begin{definition}[Safety]\index[subject]{safety}
+    \label{def:safety}
+    An expression $e$ is \keyword{safe} if for all expressions $e_1$ and stores $\sigma_1$, if $(\bot,e) \to^* (\sigma_1,e_1)$, then either $e_1$ is a value, or else there is an expression $e_2$ and a store $\sigma_2$ such that $(\sigma_1,e_1) \to (\sigma_2,e_2)$.
+\end{definition}
+%
+As mentioned in \cref{sec:pure-head-red}, the expressions that we have singled out as \emph{values} are those corresponding to programs that are \enquote{finished}.
+
+
+\subsection{Type safety}
+
+We thus wish to show that if an expression is well-typed, then it is safe. This is indeed the case, and we thus also talk about \keyword{type safety}.\index[subject]{type!safety} There are various ways of proving this result, and the classical proof is in two steps:
+%
+\begin{itemize}
+    \item We first show that if an expression is well-typed, then it is either a value, or else it can reduce in one step to another expression. That is, it can make \keyword{progress}. For reasons that will become clear, we will not assume that the store is empty, so we also need to assume that the contents of the store is well-typed.
+
+    \item Next we show that \emph{if} a well-typed expression reduces in one step to another expression, \emph{then} that expression is also well-typed, so that well-typedness is \keyword{preserved} by the operational semantics. Again we need to take care that well-typedness of the store is well-typed.
+\end{itemize}
+%
+Taken together, these will imply the main theorem:
+
+\begin{theoremnoproof}[Type safety]
+    If an expression $e$ is well-typed, i.e. if $\typerel{}{}{}{e}{\tau}$, then $e$ is safe.
+\end{theoremnoproof}
+%
+More precisely, this will follow immediately from \cref{thm:progress} and \cref{thm:preservation} below.
+
+
+
+\section{Progress}
+
+As mentioned above, it is not enough that an expression is well-typed for it to make progress, the store must also be well-typed. A store $\sigma \colon \setLoc \ptofin \setExp$ is \keyword{well-typed}\index[subject]{store!well-typed} with respect to $\Xi$, $\Gamma$ and $\Sigma$ if $\dom{\sigma} = \dom{\Sigma}$ and $\typerel{\Xi}{\Gamma}{\Sigma}{\sigma(l)}{\Sigma(l)}$ for all $l \in \dom{\sigma}$. In this case we write $\stotype{\Xi}{\Gamma}{\Sigma}{\sigma}$\index[notation]{***-XiGammaSigmasigma@$\vdash$ (well-typed store)}, and just as for the typing relation we omit $\Xi$ and $\Gamma$ if they are empty.
+% TODO why equality between domains instead of inclusion??
+
+There are at least a couple of ways to approach proving the progress theorem. Most naturally the proof goes by induction on the typing relation, since the claim concerns well-typed expressions (or more precisely typing judgments, i.e., elements of the typing relation). Since our typing rules are syntax-directed in the sense that there is a single typing rule (schema) for each type of expression, we could also prove the theorem by induction on the structure of expressions, but this does not generalise as readily and the proof is no simpler \textdash indeed, quite the contrary.
+
+We are now ready to prove the progress theorem. The reader may wish to read in parallel the proof and the remark immediately following it.
+
+\begin{theorem}[Progress]\index[subject]{progress}
+    \label{thm:progress}
+    If $\typerel{}{}{\Sigma}{e}{\tau}$, then either $e$ is a value or else, for any store $\sigma$ with $\stotype{}{}{\Sigma}{\sigma}$, there exists an expression $e'$ and a store $\sigma'$ such that $(\sigma,e) \step (\sigma',e')$.
+\end{theorem}
+
+\begin{proof}
+The proof\blfootnote{Augmenting the claim in this way ensures that we can perform the induction on the entire $5$-ary relation, which is important since this relation is the one that is defined by the inference rules, \emph{not} the corresponding ternary relation obtained by restricting the $5$-ary relation to the subset where $\Xi = \emptyset$ and $\Gamma = \bot$.} is by rule induction on the typing relation $\typerel{\Xi}{\Gamma}{\Sigma}{e}{\tau}$, but the claim to be proved is augmented by \enquote{or either $\Xi \neq \emptyset$ or $\Gamma \neq \bot$\marginbox{Reminder}{The empty partial map is denoted $\bot$.}}. Hence we only need to prove each case when $\Xi = \emptyset$ and $\Gamma = \bot$, since otherwise the claim trivially holds for the conclusion of each rule. Furthermore, since the store is relevant for only a few reductions, we suppress it from the notation in most of the cases below, simply taking about expressions reducing to other expressions and not distinguishing between the reductions $\purestep$ and $\headstep$.\footnote{We are essentially restricting to the \emph{pure} subset of the language so the subscript $p$ is redundant, and we thus use $\headstep$ to denote the one-step reduction.}
+%
+\begin{proofsec}
+    \item[\ruleref{Tvar}]
+    Since we may assume that $\Gamma = \bot$, this is vacuously true.
+
+    \item[\ruleref{Tunit}]
+    Since $\expUnit$ is a value, this follows.
+
+    \item[\ruleref{Tpair}]
+    Assume that the claim holds for $\typerel{}{}{\Sigma}{e_1}{\tau_1}$ and $\typerel{}{}{\Sigma}{e_2}{\tau_2}$. If both $e_1$ and $e_2$ are values, then $\expPair{e_1}{e_2}$ is also a value, so assume that only $e_1 = v_1$ is a value and that $e_2 \step e_2'$. Since the only rule that generates the reduction $\step$ is \ruleref{Ehead}, it follows that $e_2$ is on the form $E[d_2]$ and $e_2'$ is on the form $E[d_2']$, where $E$ is an evaluation context and $d_2$ and $d_2'$ are expressions such that $d_2 \headstep d_2'$. Letting $E' = \expPair{v_1}{E}$ it follows that $\expPair{v_1}{e_2} = E'[d_2]$ and $\expPair{v_1}{e_2'} = E'[d_2']$, and so
+    %
+    \begin{equation*}
+        \expPair{v_1}{e_2}
+            = E'[d_2]
+            \step E'[d_2']
+            = \expPair{v_1}{e_2'}
+    \end{equation*}
+    %
+    by \ruleref{Ehead}. If instead $e_1$ is not a value, then the same argument (using the evaluation context $\expPair{E}{e_2}$) yields the same result.
+
+    \item[\ruleref{Tprojl} and \ruleref{Tprojr}]
+    Assume that the claim holds for $\typerel{}{}{\Sigma}{e}{\typeProd{\tau_1}{\tau_2}}$. If $e$ is a value, then it is on the form $\expPair{v_1}{v_2}$ by \cref{enum:canonical-product}, where $v_1$ and $v_2$ are values. Hence $\expProjl{e} = \expProjl{\expPair{v_1}{v_2}}$, and this reduces to $v_1$ via $\headstep$ by \ruleref{Eprojl}. Choosing the evaluation context $E = \hole$, \ruleref{Ehead} implies that $\expProjl{\expPair{v_1}{v_2}} \step v_1$. If instead $e$ is not a value, then by induction there is some $e'$ such that $e \step e'$. Hence there are expressions $d$ and $d'$ and an evaluation context $E$ such that $e = E[d]$, $e' = E[d']$ and $d \headstep d'$. Letting $E' = \expProjl{E}$ we have
+    %
+    \begin{equation*}
+        \expProjl{e}
+            = E'[d]
+            \step E'[d']
+            = \expProjl{e'},
+    \end{equation*}
+    %
+    as desired. The case \ruleref{Tprojr} is analogous.
+
+    \item[\ruleref{Tinjl} and \ruleref{Tinjr}]
+    Assume that the claim holds for $\typerel{}{}{\Sigma}{e}{\tau_1}$. If $e$ is a value $v$, then so is $\expInjl{v}$. If instead $e \step e'$, then as before $e = E[d]$, $e' = E[d']$ and $d \headstep d'$. Letting $E' = \expInjl{E}$ we get $\expInjl{e} = E'[d]$ and $\expInjl{e'} = E'[d']$, so $\expInjl{e} \step \expInjl{e'}$. The case \ruleref{Tinjr} is similar.
+
+    \item[\ruleref{Tmatch}]
+    Assume that the claim holds for\footnote{Notice that while the typing rule \ruleref{Tmatch} has multiple hypotheses, only the first one is relevant for progress, since the only evaluation contexts whose outermost operators are $\expr{match}$ operators are on the form $\expMatch{E}{x}{e_1}{e_2}$. Hence the other two hypotheses cannot affect the one-step reduction of a match expression.} $\typerel{}{}{\Sigma}{e}{\typeSum{\tau_1}{\tau_2}}$. If $e$ is a value, then by \cref{enum:canonical-sum} it must be on the form $\expInjl{v}$ or $\expInjr{v}$ for a value $v$. Hence the expression $\expMatch{e}{x}{e_1}{e_2}$ can reduce by either \ruleref{Ematchinjl} or \ruleref{Ematchinjr}, so it reduces by \ruleref{Ehead} (using the evaluation context $E = \hole$). If instead $e \step e'$, then by the same argument as in previous cases with $E' = \expMatch{E}{x}{e_1}{e_2}$, it follows that $\expMatch{e}{x}{e_1}{e_2}$ reduces.
+
+    \item[\ruleref{Trec}]
+    This is obvious since $\expRec{f}{x}{e}$ is a value.
+
+    \item[\ruleref{Tapp}]
+    Assume that the claim holds for $\typerel{}{}{\Sigma}{e_1}{\tau_1}$ and $\typerel{}{}{\Sigma}{e_2}{\typeFunc{\tau_1}{\tau_2}}$. If $e_2$ is a value, then by \cref{enum:canonical-function} it must be on the form $\expRec{f}{x}{e}$. If also $e_1$ is a value, then the claim follows by \ruleref{Erecapp}. If $e_2 = v$ is a value but $e_1$ is not, then $e_1 \to e_1'$. The same argument as in previous cases with $E' = \expApp{v}{E}$ shows that $\expApp{v}{e_1}$ reduces. Finally, if $e_2$ is not a value, then $e_2 \to e_2'$, and choosing $E' = \expApp{E}{e_1}$ proves the claim.
+
+    \item[\ruleref{TTlam}]
+    This is obvious since $\expForall{\alpha}{e}$ is a value.
+
+    \item[\ruleref{TTapp}]
+    Assume that the claim holds for $\typerel{}{}{\Sigma}{e}{\typeForall{\alpha}{\tau}}$. If $e$ is a value, then by \cref{enum:canonical-forall} it must be on the form $\expForall{\alpha}{e'}$, so the claim follows from \ruleref{Etapptlam} (via \ruleref{Ehead} using the evaluation context $E = \hole$). If $e$ is not a value, then $e \step e'$ for some expression $e'$ by induction. Hence there are expressions $d$ and $d'$ such that $d \headstep d'$, and such that $e = E[d]$ and $e' = E[d']$ for some evaluation context $E$. Letting $E' = \expTapp{E}{\tau'}$ we thus have $\expTapp{e}{\tau'} = E'[d]$ and $\expTapp{e'}{\tau'} = E'[d']$, proving the claim.
+
+    \item[\ruleref{Tpack}]
+    Assume that the claim holds for $\typerel{}{}{\Sigma}{e}{\tau[\tau'/\alpha]}$. If $e$ is a value, then so is $\expPack{e}$. Otherwise $e \step e'$ for some expression $e'$ by induction. The same argument as before using the evaluation context $\expPack{E}$ for an appropriate $E$ yields the claim.
+
+    \item[\ruleref{Tunpack}]
+    Assume that the claim holds for\footnote{As in the case \ruleref{Tmatch} mentioned above, only the first hypothesis is relevant.} $\typerel{}{}{\Sigma}{e_1}{\typeExists{\alpha}{\tau}}$. If $e_1$ is a value, then it must be on the form $\expPack{v}$ by \cref{enum:canonical-exists}, so an application of \ruleref{Eunpackpack} yields the claim. Otherwise $e \step e'$ for some $e'$, and we use the evaluation context $\expUnpack{E}{x}{e_2}$ for an appropriate $E$.
+
+    \item[\ruleref{Tfold}]
+    Assume that the claim holds for $\typerel{}{}{\Sigma}{e}{\tau[\typeRec{\alpha}{\tau}/\alpha]}$. If $e$ is a value then so is $\expFold{e}$; otherwise $e \step e'$ for some $e'$ by induction, and it follows that $\expFold{e} \step \expFold{e}$.
+
+    \item[\ruleref{Tunfold}]
+    Assume that the claim holds for $\typerel{}{}{\Sigma}{e}{\typeRec{\alpha}{\tau}}$. If $e$ is a value then \cref{enum:canonical-recursive} implies that $e = \expFold{v}$, and the claim follows by \ruleref{Eunfoldfold}. Otherwise $e \step e'$, and so also $\expUnfold{e} \step \expUnfold{e'}$.
+
+    \item[\ruleref{Tloc}]
+    Locations are values, so this is obvious.
+
+    \item[\ruleref{Talloc}]
+    Assume that the claim holds for $\typerel{}{}{\Sigma}{e}{\tau}$.\marginbox{Reminder}{A store $\sigma$ is a \emph{finite} partial map $\setLoc \ptofin \setExp$. Since $\setLoc$ is (countably) infinite, we can always find a location $l \not\in \dom{\sigma}$.} If $e$ is a value, then the claim follows by applying \ruleref{Ealloc}, noting that there always exists a location $l \not\in \dom{\sigma}$. Otherwise there is an expression $e'$ and a store $\sigma'$ such that $(\sigma,e) \step (\sigma',e')$ by induction. But then there is an evaluation context $E$ and expressions $d$ and $d'$ such that $e = E[d]$, $e' = E[d']$ and $(\sigma,d) \headstep (\sigma',d')$. Letting $E' = \expRef{E}$ we have $\expRef{e} = E'[d]$ and $\expRef{e'} = E'[d']$, so \ruleref{Ehead} implies that $(\sigma,\expRef{e}) \step (\sigma',\expRef{e'})$.
+
+    \item[\ruleref{Tstore}]
+    Assume that the claim holds for $\typerel{}{}{\Sigma}{e_1}{\typeRef{\tau}}$ and $\typerel{}{}{\Sigma}{e_2}{\tau}$, and let $\sigma$ be a store with $\stotype{}{}{\Sigma}{\sigma}$. If $e_1$ is a value, then by \cref{enum:canonical-ref} it is a location $l$, and by \cref{enum:inversion-location} we have $l \in \dom{\Sigma} = \dom{\sigma}$. If $e_2$ is also a value, then the claim follows from \ruleref{Estore}. If $e_1 = l$ is a value but $e_2$ is not, then there are some $e_2'$ and $\sigma'$ such that $(\sigma,e_2) \step (\sigma',e_2')$. Again writing $e_2 = E[d_2]$ and $e_2' = E[d_2']$ with $(\sigma,d) \headstep (\sigma',d')$, we use the evaluation context $\expAss{l}{E}$. Finally, if $e_1$ is not a value, then the same argument using instead $\expAss{E}{e_2}$ yields the claim.
+
+    \item[\ruleref{Tload}]
+    Assume that the claim holds for $\typerel{}{}{\Sigma}{e}{\typeRef{\tau}}$, and let $\sigma$ be a store with $\stotype{}{}{\Sigma}{\sigma}$. If $e$ is a value, then as before it is a location $l$, and $l \in \dom{\sigma}$. It then follows from \ruleref{Eload} that $(\sigma, \expLoad{l}) \headstep (\sigma,v)$, where $v = \sigma(l)$. If instead $(\sigma,e) \step (\sigma',e')$ for an expression $e'$ and a store $\sigma'$, then we simply use the evaluation context $\expLoad{E}$ for an appropriate $E$.
+\end{proofsec}
+\end{proof}
+
+Let us pause to consider how each case in the progress theorem was proved.
+%
+\begin{itemize}
+    \item Some cases (\ruleref{Tpair}, \ruleref{Tinjl}, \ruleref{Tinjr}, \ruleref{Tpack}, \ruleref{Tfold} and \ruleref{Talloc}) are proved directly by induction. That is, the claim for the conclusion of a rule follows directly from the induction hypothesis.
+    
+    The former five cases have the property that if the hypotheses contain values, then so does the conclusion. In fact, notice that these are precisely the rules whose conclusions contain expressions that \emph{may} be values but are not necessarily. Hence we only need to consider when the hypotheses do not contain values, but since the (expression in the) conclusion is structurally larger\footnote{We again remind the reader that we have not defined what \enquote{structurally larger} means, which is no matter since the present discussion is purely expository.} than the hypotheses, we may hope that there is an evaluation context that allows us to transfer reducibility of the hypotheses to the conclusion. And indeed this is the case.
+
+    For the case \ruleref{Talloc}, notice that even if $v$ is a value, $\expRef{v}$ is not. However, we may also quickly dispense with this case by noting that \ruleref{Ealloc} allows us to reduce $\expRef{v}$ immediately.
+
+    \item Other cases (\ruleref{Tprojl}, \ruleref{Tprojr}, \ruleref{Tmatch}, \ruleref{Tapp}, \ruleref{TTapp}, \ruleref{Tunpack}, \ruleref{Tunfold}, \ruleref{Tstore} and \ruleref{Tload}) require an appeal to the canonical forms lemma (cf. \cref{lem:canonical}). Notice that these are precisely the rules (except for \ruleref{Talloc} discussed above) whose conclusions contain expressions that can never be values. When the expressions in the hypotheses are reducible, then so are the conclusions by an appropriate choice of evaluation context.
+    
+    However, when all the hypotheses contain values, this argument of course does not work. Still, the conclusions are not values so there must be some other reason for why they are reducible. Considering the reduction rules, this requires the subexpressions (i.e., the hypotheses of the typing rules) to have particular forms: For instance, for $\expProjl{v}$ to be reducible by \ruleref{Eprojl}, $v$ must be on the form $\expPair{v_1}{v_2}$. And this is precisely what the canonical forms lemma allows us to conclude.
+
+    Notice also that \ruleref{Tstore} is special in that the proof in this case requires an explicit\footnote{As opposed to implicit through the canonical forms lemma} application of the inversion lemma (cf. \cref{lem:inversion-typing}): For note that to apply \ruleref{Estore} we must know that $l \in \dom{\sigma}$ which the canonical forms lemma doesn't say anything about\footnote{Indeed it cannot, since it says nothing about stores at all, but is only concerned with statics.}.
+
+    \item Still other cases (\ruleref{Tunit}, \ruleref{Trec}, \ruleref{TTlam} and \ruleref{Tloc}) are fairly trivial since their conclusions are \emph{always} values.
+
+    \item The final case is \ruleref{Tvar}, which is also trivial since $\Gamma = \bot$.
+\end{itemize}
+
+
+\section{Preservation}
+
+Having proved that \emph{if} an expression is well-typed \emph{then} it is reducible (unless it is a value), we now show that reductions preserve well-typedness.
+
+In our statement of the progress theorem we had to take into account whether the store was well-typed or not, but we did not have reason to consider what actually happens to the store when performing a reduction. Recall from \cref{def:safety} that safety is a property of expressions and not of machine states (i.e., of store-expression pairs), since we assume that the store is initially empty. But the store can of course change during evaluation, so we need to ensure that not only is well-typedness of expressions preserved by reduction, so is well-typedness of stores. The typing rule \ruleref{Tstore} ensures than types are preserved when we modify already allocated locations in the store.
+
+However, the store can also \emph{grow}, and we must take this into account when we try to make precise the formulation of the preservation theorem. Just because the initial store $\sigma$ is well-typed with respect to some store typing $\Sigma$, it does not follow that the resulting store $\sigma'$ is also well-typed with respect to $\Sigma$. But as mentioned we only need to ensure that the newly allocated locations \textdash i.e., those in $\dom{\sigma'} \setminus \dom{\sigma}$ \textdash have the correct types. Hence it suffices to find a store typing $\Sigma'$ that agrees with $\Sigma$ on $\dom{\Sigma}$, and with respect to which $\sigma'$ is well-typed.
+
+Furthermore, notice that to prove that well-typed expressions are safe it suffices to show that reduction preserves \emph{well-typedness}, and not types themselves. We may indeed consider whether it is even true that types are preserved, i.e., that if $e$ reduces to $e'$ and $e$ has some type $\tau$, then $e'$ also has type $\tau$. For some type systems, notably those with subtyping, this is not the case, but for ours it will turn out to be.
+
+While the proof of the progress theorem was by induction on the typing relation, the proof of preservation is somewhat different. \Textcite[Theorem~8.3.3]{pierce-types} proves preservation for a simple language by induction on \emph{derivations} of typing judgments, but this of course requires one to have a notion of derivations (and subderivations) of judgments, which is unnecessary and overly complicates the proof\footnote{In the author's opinion, though \textcite[§6.1]{harper-pl} seems to share this sentiment.}.
+
+Another approach is proof by induction on the reduction relation, which is the approach taken by \textcite[Theorem~6.2]{harper-pl}. The operational semantics of the language studied by \citeauthor{harper-pl} is formalised as an ordinary structural dynamics, in which the reduction relation is in fact defined recursively. However, since the dynamics of our language is \emph{contextual} (in that it is described using evaluation contexts), a variation of this approach is more appropriate.
+
+We prove the preservation theorem in three steps as follows: % TODO lemmas in previous chapter instead??
+%
+\begin{itemize}
+    \item Evaluation contexts \enquote{reflect}\footnote{Compare reflection of limits by functors.} well-typedness \cref{lem:subexp-well-typed}: If $E[e]$ is well-typed, then so is $e$. This is a straightforward corollary of the inversion lemma.
+
+    \item Evaluation contexts preserve types (\cref{lem:evaluation-contexts-respect-types}): If $e$ and $e'$ have the same type, then so do $E[e]$ and $E[e']$. This follows directly by rule induction in $E$. Combined with the above result, this allows us to reduce the proof to the case where $e$ reduces to $e'$ in a single head reduction step.
+
+    \item Head reduction preserve types (\cref{lem:preservation-head-steps}.): If $e \headstep e'$ and $e$ has type $\tau$, then so does $e'$. The proof of this step consists of judicious application of the inversion lemma along with various technical results on the interplay between typing and substitution.
+\end{itemize}
+%
+We delay the proofs of these results and first show more precisely how they imply preservation:
+
+\begin{theorem}[Preservation]\index[subject]{preservation!of types}
+    \label{thm:preservation}
+    If
+    %
+    \begin{equation*}
+        \typerel{\Xi}{\Gamma}{\Sigma}{e}{\tau},
+        \quad
+        \stotype{\Xi}{\Gamma}{\Sigma}{\sigma}
+        \quad \text{and} \quad
+        (\sigma,e) \step (\sigma',e'),
+    \end{equation*}
+    %
+    then there exists some store typing $\Sigma'$ with $\Sigma \subseteq \Sigma'$ such that
+    %
+    \begin{equation*}
+        \typerel{\Xi}{\Gamma}{\Sigma'}{e'}{\tau}
+        \quad \text{and} \quad
+        \stotype{\Xi}{\Gamma}{\Sigma'}{\sigma'}.
+    \end{equation*}
+\end{theorem}
+
+\begin{proof}
+    By definition of the reduction relation, there exist an evaluation context $E$ and expressions $d$ and $d'$ such that $e = E[d]$, $e' = E[d']$, and $(\sigma,d) \headstep (\sigma',d')$. By \cref{lem:subexp-well-typed} there is some type $\tau'$ such that $\typerel{\Xi}{\Gamma}{\Sigma}{d}{\tau'}$. Next it follows from \cref{lem:preservation-head-steps} that $\typerel{\Xi}{\Gamma}{\Sigma'}{d'}{\tau'}$ for some store typing $\Sigma'$ with $\Sigma \subseteq \Sigma'$ and $\stotype{\Xi}{\Gamma}{\Sigma'}{\sigma'}$. By \cref{lem:weakening} we also have $\typerel{\Xi}{\Gamma}{\Sigma'}{d}{\tau'}$, so it follows from \cref{lem:evaluation-contexts-respect-types} that $\typerel{\Xi}{\Gamma}{\Sigma'}{E[d']}{\tau}$ as desired.
+\end{proof}
+
+
+\begin{lemma}
+    \label{lem:subexp-well-typed}
+    If $E$ is an evaluation context, $e$ is an expression and $\typerel{\Xi}{\Gamma}{\Sigma}{E[e]}{\tau}$, then $\typerel{\Xi}{\Gamma}{\Sigma}{e}{\tau'}$ for some type $\tau'$.
+\end{lemma}
+
+\begin{proof}
+    The proof is by rule induction on $E$. If $E = \hole$, then the claim is obvious, since then $E[e] = e$. Hence we assume that $E$ is obtained from an evaluation context $E'$ by some application of an inference rule, so that the induction hypothesis holds for $E'$. The inductive step is identical in all cases, so we illustrate the argument in the case $E = \expPair{E'}{e'}$.
+
+    In this case $E[e] = \expPair{E'[e]}{e'}$, and \cref{enum:inversion-pair} implies that $\typerel{\Xi}{\Gamma}{\Sigma}{E'[e]}{\tau''}$ for some type $\tau''$. By induction we thus have $\typerel{\Xi}{\Gamma}{\Sigma}{e}{\tau'}$ for some $\tau'$.
+\end{proof}
+
+
+\begin{lemma}
+    \label{lem:evaluation-contexts-respect-types}
+    If $\typerel{\Xi}{\Gamma}{\Sigma}{e}{\tau}$ and $\typerel{\Xi}{\Gamma}{\Sigma}{e'}{\tau}$ for the same type $\tau$, then $\typerel{\Xi}{\Gamma}{\Sigma}{E[e]}{\tau'}$ and $\typerel{\Xi}{\Gamma}{\Sigma}{E[e']}{\tau'}$ for the same type $\tau'$.
+\end{lemma}
+
+\begin{proof}
+    The proof is a straightforward rule induction in $E$: Simply apply the typing rules corresponding to each evaluation context.
+\end{proof}
+
+
+\begin{lemma}[Preservation for head reduction]
+    \label{lem:preservation-head-steps}
+    If
+    %
+    \begin{equation*}
+        \typerel{\Xi}{\Gamma}{\Sigma}{e}{\tau},
+        \quad
+        \stotype{\Xi}{\Gamma}{\Sigma}{\sigma}
+        \quad \text{and} \quad
+        (\sigma,e) \headstep (\sigma',e'),
+    \end{equation*}
+    %
+    then there exists some store typing $\Sigma'$ with $\Sigma \subseteq \Sigma'$ such that
+    %
+    \begin{equation*}
+        \typerel{\Xi}{\Gamma}{\Sigma'}{e'}{\tau}
+        \quad \text{and} \quad
+        \stotype{\Xi}{\Gamma}{\Sigma'}{\sigma'}.
+    \end{equation*}
+\end{lemma}
+
+\begin{proof}
+We simply check all cases.
+%
+\begin{proofsec}
+    \item[\ruleref{Eprojl} and \ruleref{Eprojr}]
+    Assume that $e = \expProjl{\expPair{v_1}{v_2}}$ and $e' = v_1$ for values $v_1$ and $v_2$. Then \cref{enum:inversion-proj} implies first that $\typerel{\Xi}{\Gamma}{\Sigma}{\expPair{v_1}{v_2}}{\typeProd{\tau}{\tau_2}}$ for some type $\tau_2$, and then \cref{enum:inversion-pair} implies\footnote{That is, \cref{enum:inversion-pair} implies that $\typeProd{\tau}{\tau_2} = \typeProd{\tau_3}{\tau_4}$ and $\typerel{\Xi}{\Gamma}{\Sigma}{v_1}{\tau_3}$ for some types $\tau_3$ and $\tau_4$. But we of course have $\tau = \tau_3$.} that $\typerel{\Xi}{\Gamma}{\Sigma}{v_1}{\tau}$. Similarly if $e = \expProjr{\expPair{v_1}{v_2}}$ and $e' = v_2$
+
+    \item[\ruleref{Ematchinjl} and \ruleref{Ematchinjr}]
+    Assume that $e = \expMatch{\expInjl{v}}{x}{e_1}{e_2}$ and $e' = e_1[v/x]$. Then \cref{enum:inversion-match} implies that $\typerel{\Xi}{\Gamma}{\Sigma}{\expInjl{v}}{\typeSum{\tau_1}{\tau_2}}$ and $\typerel{\Xi}{\Gamma, \hastype{x}{\tau_1}}{\Sigma}{e_1}{\tau}$. Next \cref{enum:inversion-inj} yields $\typerel{\Xi}{\Gamma}{\Sigma}{v}{\tau_1}$, so \cref{lem:substitution-type-preservation} implies that $\typerel{\Xi}{\Gamma}{\Sigma}{e_1[v/x]}{\tau}$. Similarly if $\expMatch{\expInjr{v}}{x}{e_1}{e_2}$ and $e' = e_2[v/x]$.
+
+    \item[\ruleref{Erecapp}]
+    Assume that
+    %
+    \begin{equation*}
+        e = \expApp{\expRec*{f}{x}{e''}}{v}
+        \quad \text{and} \quad
+        e' = e''[\expRec*{f}{x}{e''}/f][v/x].
+    \end{equation*}
+    %
+    Then \cref{enum:inversion-app} first implies that $\typerel{\Xi}{\Gamma}{\Sigma}{v}{\tau_1}$ and $\typerel{\Xi}{\Gamma}{\Sigma}{\expRec{f}{x}{e''}}{\typeFunc{\tau_1}{\tau}}$, and \cref{enum:inversion-rec} applied to the latter judgment implies that $\typerel{\Xi}{\Gamma, \hastype{f}{\typeFunc{\tau_1}{\tau}}, \hastype{x}{\tau_1}}{\Sigma}{e''}{\tau}$. But then two applications of \cref{lem:substitution-type-preservation} imply that\footnote{Strictly speaking, the first application of \cref{lem:substitution-type-preservation} requires that $\typerel{\Xi}{\Gamma, \hastype{x}{\tau_1}}{\Sigma}{\expRec{f}{x}{e''}}{\typeFunc{\tau_1}{\tau}}$, but this follows by \cref{lem:weakening}. Notice that there is no issue of well-formedness of $\tau_1$, since $\typeFunc{\tau_1}{\tau}$ is already well-formed with respect to $\Xi$.} $\typerel{\Xi}{\Gamma}{\Sigma}{e''[\expRec*{f}{x}{e''}/f][v/x]}{\tau}$ as desired.
+
+    \item[\ruleref{Etapptlam}]
+    Assume that $e = \expTapp{\expForall*{\alpha}{e'}}{\alpha}$. Then \cref{enum:inversion-tapp} first implies that $\tau = \tau'[\tau''/\alpha]$ and $\typerel{\Xi}{\Gamma}{\Sigma}{\expForall{\alpha}{e'}}{\typeForall{\alpha}{\tau'}}$, and an application of \cref{enum:inversion-forall} then yields $\typerel{\Xi,\alpha}{\Gamma}{\Sigma}{e'}{\tau'}$ and $\alpha \not\in \Xi$. Next, \cref{prop:types-well-formed} implies that $\wellformed{\Xi}{\Gamma}$ and $\wellformed{\Xi}{\Sigma}$, and also that $\wellformed{\Xi}{\tau}$.
+    
+    Assume that $\alpha$ is free in $\tau$. Then also $\wellformed{\Xi}{\tau''}$, so \cref{lem:type-substitution} implies that $\typerel{\Xi}{\Gamma[\tau''/\alpha]}{\Sigma[\tau''/\alpha]}{e'}{\tau'[\tau''/\alpha]}$. But $\alpha$ is not free in either $\Gamma$ or $\Sigma$, and $\tau = \tau'[\tau''/\alpha]$, so this implies that $\typerel{\Xi}{\Gamma}{\Sigma}{e'}{\tau}$ as desired.
+
+    If instead $\alpha$ is not free in $\tau$, then $\tau = \tau'$. Since $\Gamma$, $\Sigma$ and $\tau$ are well-formed with respect to $\Xi$, the claim follows from \cref{lem:strengthening}.
+
+    \item[\ruleref{Eunpackpack}]
+    Assume that
+    %
+    \begin{equation*}
+        e = \expUnpack{\expPack{v}}{x}{e_2}
+        \quad \text{and} \quad
+        e' = e_2[v/x].
+    \end{equation*}
+    %
+    Then \cref{enum:inversion-unpack} implies that $\typerel{\Xi}{\Gamma}{\Sigma}{\expPack{v}}{\typeExists{\alpha}{\tau'}}$ and that $\typerel{\Xi,\alpha}{\Gamma, \hastype{x}{\tau'}}{\Sigma}{e_2}{\tau}$. Next \cref{enum:inversion-pack} applied to the first judgment yields\footnote{Strictly speaking, the inversion lemma first says that $\expPack{v}$ has type $\typeExists{\beta}{\rho}$ for some type $\rho$, and then that $v$ has type $\rho[\rho'/\beta]$ for some $\rho'$. But since we already know that $\expPack{v}$ has type $\typeExists{\alpha}{\tau'}$, this implies that $v$ has type $\tau'[\tau''/\alpha]$.} $\typerel{\Xi}{\Gamma}{\Sigma}{v}{\tau'[\tau''/\alpha]}$.
+    
+    We then claim that $\typerel{\Xi}{\Gamma, \hastype{x}{\tau'[\tau''/\alpha]}}{\Sigma}{e_2}{\tau}$. If $\alpha$ is not free in $\tau'$, then $\tau'[\tau''/\alpha] = \tau'$ so this follows from \cref{lem:strengthening}, and if $\alpha$ is free in $\tau'$, then since $\wellformed{\Xi}{\tau'[\tau''/\alpha]}$ we also have $\wellformed{\Xi}{\tau''}$, so the claim follows from \cref{lem:type-substitution}. Finally, since $v$ and $x$ have the same type \cref{lem:substitution-type-preservation} implies that $\typerel{\Xi}{\Gamma}{\Sigma}{e_2[v/x]}{\tau}$ as desired.
+
+%     \item[\infrule{E-tapp-tlam}]
+%     Write the type of $\objTapp{\objForall{X}{e}}{\tau'}$ as $\tau[\tau'/X]$. By inversion we have $\typerel{\Xi}{\Gamma}{\Sigma}{\objForall{X}{e}}{\typeForall{X}{\tau}}$, and again by inversion this implies that $\typerel{\Xi,X}{\Gamma}{\Sigma}{e}{\tau}$. But then it follows from [TODO lemma 0] that $\typerel{\Xi}{\Gamma[\tau'/X]}{\Sigma}{e}{\tau[\tau'/X]}$, and since $\Gamma$ does not contain $X$ (since $\Xi$ does not) we have $\Gamma[\tau'/X] = \Gamma$, so the claim follows.
+
+    \item[\ruleref{Eunfoldfold}]
+    Assume that
+    %
+    \begin{equation*}
+        e = \expUnfold{\expFold{v}}
+        \quad \text{and} \quad
+        e' = v.
+    \end{equation*}
+    %
+    Then \cref{enum:inversion-unfold} implies that $\expUnfold{\expFold{v}}$ and $\expFold{v}$ have types $\tau'[\typeRec{\alpha}{\tau'}/\alpha]$ and $\typeRec{\alpha}{\tau'}$ respectively, and \cref{enum:inversion-fold} in turn implies that $v$ has type\footnote{As in the case \ruleref{Eunpackpack} this is not strictly true.} $\tau'[\typeRec{\alpha}{\tau'}/\alpha]$, as desired.
+
+    \item[\ruleref{Ealloc}]
+    In this case $e = \expRef{v}$, $e' = l$, $\sigma' = \sigma[l \mapsto v]$, and $l \not\in \dom \sigma$. By \cref{enum:inversion-ref} we have $\typerel{\Xi}{\Gamma}{\Sigma}{\expRef{v}}{\typeRef{\tau'}}$ for some $\tau'$, and we further have $\typerel{\Xi}{\Gamma}{\Sigma}{v}{\tau'}$. Now letting $\Sigma' = \Sigma[l \mapsto \tau']$, it follows from \ruleref{Tloc} that $\typerel{\Xi}{\Gamma}{\Sigma'}{l}{\typeRef{\Sigma'(l)}}$, so we have both $\stotype{\Xi}{\Gamma}{\Sigma'}{\sigma'}$ and $\typerel{\Xi}{\Gamma}{\Sigma'}{l}{\typeRef{\tau'}}$.
+
+    \item[\ruleref{Estore}]
+    Here $e = \expAss{l}{v}$, $e' = \expUnit$ and $\sigma' = \sigma[l \mapsto v]$ with $l \in \dom{\sigma}$. Notice first that $\expAss{l}{v}$ and $\expUnit$ both have type $\typeUnit$ by \cref{enum:inversion-ass} and \itemref{enum:inversion-unit}, so that $\typerel{\Xi}{\Gamma}{\Sigma}{\expUnit}{\typeUnit}$ as required.
+
+    By inversion we also have $\typerel{\Xi}{\Gamma}{\Sigma}{l}{\typeRef{\tau'}}$ and $\typerel{\Xi}{\Gamma}{\Sigma}{v}{\tau'}$ for some type $\tau'$, and \cref{enum:inversion-location} implies that $\tau' = \Sigma(l)$. Furthermore, since $\stotype{\Xi}{\Gamma}{\Sigma}{\sigma}$, we have $\typerel{\Xi}{\Gamma}{\Sigma}{\sigma(l)}{\Sigma(l)}$. Since $v = \sigma'(l)$ it thus follows that $\typerel{\Xi}{\Gamma}{\Sigma}{\sigma'(l)}{\Sigma(l)}$, so $\stotype{\Xi}{\Gamma}{\Sigma}{\sigma'}$.
+
+    \item[\ruleref{Eload}]
+    Here $e = \expLoad{l}$, $e' = v$ and $\sigma = \sigma'$ with $\sigma(l) = v$. It follows from \cref{enum:inversion-load} that $\typerel{\Xi}{\Gamma}{\Sigma}{l}{\typeRef{\tau}}$, and \cref{enum:inversion-location} implies that $\typeRef{\tau} = \typeRef{\Sigma(l)}$, which in turn yields $\tau = \Sigma(l)$. But since $\stotype{\Xi}{\Gamma}{\Sigma}{\sigma}$ we have $\typerel{\Xi}{\Gamma}{\Sigma}{\sigma(l)}{\Sigma(l)}$, or in other words, $\typerel{\Xi}{\Gamma}{\Sigma}{v}{\tau}$.
+\end{proofsec}
+\end{proof}

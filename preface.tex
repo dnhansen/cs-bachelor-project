@@ -1,0 +1,37 @@
+\chapter{Preface}
+
+For the computer scientist, programming languages and programming in general are both an important tool and an interesting and fruitful subject of study. While we will briefly discuss practical applications of type systems, this report is chiefly concerned with the latter: In particular, we study how to describe programming languages and their semantics in a manner that is amenable to proof, how type systems give guarantees on runtime safety of programs, and how we can talk about two programs being \enquote{the same}.
+
+The genesis of this project was a project course on logical relations led by Lars Birkedal and Simon Oddershede Gregersen in the autumn of 2023, the purpose of my own project essentially being to write up the solutions to exercises in all their gory detail, for the benefit of current and future students. While this purpose can hardly be said to have survived the writing process, I have tried as far as possible to be clear and pedagogical, with the hope that the present report reads more like a textbook than a journal article.
+
+There is of course another motivation for writing a report like this one: Namely, obtaining a bachelor's degree. And the report must then, in part, show that I have learnt enough to warrant this distinction. Hopefully this is the case, though I will certainly claim that the process of writing it has been a great learning experience.
+
+The end result is a report that is, quite frankly, all over the place. I have been rather (some would say too) detailed in my presentation of the syntax and semantics of programming languages, something which I have rarely, if at all, seen done in the introductory literature. On the other hand I make liberal (some would say gratuitous) references to category theory, topology, algebra and even measure theory to try to explicate the concepts being studied. I hope that the reader not familiar with these topics will forgive me.
+
+
+\section*{Organisation}
+
+\Cref{chap:preliminaries} is a miscellany of foundational topics that appear throughout the report. It covers the elementary theory of inference rules, induction and recursive definitions, making ample use of \cref{app:order-theory} on order theory. Next abstract syntax is introduced, and we give a rather thorough, if informal, treatment of abstract syntax trees in the style of \textcite{harper-pl}. Then follows short sections on reduction, partitions and coinduction, whose purpose is more or less to introduce definitions and fix notation.
+
+In \cref{chap:language-fundamentals} we introduce the two languages we study throughout the rest of the report. These are the pure language \langpure{} which is a variant of Girard's System $\mathbf{F}$, and the extension \langrecref{} which among other things include references as well as recursive functions and types. After a tour of the type system of these languages, we prove some of their fundamental properties. Keywords are \enquote{inversion} and \enquote{canonical forms}.
+
+\Cref{chap:progress-preservation,chap:logical-predicates} are both concerned with type safety. The first of these chapters proves type safety for \langrecref{} using the classic approach of \enquote{progress and preservation}. The second instead focuses on \langpure{} and uses a logical predicate to prove type safety.
+
+Next, \cref{chap:logical-relations} introduces (binary) logical relations, which are extensions of logical predicates to two arguments. We consider how to define equivalence of programs, and define a logical relation as a tool to prove equivalence of concrete programs.
+
+\Cref{app:order-theory} is a fairly extensive and mostly self-contained appendix covering elementary order theory with a view towards the fixed-point theorems we need to get us off the ground in \cref{chap:preliminaries}. We generalise the theory beyond what is necessary for our purposes: It turns out that the theory underlying recursive definitions of things like type systems or operational semantics appears in a more general context in mathematics, in particular in topology and measure theory. While a more elementary approach is sufficient to cover our applications of the theory, we wish to highlight exactly what it is that makes type systems different from e.g. topologies or $\sigma$-algebras. This all but necessitates the use of transfinite induction and recursion, but we provide an elementary path through the material for readers either not familiar with the requisite set theory, or readers simply not interested in the aforementioned generalisations.
+
+\Cref{app:syntax-semantics} collects the syntax and semantics of our languages. To avoid cluttering the body of the text, this is the only place the complete specifications of the languages are located. To mitigate flipping to and from this appendix, we thus encourage the reader to either open a second copy of this report in another window, or to use a pdf-reader with a \enquote{back}-button. Every cross reference includes a link for precisely this purpose.
+
+Finally, after the bibliography are located two fairly extensive indices that will hopefully help the reader find their way through the report.
+
+
+\section*{Acknowledgments}
+
+I am first and foremost greatly indebted to my supervisor Lars Birkedal, and I thank him for his guidance and generosity throughout the project. Thanks are also due to Simon Oddershede Gregersen for his guidance on the logical relations project, to Amin Timany for preparing the initial specification of the languages studied in the project, and to Lau Skorstengaard without whose notes on logical relations there might not have been a project in the first place. Finally I thank Gerth Stølting Brodal and Asger Klinkby Jørgensen for inadvertently inspiring me to study computer science.
+
+\enlargethispage{2\onelineskip}
+
+\vspace{\baselineskip}
+
+\noindent Aarhus, June 2024 \hfill Danny Nygård Hansen

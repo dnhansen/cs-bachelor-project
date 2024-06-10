@@ -1,0 +1,639 @@
+\chapter[Logical relations][Logical relations]{Logical Relations}\label{chap:logical-relations}
+
+Having studied logical predicates we now move on to binary logical relations. While the construction of such a relation is very similar to the construction of its unary counterpart, it will be used very differently. In particular we will discuss how to tell whether two programs are in some sense equivalent, and how to use logical relations to prove that they are.
+
+
+\section{Equational reasoning}
+
+In the study of programming languages we are obviously interested in the evaluation or reduction of programs, as we have been in previous chapters. But there are other questions one might ask about languages, and in this chapter we are concerned with the question of when two programs are \enquote{equivalent} in some sense.
+
+There are various ways of defining equivalence, or equality, of programs, and to take some examples:
+%
+\begin{itemize}
+    \item \blfootnote{The (untyped) $\lambda$-calculus is an equational theory usually defined by axioms and rules, namely by the axiom schemas
+    %
+    \begin{align}
+        (\lambda x.M)N &\sim M[N/x], \label{eq:lambda-beta} \tag{$\beta$} \\
+        \lambda x.Mx &\sim M, \label{eq:lambda-eta} \tag{$\eta$}
+    \end{align}
+    %
+    along with the axioms for compatible equivalence relations. The axiom \cref{eq:lambda-eta} is sometimes omitted. \par Compatible equivalence relations are also induced by $\beta$- and $\eta$-reduction, which are given by
+    %
+    \begin{align*}
+        \bigl( (\lambda x.M)N, M[N/x] \bigr) &\in \beta, \\
+        ( \lambda x.Mx, M ) &\in \eta.
+    \end{align*}
+    %
+    Letting $\beta\eta \defeq \beta \union \eta$, these induce compatible equivalence relations $=_\beta$ and $=_{\beta\eta}$. One can then show that the equivalence $\sim$ is precisely $=_\beta$ or $=_{\beta\eta}$, depending on the inclusion of the axiom \cref{eq:lambda-eta} in $\sim$ (cf. \cite[Propositions~3.2.1 and 3.3.2]{barendregt-lambda}).}%
+    Most directly one might postulate axioms and inference rules for equivalence. For instance, one axiom might be the equivalence of $\expProjl{\expPair{e_1}{e_2}}$ and $e_1$, since these expressions are clearly supposed to be identical. A rule might then be, using our usual notation for inference rules,
+    %
+    \begin{equation*}
+        \inferrule{
+            e_1 \sim e_2
+        }{
+            \expLam{x}{e_1} \sim \expLam{x}{e_2}
+        },
+    \end{equation*}
+    %
+    saying that two lambda expressions are equivalent if their bodies are.
+
+    The desire is then for the additional structure of the language (i.e., its operational semantics and type system if it has one) to respect these equivalences somehow.
+
+    \item If a language has a notion of reduction $R$, then we can simply let this induce a compatible equivalence relation $=_R$ (as described in \cref{sec:reduction-in-ASTs}) and take this to describe equivalence of programs. Of course, $=_R$ depends on which set of contexts we use to induce the compatible one-step reduction $\to_R$: We could consider only \emph{evaluation} contexts, some other restricted set of contexts, or (as is standard in the untyped $\lambda$-calculus) use all contexts.
+
+    \item Below we consider \keyword{contextual equivalence}, by which expressions are considered equivalent if they \enquote{behave} the same in all contexts with respect to the operational semantics.
+
+    \item We finally define a \keyword{logical relation}, which is reminiscent of the logical predicate we defined in \cref{chap:logical-predicates}, except that the interpretation of e.g. a type will be a set of \emph{pairs} of expressions. This then also yields a notion of equivalence of programs.
+\end{itemize}
+%
+The definition of an equational theory is obviously complicated by the presence of a type system, and this will concern us below.
+
+
+\section{Contextual equivalence}
+
+Before defining contextual equivalence we discuss some desirable properties that such a notion of equivalence should have.
+
+\subsection{Adequate congruences}
+
+Let us first be more precise about what kinds of relations we are studying:
+
+\blfootnote{Our treatment of congruences is adapted from \textcite{birkedal-countable-nondeterminism}.}
+
+\newcommand{\typeindrel}[6]{\typerel{#1}{#2}{#3\mathrel{#4}#5}{#6}}
+\newcommand{\kleene}{\simeq}
+\newcommand{\setExpWT}[3]{\setExp_{#1,#2,#3}} % WT = well-typed
+
+\begin{definition}[Type-indexed relation]
+    A \keyword{type-indexed relation}\index[subject]{type-indexed relation} is a set of tuples $(\Xi,\Gamma,e,e',\tau)$, where $e_1$ and $e_2$ are expressions such that $\typerel{\Xi}{\Gamma}{e}{\tau}$ and $\typerel{\Xi}{\Gamma}{e'}{\tau}$. If $\calR$ is such a relation, then we write $\typeindrel{\Xi}{\Gamma}{e}{\calR}{e'}{\tau}$\index[notation]{rzzz-typeindrel@$\calR$ (type-indexed relation)} if $(\Xi,\Gamma,e,e',\tau) \in \calR$.
+\end{definition}
+%
+If $\Xi = \emptyset$ or $\Gamma = \bot$, then we omit these from the notation as usual.
+
+Put another way, each set $\Xi$ of type variables, type context $\Gamma$, and type $\tau$ gives rise to a relation $\calR_{\Xi,\Gamma,\tau}$ on the set
+%
+\begin{equation*}
+    \setExpWT{\Xi}{\Gamma}{\tau}
+        \defeq \set{e \in \setExp}{\typerel{\Xi}{\Gamma}{e}{\tau}}
+\end{equation*}
+%
+such that $(e,e') \in \calR_{\Xi,\Gamma,\tau}$ if and only if $\typeindrel{\Xi}{\Gamma}{e}{\calR}{e'}{\tau}$. Thus we may transfer properties and constructions pertaining to binary relations on a set to type-indexed relations: We say that $\calR$ has property $P$ if all $\calR_{\Xi,\Gamma,\tau}$ have property $P$. For instance, $\calR$ is an equivalence relation just when all $\calR_{\Xi,\Gamma,\tau}$ are equivalence relations on their respective sets.
+
+Similarly, if $\calS$ is another type-indexed relation then we may form the composition\index[subject]{composition!of type-indexed relations} $\calS \circ \calR$\index[notation]{****-SR@$\circ$ (composition of type-indexed relations)} by letting
+%
+\begin{equation*}
+    (\calS \circ \calR)_{\Xi,\Gamma,\tau}
+        \defeq \calS_{\Xi,\Gamma,\tau} \circ \calR_{\Xi,\Gamma,\tau}.
+\end{equation*}
+%
+We can in particular form powers $\calR^n$\index[notation]{rzzz-Rn@$\calR^n$}, and in the case $n = 0$ we get the identity\index[subject]{type-indexed relation!identity} $\calI$\index[notation]{izzz-I@$\calI$} with the property that $\calI_{\Xi,\Gamma,\tau}$ is just equality on $\setExpWT{\Xi}{\Gamma}{\tau}$. Furthermore, the inverse\index[subject]{inverse!of type-indexed relation} of $\calR$ is given by $(\calR\inv)_{\Xi,\Gamma,\tau} \defeq (\calR_{\Xi,\Gamma,\tau})\inv$\index[notation]{rzzz-Rinv@$\calR\inv$}.
+
+The type-indexed relations of interest should of course respect the structure of the language somehow, and in particular respect the type system. We formalise this by requiring that a relation satisfy rules derived from the typing rules. For instance, in the rule
+%
+\begin{equation*}
+    \inferrule[T-pair]{
+        \typerel{\Xi}{\Gamma}{e_1}{\tau_1}
+        \and
+        \typerel{\Xi}{\Gamma}{e_2}{\tau_2}
+    }{
+        \typerel{\Xi}{\Gamma}{\expPair{e_1}{e_2}}{\typeProd{\tau_1}{\tau_2}}
+    }
+\end{equation*}
+%
+we replace occurrences of $e_i$ with $e_i \mathrel{\calR} e_i'$ to obtain the rule
+%
+\begin{equation*}
+    \ruleRpair*.
+\end{equation*}
+%
+That is, $\calR$ should be \enquote{compositional} in the sense that two expressions of the same form are equivalence whenever their corresponding subexpressions are equivalent. We collect all these so-called \keyword{compatibility rules} in \cref{sec:compatibility-rules}.
+
+\begin{definition}
+    Let $\calR$ be a type-indexed relation. Then $\calR$ is \keyword{compatible}\index[subject]{compatibility!of type-indexed relations} if it satisfies the rules in \cref{sec:compatibility-rules}, and a \keyword{congruence}\index[subject]{congruence relation} if it is a compatible equivalence relation.
+\end{definition}
+%
+A congruence thus gives rise to an equational theory that respects types.
+
+Finally, we also want a congruence to say something reasonable about which programs are equivalent. As described above, we desire a notion of equivalence based on the execution of programs, motivating the following definitions. First we say that a \keyword{complete program}\index[subject]{complete program} is a closed expression of type $\typeBool$. Then we define:
+
+\begin{definition}[Kleene equality]
+    \label{def:kleene-equality}
+    Two complete programs $e_1$ and $e_2$ are \keyword{Kleene equal}\index[subject]{Kleene equality} if for all values $v$ of type $\typeBool$, $e_1 \step^* v$ if and only if $e_2 \step^* v$. In this case we write $e_1 \kleene e_2$\index[notation]{***-kleene@$\kleene$ (Kleene equality)}.
+\end{definition}
+%
+Kleene equality is clearly an equivalence relation. Depending on the language under consideration, different definitions of Kleene equality are useful. We return to this point in \cref{sec:forall-vs-exists}.
+
+
+\begin{definition}
+    \label{def:adequate-relation}
+    A type-indexed relation $\calR$ is \keyword{adequate}\index[subject]{adequate type-indexed relation} if $\typeindrel{}{}{e_1}{\calR}{e_2}{\typeBool}$ implies $e_1 \kleene e_2$.
+\end{definition}
+
+\blfootnote{This list of properties and the proof of \cref{prop:largest-adequate-congruence} are based on \textcite[Theorem~7.5.3]{pitts-typed-operational-reasoning}.}%
+Let us note some (mostly) easy to verify properties of type-indexed relations:
+%
+\begin{itemize}
+    \item The identity relation $\calI$ is an adequate congruence. Conversely, every compatible relation contains $\calI$, i.e., is reflexive (this is an easy proof by induction on the compatibility rules in \cref{sec:compatibility-rules}).
+    
+    \item A composition of adequate relations is adequate, and the inverse of an adequate relation is adequate. The same is true for compatible relations.
+    
+    \item A union of adequate relations is adequate. A \emph{nonempty} union of compatible relations is also compatible if it is transitive (this is less obvious, see the proof of \cref{prop:largest-adequate-congruence}).
+\end{itemize}
+
+Below\blfootnote{Note that though we are working in a power set, we cannot appeal to Knaster--Tarski's fixed-point theorem (cf. \cref{thm:knaster-tarski}) to establish the existence of a largest adequate congruence. For note that while the rules in \cref{sec:compatibility-rules} that define compatibility do \textdash when taken alone \textdash give rise to a generating function, neither the definition of a type-indexed relation nor of adequacy do.} we will explicitly construct the adequate congruence of interest, and it will turn out that this is the coarsest, or largest, adequate congruence. However, it is fairly easy to prove that this exists without constructing it explicitly:
+
+\begin{proposition}
+    \label{prop:largest-adequate-congruence}
+    There exists a coarsest adequate and compatible type-indexed relation. Furthermore, this is a congruence.
+\end{proposition}
+
+\begin{proof}
+    Consider the relation
+    %
+    \begin{equation*}
+        \calS
+            \defeq \bigunion \set{\calR}{\text{$\calR$ is adequate and compatible}}.
+    \end{equation*}
+    %
+    Then $\calS$ contains $\calI$ and is thus reflexive, and it is also symmetric and transitive since the set above is closed under composition and taking inverses. Furthermore, $\calS$ is adequate.
+
+    It remains to be shown that a nonempty union of compatible relations is compatible if it is transitive. This is proved by induction on the rules in \cref{sec:compatibility-rules}. For rules with a single hypothesis this is immediate, and for rules with multiple hypothesis it follows by using transitivity. As an example, consider the rule \ruleref{Rpair} and assume that $\typeindrel{\Xi}{\Gamma}{e_i}{\calS}{e_i'}{\tau_i}$ for $i \in \{1,2\}$. There then exist compatible $\calR_1,\calR_2 \subseteq \calS$ such that $\typeindrel{\Xi}{\Gamma}{e_i}{\calR_i}{e_i'}{\tau_i}$, and since each $\calR_i$ is compatible (and in particular reflexive) we have
+    %
+    \begin{equation*}
+        \typeindrel{\Xi}{\Gamma}{\expPair{e_1}{e_2}}{\calR_1}{\expPair{e_1'}{e_2}}{\typeProd{\tau_1}{\tau_2}}
+    \end{equation*}
+    %
+    and
+    %
+    \begin{equation*}
+        \typeindrel{\Xi}{\Gamma}{\expPair{e_1'}{e_2}}{\calR_2}{\expPair{e_1'}{e_2'}}{\typeProd{\tau_1}{\tau_2}}.
+    \end{equation*}
+    %
+    These judgments then also hold with each $\calR_i$ replaced with $\calS$, so the claim follows from transitivity of $\calS$.
+\end{proof}
+
+
+\subsection{Typed contexts}\index[subject]{context!typing}
+
+
+% \newcommand{\ctxtype}[4]{%
+%     \ifstrempty{#1}%
+%         {%
+%             \ifstrempty{#3}%
+%             {%
+%                 #2 \multimap #4%
+%             }{%
+%                 #2 \multimap (#3 \triangleright #4)%
+%             }%
+%         }{%
+%             \ifstrempty{#3}%
+%             {%
+%                 (#1 \triangleright #2) \multimap #4%
+%             }{%
+%                 (#1 \triangleright #2) \multimap (#3 \triangleright #4)%
+%             }%
+%         }%
+% }
+
+
+
+
+\newcommand{\tvaraux}[1]{\ifstrempty{#1}{}{#1\mid}}
+
+\newcommand{\ctxtype}[6]{%
+    \ifstrempty{#2}%
+        {%
+            \ifstrempty{#5}%
+            {%
+                #3 \multimap #6%
+            }{%
+                #3 \multimap (\tvaraux{#4} #5 \triangleright #6)%
+            }%
+        }{%
+            \ifstrempty{#5}%
+            {%
+                (\tvaraux{#1} #2 \triangleright #3) \multimap #6%
+            }{%
+                (\tvaraux{#1} #2 \triangleright #3) \multimap (\tvaraux{#4} #5 \triangleright #6)%
+            }%
+        }%
+}
+
+
+% \newcommand{\ctxtype}[4]{(#1 \triangleright #2) \multimap (#3 \triangleright #4)}
+\newcommand{\ctxhastype}[7]{\hastype{#1}{\ctxtype{#2}{#3}{#4}{#5}{#6}{#7}}}
+
+Recall from \cref{sec:reduction-in-ASTs} that a context, roughly speaking, is an expression in which a subexpression is replaced by the hole $\hole$. In order to define contextual equivalence we first need to consider which contexts we may apply to which expressions. Of course the argument to a context will always be well-typed (in some type context), and the resulting expression should also be well-typed.
+
+\blfootnote{It is also possible to define context types using typing rules, just as we have done for types of expressions. One can then show that typed contexts preserve properties so that they obey our definition of typed contexts (see e.g. \cite[§46.1]{harper-pl}).}%
+We extend the typing of expressions to contexts as follows: If $C$ is a context with the property that $\typerel{\Xi}{\Gamma}{e}{\tau}$ implies $\typerel{\Xi'}{\Gamma'}{C[e]}{\tau'}$, then we say that the type of $C$ is $\ctxtype{\Xi}{\Gamma}{\tau}{\Xi'}{\Gamma'}{\tau'}$\index[notation]{***-arr@$\multimap$ (context typing)} and write $\ctxhastype{C}{\Xi}{\Gamma}{\tau}{\Xi'}{\Gamma'}{\tau'}$. If any of $\Xi$, $\Xi'$, $\Gamma$ or $\Gamma'$ are empty then we omit them from the notation, for instance writing $\ctxtype{}{}{\tau}{}{}{\tau'}$.
+
+Composition of typed contexts is naturally well-defined:
+
+\begin{lemma}
+    \label{lem:context-type-composition}
+    If $\ctxhastype{C}{\Xi}{\Gamma}{\tau}{\Xi'}{\Gamma'}{\tau'}$ and $\ctxhastype{C'}{\Xi'}{\Gamma'}{\tau'}{\Xi''}{\Gamma''}{\tau''}$ are typed contexts, then $\ctxhastype{C' \circ C}{\Xi}{\Gamma}{\tau}{\Xi''}{\Gamma''}{\tau''}$.
+\end{lemma}
+
+\begin{proof}
+    This is obvious from the definition of composition of contexts (cf. \cref{sec:reduction-in-ASTs}) and the definition of context types.
+\end{proof}
+
+
+\blfootnote{Some authors define compatibility using contexts directly, e.g. \textcite[§46.1]{harper-pl} (though note that \citeauthor{harper-pl} only considers compatibility of equivalence relations, and thus jumps straight to congruences).}%
+Typed contexts also gives us an alternative definition of compatibility of type-indexed relations which is more closely related to the notion of contextual equivalence which we define below.
+
+\begin{lemma}
+    \label{lem:compatibility-equivalent-property}
+    A type-indexed relation $\calR$ is compatible if and only if
+    %
+    \begin{equation*}
+        \typeindrel{\Xi}{\Gamma}{e}{\calR}{e'}{\tau}
+        \quad \text{implies} \quad
+        \typeindrel{\Xi'}{\Gamma'}{C[e]}{\calR}{C[e']}{\tau'}
+    \end{equation*}
+    %
+    for all contexts $\ctxhastype{C}{\Xi}{\Gamma}{\tau}{\Xi'}{\Gamma'}{\tau'}$.
+\end{lemma}
+
+\begin{proof}
+    Since $\calR$ is automatically reflexive, each direction follows by induction: The \enquote{only if} direction follows by induction on the structure on $C$, and the \enquote{if} direction follows by induction on the compatibility rules in \cref{sec:compatibility-rules}.
+\end{proof}
+
+
+\subsection{Contextual equivalence}\label{sec:contextual-equivalence}
+
+\newcommand{\ctxequivrel}{\cong^{\mathit{ctx}}}
+\newcommand{\ctxequiv}[5]{%
+    \ifstrempty{#1}{%
+        #2 \vdash #3 \ctxequivrel #4 : #5
+    }{%
+        #1 \mid #2 \vdash #3 \ctxequivrel #4 : #5
+    }%
+}
+
+
+A \keyword{program context}\index[subject]{context!program} is a context of type $\ctxtype{\Xi}{\Gamma}{\tau}{}{}{\typeBool}$.
+
+\begin{definition}[Contextual equivalence]
+    If $\typerel{\Xi}{\Gamma}{e_1}{\tau}$ and $\typerel{\Xi}{\Gamma}{e_2}{\tau}$, then $e_1$ and $e_2$ are \keyword{contextually equivalent}\index[subject]{contextual equivalence} if $C[e_1] \kleene C[e_2]$ for all program contexts $\ctxhastype{C}{\Xi}{\Gamma}{\tau}{}{}{\typeBool}$. In this case we write $\ctxequiv{\Xi}{\Gamma}{e_1}{e_2}{\tau}$\index[notation]{***-ctxequiv@$\ctxequivrel$}.
+\end{definition}
+%
+Contextual equivalence is indeed an equivalence relation since Kleene equality is; see also \cref{sec:forall-vs-exists}.
+
+
+
+
+\begin{theorem}
+    \label{thm:contextual-equivalence-coarsest}
+    Contextual equivalence is the coarsest adequate congruence.
+\end{theorem}
+
+\begin{proof}
+    Contextual equivalence is clearly adequate since the hole is a context of type $\ctxtype{}{}{\typeBool}{}{}{\typeBool}$. We show compatibility using the characterisation in \cref{lem:compatibility-equivalent-property}, so assume that $\ctxequiv{\Xi}{\Gamma}{e_1}{e_2}{\tau}$ and let $\ctxhastype{C}{\Xi}{\Gamma}{\tau}{\Xi'}{\Gamma'}{\tau'}$. Given a program context $\ctxhastype{C'}{\Xi'}{\Gamma'}{\tau'}{}{}{\typeBool}$ we have $\ctxhastype{C' \circ C}{\Xi}{\Gamma}{\tau}{}{}{\typeBool}$ by \cref{lem:context-type-composition}, so $(C' \circ C)[e_1] \kleene (C' \circ C)[e_2]$ since $e_1$ and $e_2$ are contextually equivalence. But this means that $C'[C[e_1]] \kleene C'[C[e_2]]$, so since $C'$ was arbitrary $C[e_1]$ and $C[e_2]$ are also contextually equivalent.
+
+    Conversely let $\calR$ be an adequate congruence. If $\typeindrel{\Xi}{\Gamma}{e_1}{\calR}{e_2}{\tau}$ then $\typeindrel{}{}{C[e_1]}{\calR}{C[e_2]}{\typeBool}$ for any program context $C$ by compatibility, and adequacy implies that $C[e_1] \kleene C[e_2]$.
+\end{proof}
+
+\section{A logical relation}
+
+% \renewcommand{\valInt}[1]{\calV\llbracket#1\rrbracket}
+% \renewcommand{\expInt}[1]{\calE\llbracket#1\rrbracket}
+% \renewcommand{\conInt}[1]{\calG\llbracket#1\rrbracket}
+
+It is usually difficult to prove the contextual equivalence of two expressions directly. However, due to the characterisation in \cref{thm:contextual-equivalence-coarsest} of contextual equivalence as the coarsest adequate congruence \textdash and even the coarsest adequate and compatible relation by \cref{prop:largest-adequate-congruence} \textdash we can instead use \emph{coinduction} (cf. \cref{sec:coinduction}): In order to prove the judgment $\ctxequiv{\Xi}{\Gamma}{e_1}{e_2}{\tau}$, we instead show that $\typeindrel{\Xi}{\Gamma}{e_1}{\calR}{e_2}{\tau}$ for some other adequate and compatible relation $\calR$. We next define such a relation.
+
+The approach is roughly the same as in \cref{chap:logical-predicates} when we defined a logical \emph{predicate} in order to study type safety, except that the interpretations of values, expressions and so on are now sets of \emph{pairs}.
+
+
+\subsection{Interpretations of syntax}
+
+We define the same kinds of interpretations as we did in \cref{chap:logical-predicates}, and we use the same notation.
+
+
+\subsubsection{Interpretation of type variables}\index[subject]{interpretation of type variables!logical relation}
+
+\newcommand{\setRel}{\mathit{Rel}}
+
+As was the case in \cref{sec:interpretations-of-syntax-predicates}, we begin by defining the interpretation of type variables. Previously we interpreted a type variable $\alpha$ as a semantic type, i.e., as a set of closed values. Our approach in the second case is similar, in that an interpretation of $\alpha$ will be an arbitrary \emph{binary relation} on closed values, i.e., a subset of $\setCVal \prod \setCVal$. We let $\setRel \defeq \powerset{\setCVal^2}$\index[notation]{Rel@$\setRel$} be the collection of such relations, and we can thus define
+%
+\begin{equation*}
+    \tvarInt{\Xi} \defeq \set{ \rho \colon \setTVar \pto \setRel }{ \dom{\rho} = \Xi } \index[notation]{dzzz-DXi@$\tvarInt{\Xi}$}
+\end{equation*}
+%
+for any finite set $\Xi$ of type variables.
+
+
+\subsubsection{Expression interpretation}\index[subject]{expression interpretation!logical relation}
+
+Let us first try to adapt our definition of the expression interpretation for logical predicates in \cref{sec:expression-interpretation-predicate}: Given a type $\tau$, the expression interpretation $\expInt{\Xi}{\tau}{\rho}$ should now be a set of pairs $(e_1,e_2)$ of expressions with the property that if somehow $(e_1,e_2) \step^* (e_1',e_2')$ with $(e_1',e_2')$ irreducible, then $(e_1',e_2')$ lies in $\valInt{\Xi}{\tau}{\rho}$. Of course we interpret the relation \enquote{$\step$} as acting elementwise on the pair $(e_1,e_2)$, so the assumption means that $e_1 \step^* e_1'$ and $e_2 \step^* e_2'$. Similarly we interpret \enquote{irreducible} to mean that both $e_1'$ and $e_2'$ are irreducible.
+
+Rephrasing, $(e_1,e_2)$ lies in $\expInt{\Xi}{\tau}{\rho}$ if whenever $e_1'$ and $e_2'$ are irreducible and $e_i \step^* e_i'$, then $(e_1',e_2')$ lies in $\valInt{\Xi}{\tau}{\rho}$. This indeed works as a definition.
+
+However, we could also define the expression interpretation as follows: Recall that we in \cref{sec:expression-interpretation-predicate} discussed an alternative definition of the expression interpretation in the case of logical predicates. Namely, instead of requiring that \emph{whenever} $e_1$ and $e_2$ reduce to irreducible expressions $e_1'$ and $e_2'$ these should lie in the correct value interpretation, we require that there \emph{exists} an element of the correct value interpretation to which $e_1$ and $e_2$ reduce.
+
+We adopt the second approach here. That is, we define the expression interpretation by
+%
+\begin{equation*}
+    \expInt{\Xi}{\tau}{\rho}
+        \defeq \set[\Bigg]{
+            (e_1,e_2) \in \setCExp^2
+        }{
+            \begin{aligned}
+                & \exists (v_1,v_2) \in \valInt{\Xi}{\tau}{\rho} \colon \\
+                & e_1 \step^* v_1 \text{ and } e_2 \step^* v_2
+            \end{aligned}
+        }. \index[notation]{ezzz-EXitaurho@$\expInt{\Xi}{\tau}{\rho}$}
+\end{equation*}
+%
+In \cref{sec:forall-vs-exists} we discuss the nuances between the two definitions in more detail.
+
+
+\subsubsection{Value interpretation}\index[subject]{value interpretation!logical relation}
+
+We finally define the value interpretation. As in the case of logical predicates we define the value interpretation of each sort of type individually. In the case of the unit type this is trivial:
+%
+\begin{equation*}
+    \valInt{\Xi}{\typeUnit}{\rho}
+        \defeq \{ (\expUnit, \expUnit) \}. \index[notation]{vzzz-VXitaurho@$\valInt{\Xi}{\tau}{\rho}$}
+\end{equation*}
+%
+For product types we have in mind that two pairs $\expPair{v_1}{v_2}$ and $\expPair{v_1'}{v_2'}$ are equivalent if the entries are pairwise equivalent, i.e., if $v_1$ and $v_1'$ are equivalent, and if $v_2$ and $v_2'$ are equivalent. Hence we obtain
+%
+\begin{equation*}
+    \valInt{\Xi}{\typeProd{\tau_1}{\tau_2}}{\rho}
+        \defeq \set[\Bigg]{
+            \bigl( \expPair{v_1}{v_2}, \expPair{v_1'}{v_2'} \bigr)
+        }{
+            \begin{aligned}
+                & (v_1,v_1') \in \valInt{\Xi}{\tau_1}{\rho}, \\
+                & (v_2,v_2') \in \valInt{\Xi}{\tau_2}{\rho}
+            \end{aligned}
+        }.
+\end{equation*}
+%
+Sum types are perhaps slightly less intuitive. A value of a sum type $\typeSum{\tau_1}{\tau_2}$ is either on the form $\expInjl{v}$ or $\expInjr{v}$, and while such two values are of course not \emph{equal}, they are also not supposed to be equivalent: For recall that a sum type is supposed to be a sort of disjoint union\footnote{More properly a coproduct, but in the analogy with disjoint unions it is more apparent that $\expInjl{v}$ and $\expInjr{v}$ should not be equivalent.} whose \enquote{tags} are the injections $\expInjl{}$ and $\expInjr{}$, we require that $\expInjl{v}$ and $\expInjr{v}$ are not equivalent. Thus we define
+%
+\begin{align*}
+    \valInt{\Xi}{\typeSum{\tau_1}{\tau_2}}{\rho}
+        &\defeq \set{(\expInjl{v},\expInjl{v'})}{(v,v') \in \valInt{\Xi}{\tau_1}{\rho}} \\
+        &\mathrel{\phantom{\defeq}} \union \set{(\expInjr{v},\expInjr{v'})}{(v,v') \in \valInt{\Xi}{\tau_2}{\rho}}.
+\end{align*}
+%
+Notice that the union is indeed disjoint.
+
+In the case of function types we seemingly have more freedom to choose when two values of the same function type are equivalent. Consider for instance the expressions
+%
+\begin{equation*}
+    \expLam{x}{\expUnit}
+    \quad \text{and} \quad
+    \expLam{x}{\expProjl{\expPair{\expUnit}{\expUnit}}}.
+\end{equation*}
+%
+Clearly these are \emph{extensionally} equal since whenever they are applied to the same value they both eventually reduce to $\expUnit$. But they are not obviously \emph{intensionally} equal, in that they describe functions that have different meanings or \enquote{senses}. To see this distinction more clearly, note that the predicates \enquote{$n > 2$} and \enquote{the equation $a^n + b^n = c^n$ has no positive integer solution} have the same extension (i.e., truth value) when considered as funtions on $\naturals$, but that this is highly nontrivial.
+
+Furthermore, if we think of function expressions as representing algorithms, then extensional equality of two such expressions corresponds to the two represented algorithms being equivalent in the sense that they solve the same algorithmic problem. But notice that extensional equality cannot capture the computational complexity of these algorithms.
+
+If we agree to only consider the \emph{result} of computations, then we may adopt an extensional view of equality of function expressions\footnote{This is of course the standard approach in mathematics. But consider for instance the following: The polynomials $0$ and $x^2 - x$ in $\bbF_2[x]$ (where $\bbF_2$ is the field with two elements) are distinct polynomials, but the corresponding polynomial functions $x \mapsto 0$ and $x \mapsto x^2 - x$ are equal, since they are both identically zero on $\bbF_2$. Since functions in mathematics \emph{by definition} are extensional (up to a choice of codomain), we thus cannot with no further considerations model polynomials using functions. Since functions in our language are not defined extensionally but instead by expressions, we get a legitimate choice of how to interpret them}. For two function expressions $\expLam{x}{e_1}$ and $\expLam{x}{e_2}$ of type $\typeFunc{\tau_1}{\tau_2}$ to be equivalent, they thus must assume the same value on each input. That is, if $v$ is a (closed) value of type $\tau_1$, the expressions $e_1[v/x]$ and $e_2[v/x]$ must be equal. In other words:
+%
+\begin{equation*}
+    \valInt{\Xi}{\typeFunc{\tau_1}{\tau_2}}{\rho}
+        \defeq \set[\Bigg]{
+            (\expLam{x}{e_1},\expLam{x}{e_2})
+        }{
+            \begin{aligned}
+                & \forall (v_1,v_2) \in \valInt{\Xi}{\tau_1}{\rho} \colon \\
+                & (e_1[v_1/x],e_2[v_2/x]) \in \expInt{\Xi}{\tau_2}{\rho}
+            \end{aligned}
+        }.
+\end{equation*}
+
+
+Lastly consider universal types. Since an expression on the form $\expForall{\alpha}{e}$ is just a function whose argument is a type, the above considerations say that two such expressions $\expForall{\alpha}{e_1}$ and $\expForall{\alpha}{e_2}$ should be considered equivalent whenever $e_1$ and $e_2$ are when applied to the same type. Of course, in our language we do not apply such expressions to types, so we model this application of $e_1$ and $e_2$ to the \enquote{same type} in a different way. If these are of type $\typeForall{\alpha}{\tau}$, then we simply require that $e_1$ and $e_2$ are equivalent when $\alpha$ is interpreted as some element of $\setRel$. We thus arrive that the interpretation
+%
+\begin{equation*}
+    \valInt{\Xi}{\typeForall{\alpha}{\tau}}{\rho}
+        \defeq \set[\Bigg]{
+            (\expForall{\alpha}{e_1},\expForall{\alpha}{e_2})
+        }{
+            \begin{aligned}
+                & \forall R \in \setRel \colon \\
+                & (e_1,e_2) \in \expInt{\Xi,\alpha}{\tau}{\rho[\alpha \mapsto R]}
+            \end{aligned}
+        }.
+\end{equation*}
+
+
+\subsubsection{Context interpretation}\index[subject]{context interpretation!logical relation}
+
+Before defining logical equivalence we must first consider how to interpret type contexts. Here we simply copy the definition from \cref{sec:context-interpretation-predicates}, extended to pairs of values:
+%
+\begin{equation*}
+    \conInt{\Xi}{\Gamma}{\rho}
+        \defeq \set{\gamma \colon \dom{\Gamma} \to \setCVal^2}{\forall x \in \dom{\Gamma} \colon \gamma(x) \in \valInt{\Xi}{\Gamma(x)}{\rho}}. \index[notation]{gzzz-GXiGammarho@$\conInt{\Xi}{\Gamma}{\rho}$}
+\end{equation*}
+%
+For $\gamma \in \conInt{\Xi}{\Gamma}{\rho}$ we write $\gamma_1$ and $\gamma_2$ for the coordinate functions of $\gamma$, so that $\gamma(x) = (\gamma_1(x),\gamma_2(x))$ for $x \in \dom{\Gamma}$.
+
+
+\subsection{Logical equivalence}
+
+We are now in a position to define the logical relation.
+
+% \renewcommand{\typerel}[4]{#1 \mid #2 \vdash #3 : #4}
+\newcommand{\logequivrel}{\cong^{\mathit{log}}}
+\newcommand{\logequiv}[5]{%
+    \ifstrempty{#1}{%
+        #2 \vdash #3 \logequivrel #4 : #5
+    }{%
+        #1 \mid #2 \vdash #3 \logequivrel #4 : #5
+    }%
+}
+
+\begin{definition}[Logical equivalence]\index[subject]{logical equivalence}
+    Let $\Xi$ be a finite set of type variables, $\Gamma$ a type context, and $\tau$ a type. Then two expressions $e_1$ and $e_2$ are \keyword{logically equivalent} with type $\tau$ with respect to $\Xi$ and $\Gamma$, written
+    %
+    \begin{equation*}
+        \logequiv{\Xi}{\Gamma}{e_1}{e_2}{\tau}, \index[notation]{***-logequiv@$\logequivrel$}
+    \end{equation*}
+    %
+    if $\typerel{\Xi}{\Gamma}{e_1}{\tau}$ and $\typerel{\Xi}{\Gamma}{e_2}{\tau}$ and
+    %
+    \begin{equation*}
+        \forall \rho \in \tvarInt{\Xi},
+            \gamma \in \conInt{\Xi}{\Gamma}{\rho} \colon
+            (\gamma_1(e_1), \gamma_2(e_2)) \in \expInt{\Xi}{\tau}{\rho}.
+    \end{equation*}
+\end{definition}
+%
+Logical equivalence is indeed an equivalence relation, but we postpone the argument to \cref{sec:forall-vs-exists}. We now intend to show that logical equivalence implies contextual equivalence, and by \cref{thm:contextual-equivalence-coarsest} it suffices to show that logical equivalence is compatible and adequate.
+
+
+\section{Compatibility and adequacy}
+
+\begin{lemma}[Compatibility]\index[subject]{compatibility!of type-indexed relations}
+    Logical equivalence $\logequivrel$ satisfies the compatibility rules in \cref{sec:compatibility-rules}.
+\end{lemma}
+
+\begin{proof}
+    The proof of this claim is very similar to that of the corresponding claim \cref{lem:logical-predicate-compatibility} for the logical predicate of \cref{chap:logical-predicates}, with the minor complication that our definition of the expression interpretation is slightly different. This only turns out to make the proofs of each case easiler. We give some representative examples to illustrate how to modify the arguments to apply in the binary case.
+    %
+    \begin{proofsec}
+        \item[\ruleref{Rvar}]
+        Assume that $\wellformed{\Xi}{\Gamma}$ and that $\Gamma(x) = \tau$. It then follows that $\typerel{\Xi}{\Gamma}{x}{\tau}$ by \ruleref{Tvar}. For $\rho \in \tvarInt{\Xi}$ and $\gamma \in \conInt{\Xi}{\Gamma}{\rho}$ we must show that $(\gamma_1(x),\gamma_2(x)) \in \expInt{\Xi}{\tau}{\rho}$. But notice that $(\gamma_1(x),\gamma_2(x)) = \gamma(x)$, which lies in $\valInt{\Xi}{\Gamma(x)}{\rho}$ by definition of the context interpretation. Since $\Gamma(x) = \tau$, it also lies in\footnote{By a version of \cref{enum:value-int-in-expression-int} for binary logical relations.} $\expInt{\Xi}{\tau}{\rho}$.
+
+        \item[\ruleref{Rpair}]
+        Assume that $\logequiv{\Xi}{\Gamma}{e_i}{e_i'}{\tau_i}$ for $i \in \{1,2\}$. Then \ruleref{Tpair} implies that $\typerel{\Xi}{\Gamma}{\expPair{e_1}{e_2}}{\typeProd{\tau_1}{\tau_2}}$ and $\typerel{\Xi}{\Gamma}{\expPair{e_1'}{e_2'}}{\typeProd{\tau_1}{\tau_2}}$. Next notice that
+        %
+        \begin{equation*}
+            \bigl( \gamma_1(\expPair{e_1}{e_2}), \gamma_2(\expPair{e_1'}{e_2'}) \bigr)
+                = \bigl( \expPair{\gamma_1(e_1)}{\gamma_1(e_2)}, \expPair{\gamma_2(e_1')}{\gamma_2(e_2')} \bigr),
+        \end{equation*}
+        %
+        and that we by induction have
+        %
+        \begin{equation*}
+            (\gamma_1(e_1),\gamma_2(e_1')) \in \expInt{\Xi}{\tau_1}{\rho}
+            \quad \text{and} \quad
+            (\gamma_1(e_2),\gamma_2(e_2')) \in \expInt{\Xi}{\tau_1}{\rho}.
+        \end{equation*}
+        %
+        Hence there are pairs $(v_1,v_1') \in \valInt{\Xi}{\tau_1}{\rho}$ and $(v_2,v_2') \in \valInt{\Xi}{\tau_2}{\rho}$ such that
+        %
+        \begin{equation*}
+            \gamma_1(e_1) \step^* v_1,
+            \quad
+            \gamma_2(e_1') \step^* v_1',
+            \quad
+            \gamma_1(e_2) \step^* v_2
+            \quad \text{and} \quad
+            \gamma_2(e_2') \step^* v_2'.
+        \end{equation*}
+        %
+        But then it follows that\footnote{This is where our new definition of the expression interpretation is useful, since we avoid technical results like those of \cref{lem:subexpression-step}. Strictly speaking this conclusion follows by induction on the lengths of each reduction, but it should be obvious how to make this precise.}
+        %
+        \begin{equation*}
+            \expPair{\gamma_1(e_1)}{\gamma_1(e_2)} \step^* \expPair{v_1}{v_2}
+            \quad \text{and} \quad
+            \expPair{\gamma_2(e_1')}{\gamma_2(e_2')} \step^* \expPair{v_1'}{v_2'}
+        \end{equation*}
+        %
+        by several applications of \ruleref{Ehead}. But these pairs of values are also values and hence $(\expPair{v_1}{v_2}, \expPair{v_1'}{v_2'})$ lies in $\valInt{\Xi}{\typeProd{\tau_1}{\tau_2}}{\rho}$ as required.
+
+        \item[\ruleref{Rprojl}]
+        Assume that $\logequiv{\Xi}{\Gamma}{e}{e'}{\typeProd{\tau_1}{\tau_2}}$, and consider $\rho \in \tvarInt{\Xi}$ and $\gamma \in \conInt{\Xi}{\Gamma}{\rho}$. By induction there is an element $(\expPair{v_1}{v_2}, \expPair{v_1'}{v_2'})$ of $\valInt{\Xi}{\typeProd{\tau_1}{\tau_2}}{\rho}$ such that $\gamma_1(e) \step^* \expPair{v_1}{v_2}$ and $\gamma_2(e') \step^* \expPair{v_1'}{v_2'}$. By \ruleref{Eprojl} it follows that $\expProjl{\gamma_1(e)} \step^* v_1$ and $\expProjl{\gamma_1(e)} \step^* v_1'$, and since $(v_1,v_1')$ lies in $\valInt{\Xi}{\tau_1}{\rho}$, the claim follows.
+
+        \item[\ruleref{RTlam}]
+        Assume that $\logequiv{\Xi,\alpha}{\Gamma}{e}{e'}{\tau}$ and that $\alpha \not\in \freeTvar{\Gamma}$, and consider $\rho \in \tvarInt{\Xi}$ and $\gamma \in \conInt{\Xi}{\Gamma}{\rho}$. We then must show that
+        %
+        \begin{equation*}
+            (\expForall{\alpha}{\gamma_1(e)}, \expForall{\alpha}{\gamma_2(e')})
+                = (\gamma_1(\expForall{\alpha}{e}), \gamma_2(\expForall{\alpha}{e'}))
+                \in \expInt{\Xi}{\typeForall{\alpha}{\tau}}{\rho}.
+        \end{equation*}
+        %
+        Let $R \in \setRel$ and note that $\gamma$ also lies in\footnote{By a version of \cref{lem:interpretations-type-variables} for binary relations.} $\conInt{\Xi,\alpha}{\Gamma}{\rho[\alpha \mapsto R]}$. By induction $(\gamma_1(e),\gamma_2(e'))$ thus lies in $\expInt{\Xi,\alpha}{\typeForall{\alpha}{\tau}}{\rho[\alpha \mapsto R]}$, so by definition of the value interpretation of universal types $(\expForall{\alpha}{\gamma_1(e)}, \expForall{\alpha}{\gamma_2(e')})$ lies in $\valInt{\Xi}{\typeForall{\alpha}{\tau}}{\rho}$, and hence also in\footnote{By a version of \cref{enum:value-int-in-expression-int} for binary relations.} $\expInt{\Xi}{\typeForall{\alpha}{\tau}}{\rho}$ as required.
+
+        \item[\ruleref{RTapp}]
+        Assume that $\logequiv{\Xi}{\Gamma}{e}{e'}{\typeForall{\alpha}{\tau}}$ and that $\wellformed{\Xi}{\tau'}$. Considerin $\rho \in \tvarInt{\Xi}$ and $\gamma \in \conInt{\Xi}{\Gamma}{\rho}$ we show that
+        %
+        \begin{equation*}
+            (\expTapp{\gamma_1(e)}{\alpha}, \expTapp{\gamma_2(e')}{\alpha})
+                = (\gamma_1(\expTapp{e}{\alpha}), \gamma_2(\expTapp{e'}{\alpha}))
+                \in \expInt{\Xi}{\tau[\tau'/\alpha]}{\rho}.
+        \end{equation*}
+        %
+        By induction $\gamma_1(e)$ and $\gamma_2(e')$ reduce to values $v = \expForall{\alpha}{e_1}$ and $v' = \expForall{\alpha}{e_1'}$ such that $(v,v') \in \valInt{\Xi}{\typeForall{\alpha}{\tau}}{\rho}$. It follows by \ruleref{Etapptlam} that $\expTapp{\gamma_1(e)}{\alpha} \step^* e_1$ and $\expTapp{\gamma_2(e')}{\alpha} \step^* e_1'$, where $(e_1,e_1')$ lies in $\expInt{\Xi,\alpha}{\Gamma}{\rho[\alpha \mapsto T]}$. Next, $e_1$ and $e_1'$ reduce to values $v_1$ and $v_1'$ such that $(v_1,v_1')$ lies in $\valInt{\Xi,\alpha}{\tau}{\rho[\alpha \mapsto T]}$ and hence in\footnote{By a version of \cref{lem:compositionality} for binary relations.} $\valInt{\Xi}{\Gamma}{\rho}$.
+    \end{proofsec}
+\end{proof}
+
+
+\begin{lemma}[Adequacy]\index[subject]{adequate type-indexed relation}
+    \label{lem:logical-equivalence-adequate}
+    Logical equivalence $\logequivrel$ is adequate.
+\end{lemma}
+
+\begin{proof}
+    Assume that $\logequiv{}{}{e_1}{e_2}{\typeBool}$. Since $e_1$ and $e_2$ are then closed, it follows that $(e_1,e_2) \in \expInt{}{\typeBool}{}$. Hence there exists a pair $(v_1,v_2) \in \valInt{}{\typeBool}{}$ such that $e_1 \step^* v_1$ and $e_2 \step^* v_2$. But since $\valInt{}{\typeBool}{}$ is the set $\{ (\expFalse,\expFalse), (\expTrue,\expTrue) \}$, this implies that $v_1 = v_2$.
+
+    To show that $e_1 \kleene e_2$, assume that $v$ is a value with $e_1 \step^* v$. By \cref{cor:determinism-multistep} it follows that $v = v_1 = v_2$. The above then implies that also $e_1 \step^* v$ as desired. Hence $e_1 \step^* v$ implies $e_2 \step^* v$, and the converse follows similarly (or by symmetry).
+\end{proof}
+
+
+Hence we arrive at the main theorem of this section:
+
+\begin{theoremnoproof}[Adequate congruence]
+    \label{thm:logical-equivalence-implies-contextual-equivalence}
+    Logical equivalence $\logequivrel$ is an adequate congruence. In particular,
+    %
+    \begin{equation*}
+        \logequiv{\Xi}{\Gamma}{e_1}{e_2}{\tau}
+        \quad \text{implies} \quad
+        \ctxequiv{\Xi}{\Gamma}{e_1}{e_2}{\tau}.
+    \end{equation*}
+\end{theoremnoproof}
+
+\section{\texorpdfstring{$\forall$ vs. $\exists$}{Forall vs. exists}}\label{sec:forall-vs-exists}
+
+We have already mentioned that there are (at least) two different ways of defining the expression interpretation: Our official definition for binary logical relations is, as we recall,
+%
+\begin{equation*}
+    \expInt{\Xi}{\tau}{\rho}
+        = \set[\Bigg]{
+            (e_1,e_2) \in \setCExp^2
+        }{
+            \begin{aligned}
+                & \exists (v_1,v_2) \in \valInt{\Xi}{\tau}{\rho} \colon \\
+                & e_1 \step^* v_1 \text{ and } e_2 \step^* v_2
+            \end{aligned}
+        }.
+\end{equation*}
+%
+We could also have adapted the definition from \cref{sec:expression-interpretation-predicate} directly and let
+%
+\begin{equation*}
+    \expInt{\Xi}{\tau}{\rho}
+        = \set[\Bigg]{
+            (e_1,e_2) \in \setCExp^2
+        }{
+            \begin{aligned}
+                & \forall e_1',e_2' \in \setIrr \colon \\
+                & e_i \step^* e_i' \implies (e_1',e_2') \in \valInt{\Xi}{\tau}{\rho}
+            \end{aligned}
+        }.
+\end{equation*}
+%
+Each of these definitions give rise to a different version of logical equivalence. Let us denote these by $\cong_\exists$ and $\cong_\forall$, respectively. Now notice the following:
+%
+\begin{itemize}
+    \item The relation $\cong_\exists$ is reflexive since it is compatible\footnote{Cf. the discussion immediately following \cref{def:adequate-relation}.}. We can also give a more direct argument if the reduction is normalising: For then if $e$ is a complete program, there is a boolean value $v$ such that $e \step^* v$, and hence $(v,v) \in \valInt{}{\typeBool}{}$.
+    
+    If instead the reduction is Church--Rosser, then $\cong_\exists$ is transitive. For then if $\typeindrel{}{}{e_1}{\cong_\exists}{e_2}{\typeBool}$ and $\typeindrel{}{}{e_2}{\cong_\exists}{e_3}{\typeBool}$, then $e_1 \step^* v_1$ and $e_2 \step^* v_2$, and also $e_2 \step^* v_2'$ and $e_3 \step^* v_3'$, and by the Church--Rosser property we have $v_2 = v_2'$.
+    
+    Finally, $\cong_\exists$ is always symmetric.
+
+    \item The relation $\cong_\forall$ is always transitive and symmetric, and again it is automatically reflexive. If the reduction is Church--Rosser, then reflexivity is immediate: If $e \step^* e_1$ and $e \step^* e_2$ with $e_i$ irreducible, we have $e_1 = e_2$ and so $(e_1,e_2) \in \valInt{}{\typeBool}{}$.
+\end{itemize}
+
+Similarly we have two different definitions of Kleene equality. For complete programs $e_1$ and $e_2$, say that these are $\forall$-Kleene equivalent, denoted $e_1 \kleene_\forall e_2$, if they satisfy \cref{def:kleene-equality}, i.e., if \emph{for all} values $v$ of type $\typeBool$, $e_1 \step^* v$ if and only if $e_2 \step^* v$. Furthermore say that $e_1$ and $e_2$ are $\exists$-Kleene equivalent, denoted $e_1 \kleene_\exists e_2$, if \emph{there exists} a value $v$ of type $\typeBool$ such that $e_1 \step^* v$ and $e_2 \step^* v$.
+
+\begin{itemize}
+    \item $\forall$-Kleene equality is always an equivalence relation.
+
+    \item $\exists$-Kleene equality is always symmetric. If the reduction is normalising then $\kleene_\exists$ is reflexive, and if the reduction is Church--Rosser $\kleene_\exists$ is transitive.
+\end{itemize}
+
+We next consider the relationship between the different variations of logical equivalence and Kleene equality:
+%
+\begin{itemize}
+    \item Assuming that the reduction is normalising, if $\typeindrel{}{}{e_1}{\cong_\forall}{e_2}{\typeBool}$ then $e_1 \kleene_\forall e_2$. For assume that $e_1 \step^* v$. By normalisation $e_2$ reduces to an irreducible $e_2'$, so $(v,e_2') \in \valInt{}{\typeBool}{}$, implying that $v = e_2'$.
+
+    Notice that if the reduction is not normalising, then there is no reason to expect that $e_2$ has a normal form.
+
+    \item Assuming that the reduction is normalising, if $\typeindrel{}{}{e_1}{\cong_\forall}{e_2}{\typeBool}$ then $e_1 \kleene_\exists e_2$. For then $e_1 \step^* e_1'$ and $e_2 \step^* e_2'$, and similar to above we have $e_1' = e_2'$.
+
+    \item Assuming that the reduction is Church--Rosser, if $\typeindrel{}{}{e_1}{\cong_\exists}{e_2}{\typeBool}$ then $e_1 \kleene_\forall e_2$. This is the content of \cref{lem:logical-equivalence-adequate}.
+
+    \item If $\typeindrel{}{}{e_1}{\cong_\exists}{e_2}{\typeBool}$ then $e_1 \kleene_\exists e_2$. This is also clear since $e_1$ and $e_2$ have a common normal form as above.
+\end{itemize}
+
+In short, since we have proved that the reduction is deterministic and hence Church--Rosser (cf. \cref{thm:F-determinism}), we know that $\cong_\forall$, $\cong_\exists$ and $\kleene_\forall$ are equivalence relations, that $\kleene_\forall$ is symmetric and transitive, and that $\cong_\exists$ implies $\kleene_\forall$ and $\kleene_\exists$.

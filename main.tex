@@ -1,0 +1,1190 @@
+\documentclass[a4paper,10pt,twoside]{memoir}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[danish,UKenglish]{babel}
+
+% Document info
+\newcommand\doctitle{Bachelor Project}
+\newcommand\docauthor{Danny Nygård Hansen}
+
+\usepackage{imakeidx}
+\makeindex[name=notation,title=Index {\titlefontsmall of} Notation]
+\makeindex[name=subject,title=Index]
+
+
+\usepackage[autostyle]{csquotes}
+\renewcommand{\mktextelp}{(\textellipsis\unkern)} % TODO what does this do again?
+
+\usepackage[final]{microtype}
+\frenchspacing
+\raggedbottom
+
+% % \openany % https://stackoverflow.com/questions/491904/how-do-i-remove-blank-pages-coming-between-two-chapters-in-appendix
+% \setlrmargins{*}{*}{1} % https://tex.stackexchange.com/questions/25516/same-margins-when-specifying-twoside-in-memoir
+% \checkandfixthelayout
+
+% Default margins a4 when symmetric: 4cm each side
+
+\usepackage{array}
+\newcolumntype{R}{>{$(}r<{)$}}
+
+
+\footnotesinmargin
+\strictpagecheck
+
+% \let\oldmarginpar\marginpar
+% \renewcommand{\marginpar}[1]{%
+%     \oldmarginpar{\color{black!70}\footnotesize #1}% Adjust the font size here
+% }
+
+% \renewcommand\foottextfont{\color{black!80}\footnotesize}
+\renewcommand\foottextfont{\footnotesize}
+
+
+% https://tex.stackexchange.com/a/544121/63353
+% Also locally redefines \footfootmark which memoir uses to typeset footnotemark
+\newcommand\blfootnote[1]{%
+    \bgroup
+    \renewcommand\thefootnote{\fnsymbol{footnote}}%
+    \renewcommand\thempfootnote{\fnsymbol{mpfootnote}}%
+    \renewcommand\footfootmark{}%
+    \footnotetext[0]{#1}%
+    \egroup
+}
+
+
+% \footmarkstyle{#1.~~}
+\setlength{\footmarkwidth}{0em}
+\setlength{\footmarksep}{0em}
+\setPagenoteSpacing{1.1}
+
+
+\usepackage{mathtools}
+% \usepackage{amssymb} % Must be loaded before kpfonts (if at all??) to get correct symbols, e.g. arrows
+\usepackage[partialup,nosf,oldstylenums]{kpfonts}
+\DeclareSymbolFontAlphabet{\mathrm}{operators} % https://tex.stackexchange.com/questions/40874/kpfonts-siunitx-and-math-alphabets
+% % https://tex.stackexchange.com/questions/327184/copy-search-of-old-style-numbers-with-kpfonts
+\pdfglyphtounicode{zerooldstyle}{0030}
+\pdfglyphtounicode{oneoldstyle}{0031}
+\pdfglyphtounicode{twooldstyle}{0032}
+\pdfglyphtounicode{threeoldstyle}{0033}
+\pdfglyphtounicode{fouroldstyle}{0034}
+\pdfglyphtounicode{fiveoldstyle}{0035}
+\pdfglyphtounicode{sixoldstyle}{0036}
+\pdfglyphtounicode{sevenoldstyle}{0037}
+\pdfglyphtounicode{eightoldstyle}{0038}
+\pdfglyphtounicode{nineoldstyle}{0039}
+\pdfgentounicode=1
+\linespread{1.06}
+\DeclareMathAlphabet\mathfrak{U}{euf}{m}{n}
+\SetMathAlphabet\mathfrak{bold}{U}{euf}{b}{n}
+
+
+% https://tex.stackexchange.com/questions/13815/kpfonts-with-eufrak
+% \usepackage{inconsolata}
+% \usepackage[scale=1.05]{biolinum}
+% \usepackage{AlegreyaSans}
+% \usepackage[lf]{carlito}
+% \usepackage[scale=0.9]{ClearSans}
+% \usepackage[scaled=0.85]{DejaVuSansCondensed}
+% \usepackage[defaultsans,scale=0.85]{droidsans}
+% \usepackage{FiraSans}
+% \usepackage[scale=0.9]{GoSans}
+% \usepackage[defaultsans,scale=0.9]{opensans}
+% \usepackage{overlock}
+% \usepackage[scaled=0.95]{PTSans}
+% \usepackage[scale=0.9]{Rosario}
+% \usepackage[scale=0.95]{sourcesanspro}
+\usepackage[scaled=0.85]{berasans} % Used in daleif's LaTeX guide
+% \usepackage{mathpazo}
+% \usepackage{amssymb}
+% \usepackage[largesc]{newpxtext} % osf
+% \usepackage[varbb,nosymbolsc]{newpxmath}
+% \usepackage[cal=cm]{mathalpha}
+% \usepackage[lining,semibold,scale=0.9]{MyFiraSans}
+% \linespread{1.1}
+
+% \renewcommand{\mathsf}{\textsf}
+\SetMathAlphabet{\mathsf}{normal}{T1}{fvs}{m}{n}
+\SetMathAlphabet{\mathsf}{bold}  {T1}{fvs}{b}{n}
+
+% \usepackage[lining,scale=0.9]{FiraMono}
+\usepackage[scaled=0.85]{beramono}
+
+
+% \renewcommand{\sfdefault}{lmss} % Used in memoir manual
+% \SetMathAlphabet{\mathsf}{normal}{OT1}{lmss}{m}{n}
+% \SetMathAlphabet{\mathsf}{bold}  {OT1}{lmss}{bx}{n}
+
+% https://tex.stackexchange.com/a/124311/63353
+\makeatletter
+\g@addto@macro\bfseries{\boldmath}
+\makeatother
+
+
+% \usepackage[only,Yleft,Mapsto]{stmaryrd}
+
+
+% Hyperlinks
+\usepackage{hyperref}
+\usepackage[font={footnotesize},labelfont={bf,sc},justification=justified,singlelinecheck=false,parindent=10pt]{caption} % Links to figures jump correctly TODO not margin figures!
+\setsidecaps{0.5cm}{4.5cm}
+\setsidecappos{t}
+% \usepackage[labelformat=simple,labelfont=normalfont]{subcaption} % Don't think I use this for anything?
+% \renewcommand\thesubfigure{(\alph{subfigure})}
+\captiondelim{.~~}
+\usepackage{xcolor}
+% \definecolor{linkcolor}{HTML}{4f4fa3}
+% \definecolor{linkcolor}{HTML}{f90600}
+% \definecolor{linkcolor}{HTML}{ad3136} % Red
+\definecolor{sideboxbg}{HTML}{e2efd7} % Green
+% \definecolor{linkcolor}{HTML}{3a7f32} % Darker green
+% \definecolor{linkcolor}{HTML}{003399} % Thorbjørnsen blue
+\definecolor{linkcolor}{HTML}{982B30}
+\definecolor{titlered}{HTML}{982B30}
+\hypersetup{%
+	pdftitle=\doctitle,
+	pdfauthor=\docauthor,
+	colorlinks,
+	linkcolor=linkcolor,
+	citecolor=linkcolor,
+	urlcolor=linkcolor,
+	bookmarksnumbered=true,
+    % hidelinks,
+    bookmarksdepth=3
+}
+
+% Footnotes
+% \footmarkstyle{\textsuperscript{#1}\hspace{0.25em}}
+
+\usepackage[amsmath,thmmarks,hyperref]{ntheorem}
+
+\usepackage{enumitem}
+\setenumerate[0]{label=\normalfont(\arabic*)}
+\setitemize[0]{label=$\blacktriangleright$} % \vartriangleright
+\setlist{
+	listparindent=\parindent,
+	parsep=0pt,
+}
+
+\usepackage[capitalize,noabbrev]{cleveref}
+
+\usepackage{theorems}
+\usepackage[scgray]{sectionstyle}
+\usepackage[scgray]{pagestyle}
+\usepackage[varphi]{mathematics}
+\usepackage{graphicx}
+
+
+\makeatletter
+\renewenvironment{quotation}
+           {\list{}{\listparindent 1.5em%
+                    %\itemindent    \listparindent
+                    \rightmargin \leftmargin
+                    \parsep        \z@ \@plus\p@}%
+            \item\relax}
+           {\endlist}
+\makeatother
+\SetBlockEnvironment{quotation}
+% https://tex.stackexchange.com/questions/149868/define-quotation-environment-without-indentation-of-the-first-paragraph
+
+\title{\doctitle}
+\author{\docauthor}
+
+
+% Bibliography
+\usepackage[backend=biber, style=authoryear, maxcitenames=2, useprefix]{biblatex}
+\nobibintoc % We create our own bibliography link in the ToC
+\addbibresource{references.bib}
+\DeclareFieldFormat[online]{title}{\enquote{#1}}
+\DeclareNumChars*{+} % https://tex.stackexchange.com/questions/16904/xiv-pages-in-page-counts
+
+
+\usepackage{tikz}
+\usetikzlibrary{arrows,calc}
+\tikzset{
+  mathfontarrow/.style={
+    ->, % Change the arrow type as needed
+    >=stealth, % Arrow tip style
+    font=\ensuremath, % Use math mode
+  }
+}
+\usetikzlibrary{babel}
+\usepackage{tikz-cd}
+\tikzcdset{arrow style=math font} % https://tex.stackexchange.com/questions/300352/equalities-look-broken-with-tikz-cd-and-math-font
+
+\renewcommand{\thefigure}{\thechapter.\arabic{figure}}
+
+
+\newcommand{\textdash}{\leavevmode\unskip ---\ignorespaces}
+
+
+% https://tex.stackexchange.com/questions/667543/strange-extensible-arrows-with-kpfonts
+\makeatletter % change \mkern-7mu into \mkern-4mu
+\def\arrowfill@#1#2#3#4{%
+  $\m@th\thickmuskip0mu\medmuskip\thickmuskip\thinmuskip\thickmuskip
+   \relax#4#1\mkern-4mu%
+   \cleaders\hbox{$#4\mkern-2mu#2\mkern-2mu$}\hfill
+   \mkern-4mu#3$%
+}
+\makeatother
+
+% https://tex.stackexchange.com/questions/233608/fix-hookrightarrow-in-kpfonts
+% \makeatletter
+% \let\kp@lhook\lhook
+% \renewcommand{\lhook}{\mathrel{\text{\fix@lhook}}}
+% \newcommand\fix@lhook{%
+%   \raisebox{.045ex}{%
+%     \scalebox{.85}{$\m@th\kp@lhook$}%
+%   }%
+% }
+% \makeatother
+
+
+
+% \makeatletter
+% \renewcommand{\maketitle}{%
+% \begin{titlingpage*}%
+% 	% Front page
+% 	\thispagestyle{empty}%
+%     \begin{centering}
+%         \setlength{\parindent}{0pt}
+%         \vspace*{20\onelineskip}%
+%         {\fontsize{30}{1}\selectfont {\bfseries\sffamily \color{ared} Type Safety} {\itshape \color{black!70} and} {\bfseries\sffamily \color{ared} Free Theorems}}\par
+%         \rule{10cm}{1pt}\par
+%         % \vspace*{\onelineskip}%
+%         % {\huge \itshape My subtitle}\par
+%         % \vspace*{2\onelineskip}%
+%         \docauthor\ \textlangle\texttt{dannynhansen@gmail.com\textrangle}\par
+%         Denmark 2024\par
+%     \end{centering}
+% 	% \newpage
+% 	% %
+% 	% % Colophon
+% 	% % \setlrmarginsandblock{24.8mm}{24.8mm}{*}
+% 	% % \checkandfixthelayout
+% 	% % \makeatletter
+% 	% % \ch@ngetext
+% 	% % \makeatother
+% 	% \thispagestyle{empty}
+% 	% \small%
+% 	% \strut\vfill
+% 	% \begin{flushleft}
+% 	% 	\copyright\ Danny Nygård Hansen 2024 \par
+% 	% 	Layout and typography by the author \par
+% 	% 	Font: 11\,pt Kp-fonts | \textsf{Biolinum} | \texttt{Inconsolata} \par
+% 	% 	Typeset using \textsc{pdf}\LaTeX{} and the \emph{memoir} class \par
+% 	% 	\vspace{\onelineskip}
+% 	% 	Date % \DTMusedate{@date}
+% 	% \end{flushleft}
+% \end{titlingpage*}
+% }
+% \makeatother
+
+% \cleardoublepage
+
+
+
+
+
+
+
+
+
+\newcommand{\keyword}[1]{\emph{\textbf{#1}}}
+
+
+
+
+
+
+% \setsidecaps{\marginparsep}{\marginparwidth}
+% \sidecapmargin{outer}
+% \setsidecappos{t}
+% \renewcommand*{\sidecapstyle}{%
+% \captionnamefont{\foottextfont\scshape}
+% \ifscapmargleft
+% \captionstyle{\RaggedLeft\footnotesize\foottextfont}%
+% \else
+% \captionstyle{\RaggedRight\footnotesize\foottextfont}%
+% \fi}
+
+
+
+\renewcommand{\abstractnamefont}{\normalfont\small\bfseries\scshape}
+
+
+\settocdepth{subsection}
+
+
+
+
+
+
+% TODO document commands
+
+\usepackage{mathpartir}
+
+\newcommand{\tmaps}[2]{(#1 \to #2)}
+
+\newcommand{\pmaps}[3][]{%
+    \ifstrempty{#1}%
+        {%
+            (#2 \pto #3)
+        }{%
+            (#2 \pto_{#1} #3)
+        }%
+}
+
+\newcommand{\pmapsfin}[2]{\pmaps[\omega]{#1}{#2}}
+
+\newcommand{\dom}{\operatorname{dom}}
+\newcommand{\ran}{\operatorname{ran}}
+
+\newcommand{\myinfrulesymb}{\Mapsto}
+\newcommand{\myinfrule}[3]{%
+    \ifstrempty{#1}%
+        {%
+            #2 \myinfrulesymb #3
+        }{%
+            #1 \colon #2 \myinfrulesymb #3
+        }%
+}
+
+\newcommand{\idxset}[1]{\fraki(#1)}
+
+\newcommand{\oCPO}{$\omega$-cpo}
+\newcommand{\oCPOpl}{$\omega$-cpo's}
+\newcommand{\cCPO}{ccpo}
+\newcommand{\cCPOpl}{ccpo's}
+\newcommand{\dCPO}{dcpo}
+\newcommand{\dCPOpl}{dcpo's}
+
+\newcommand{\oCPPO}{$\omega$-cppo}
+\newcommand{\oCPPOpl}{$\omega$-cppo's}
+\newcommand{\cCPPO}{ccppo}
+\newcommand{\cCPPOpl}{ccppo's}
+\newcommand{\dCPPO}{dcppo}
+\newcommand{\dCPPOpl}{dcppo's}
+
+\makeatletter
+\def\lfp{\@ifstar\@lfp\@@lfp}
+\def\@lfp#1{\mu(#1)}
+\def\@@lfp#1{\mu(#1)}
+
+\def\gfp{\@ifstar\@gfp\@@gfp}
+\def\@gfp#1{\nu(#1)}
+\def\@@gfp#1{\nu(#1)}
+\makeatother
+
+\newcommand{\seq}[1]{\vec{#1}}
+\newcommand{\setOp}{\calO}
+\newcommand{\setSort}{\calS}
+\newcommand{\sortExp}{\mathit{Exp}}
+\newcommand{\sortType}{\mathit{Type}}
+\newcommand{\finseq}[1]{#1^*}
+\newcommand{\disj}{\mathbin{\#}}
+
+\newcommand{\marginbox}[2]{} % TODO
+
+
+\newcommand{\setVarAST}{\calV}
+\newcommand{\setTVar}{\mathit{TypeVar}}
+\newcommand{\setLoc}{\mathit{Loc}}
+\newcommand{\setSto}{\mathit{Sto}}
+\newcommand{\setExp}{\mathit{Exp}}
+\newcommand{\setVal}{\mathit{Val}}
+\newcommand{\setType}{\mathit{Type}}
+\newcommand{\setECtx}{\mathit{ECtx}}
+\newcommand{\setTAnn}{\mathit{TAnn}}
+
+
+\newcommand{\freevar}[2][]{%
+    \ifstrempty{#2}%
+        {%
+            \mathrm{FV}
+        }{%
+            \mathrm{FV}\auxdelimparen[#1]{#2}
+        }%
+}
+
+\newcommand{\boundvar}[2][]{%
+    \ifstrempty{#2}%
+        {%
+            \mathrm{BV}
+        }{%
+            \mathrm{BV}\auxdelimparen[#1]{#2}
+        }%
+}
+
+\newcommand{\allvar}[2][]{%
+    \ifstrempty{#2}%
+        {%
+            \mathrm{V}
+        }{%
+            \mathrm{V}\auxdelimparen[#1]{#2}
+        }%
+}
+
+\newcommand{\freevarsort}[3][]{%
+    \ifstrempty{#3}%
+        {%
+            \mathrm{FV}_{#2}
+        }{%
+            \mathrm{FV}_{#2}\auxdelimparen[#1]{#3}
+        }%
+}
+
+% \newcommand{\freevarsort}[3][]{\mathrm{FV}_{#3}\auxdelimparen[#1]{#2}}
+
+
+\newcommand{\freeTvar}[2][]{\freevarsort[#1]{\!\mathit{Type}}{#2}}
+
+\newcommand{\setAST}[2]{\calA[#1,#2]}
+\newcommand{\arity}[2]{(#1) \to #2}
+\newcommand{\hassort}[2]{#1 : #2}
+% \newcommand{\freevarsort}[2]{\mathrm{FV}_{#1}(#2)}
+\newcommand{\alphaeq}{=_\alpha}
+
+\newcommand{\hole}{{-}}
+
+
+\definecolor{expcolor}{HTML}{ad3136}
+\definecolor{typecolor}{HTML}{3a7f32}
+\definecolor{varcolor}{HTML}{ad3136}
+\definecolor{tvarcolor}{HTML}{3a7f32}
+% \newcommand{\expcolor}[1]{\textcolor{expcolor}{#1}}
+% \newcommand{\typecolor}[1]{\textcolor{typecolor}{#1}}
+% \newcommand{\varcolor}[1]{\textcolor{varcolor}{#1}}
+% \newcommand{\tvarcolor}[1]{\textcolor{tvarcolor}{#1}}
+
+\newcommand{\expcolor}[1]{#1}
+\newcommand{\typecolor}[1]{#1}
+\newcommand{\varcolor}[1]{#1}
+\newcommand{\tvarcolor}[1]{#1}
+
+\newcommand{\var}[1]{\varcolor{#1}}
+\newcommand{\tvar}[1]{\tvarcolor{#1}}
+\newcommand{\expr}[1]{\mathsf{\expcolor{#1}}}
+\newcommand{\typ}[1]{\mathsf{\typecolor{#1}}}
+
+\newcommand{\expspace}{\:}
+
+\newcommand{\oparg}[1]{\textcolor{black}{#1}}
+\newcommand{\expUnit}{\expr{1}}
+\newcommand{\expPair}[2]{\expcolor{\langle\oparg{#1},\oparg{#2}\rangle}}
+\makeatletter
+\newcommand{\expDefeq}{\coloneqq}
+\def\expRec{\@ifstar\@expRec\@@expRec}
+\newcommand{\@expRec}[3]{(\expr{rec}\expspace\expcolor{\oparg{#1}(\oparg{#2}) \expDefeq \oparg{#3}})}
+\newcommand{\@@expRec}[3]{\expr{rec}\expspace\expcolor{\oparg{#1}(\oparg{#2}) \expDefeq \oparg{#3}}}
+\def\expApp{\@ifstar\@expApp\@@expApp}
+\newcommand{\@expApp}[2]{(#1\expspace#2)}
+\newcommand{\@@expApp}[2]{#1\expspace#2}
+\def\expForall{\@ifstar\@expForall\@@expForall}
+\newcommand{\@expForall}[2]{(\expcolor{\Lambda\_.\oparg{#2}})}
+\newcommand{\@@expForall}[2]{\expcolor{\Lambda\_.\oparg{#2}}}
+\newcommand{\expMatch}[4]{\expr{match}(#1,#2,#3,#4)}
+\newcommand{\expTapp}[2]{\oparg{#1}\expspace\expcolor{\_}}
+
+\def\expPack{\@ifstar\@expPack\@@expPack}
+\newcommand{\@expPack}[1]{(\expr{pack}\expspace#1)}
+\newcommand{\@@expPack}[1]{\expr{pack}\expspace#1}
+
+\newcommand{\expUnpack}[3]{\expr{unpack}(#1,#2,#3)}
+\newcommand{\expAss}[2]{\expcolor{\oparg{#1} \expDefeq \oparg{#2}}}
+\newcommand{\expLoad}[1]{\expr{!}\expspace#1}
+
+\def\expFold{\@ifstar\@expFold\@@expFold}
+\newcommand{\@expFold}[1]{(\expr{fold}\expspace#1)}
+\newcommand{\@@expFold}[1]{\expr{fold}\expspace#1}
+
+\newcommand{\expUnfold}[1]{\expr{unfold}\expspace#1}
+
+
+% \newcommand{\typeUnit}{\typ{Unit}}
+\newcommand{\typeUnit}{\typ{1}}
+\newcommand{\typeRef}[1]{\typ{Ref}\expspace#1}
+
+\newcommand{\typeProdSymbol}{\typecolor{\prod}}
+\def\typeProd{\@ifstar\@typeProd\@@typeProd}
+\newcommand{\@typeProd}[2]{(\typecolor{\oparg{#1} \prod \oparg{#2}})}
+\newcommand{\@@typeProd}[2]{\typecolor{\oparg{#1} \prod \oparg{#2}}}
+\newcommand{\typeSum}[2]{\typecolor{\oparg{#1} + \oparg{#2}}}
+
+\newcommand{\typeFuncSymbol}{\typecolor{\to}}
+\def\typeFunc{\@ifstar\@typeFunc\@@typeFunc}
+\newcommand{\@typeFunc}[2]{(\typecolor{\oparg{#1} \to \oparg{#2}})}
+\newcommand{\@@typeFunc}[2]{{#1 \typecolor{\to} #2}} % TODO don't use oparg anywhere, it screws up colour in margin notes!
+
+\def\typeForall{\@ifstar\@typeForall\@@typeForall}
+\newcommand{\@typeForall}[2]{(\typecolor{\forall\oparg{#1}.\oparg{#2}})}
+\newcommand{\@@typeForall}[2]{\typecolor{\forall\oparg{#1}.\oparg{#2}}}
+
+\def\typeExists{\@ifstar\@typeExists\@@typeExists}
+\newcommand{\@typeExists}[2]{(\typecolor{\exists\oparg{#1}.\oparg{#2}})}
+\newcommand{\@@typeExists}[2]{\typecolor{\exists\oparg{#1}.\oparg{#2}}}
+
+\def\typeRec{\@ifstar\@typeRec\@@typeRec}
+\newcommand{\@typeRec}[2]{(\typecolor{\mu\oparg{#1}.\oparg{#2}})}
+\newcommand{\@@typeRec}[2]{\typecolor{\mu\oparg{#1}.\oparg{#2}}}
+
+\makeatother
+
+
+\newcommand{\ruleref}[1]{{\upshape\nameref{rule:#1}}}
+% https://tex.stackexchange.com/questions/340788/cross-referencing-inference-rules
+% https://tex.stackexchange.com/questions/74944/how-to-refer-back-to-a-point-in-the-document-with-custom-counters
+\makeatletter
+\newcommand{\my@name@inferrule}[1]{%
+  \def\@currentlabelname{\TirNameStyle{#1}}%
+}
+
+\renewcommand{\TirNameStyle}[1]{\textsc{#1}} % TODO lining figures
+\renewcommand{\RightTirNameStyle}[1]{#1}
+\newcommand{\typerule}[3]{\inferrule[#1\phantomsection]{#2}{#3}\my@name@inferrule{#1}}
+\makeatother
+
+\makeatletter
+\newcommand{\makerule}[4]{%
+    \expandafter\edef\csname rule#1\endcsname{%
+        \noexpand\@ifstar
+            \expandafter\noexpand\csname @rule#1\endcsname
+            \expandafter\noexpand\csname @@rule#1\endcsname
+    }
+    \expandafter\newcommand\csname @rule#1\endcsname{\typerule{#2}{#3}{#4}}
+    \expandafter\newcommand\csname @@rule#1\endcsname{\typerule{#2}{#3}{#4}\label{rule:#1}}
+}
+% https://tex.stackexchange.com/questions/508563/definition-of-starred-commands-with-csname
+\makeatother
+
+
+\newcommand{\wellformed}[2]{#1 \vdash #2}
+
+\newcommand{\rulesubscript}[1]{\textsubscript{\classicnumbers #1}}
+
+\makerule{Tvar}{T-var}{
+    \wellformed{\Xi}{\Gamma}
+    \and
+    \wellformed{\Xi}{\Sigma}
+    \and
+    \Gamma(x) = \tau % TODO is \Gamma(x) = \tau better? If so, replace throughout report
+}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{x}{\tau}
+}
+
+\makerule{Tunit}{T-unit}{
+    \wellformed{\Xi}{\Gamma}
+    \and
+    \wellformed{\Xi}{\Sigma}
+}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{\expUnit}{\typeUnit}
+}
+
+\makerule{Tpair}{T-pair}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{e_1}{\tau_1}
+    \and
+    \typerel{\Xi}{\Gamma}{\Sigma}{e_2}{\tau_2}
+}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{\expPair{e_1}{e_2}}{\typeProd{\tau_1}{\tau_2}}
+}
+
+\makerule{Tprojl}{T-proj\rulesubscript{1}}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{e}{\typeProd{\tau_1}{\tau_2}}
+}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{\expProjl{e}}{\tau_1}
+}
+
+\makerule{Tprojr}{T-proj\rulesubscript{2}}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{e}{\typeProd{\tau_1}{\tau_2}}
+}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{\expProjr{e}}{\tau_2}
+}
+
+\makerule{Tinjl}{T-inj\rulesubscript{1}}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{e}{\tau_1}
+}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{\expInjl{e}}{\typeSum{\tau_1}{\tau_2}}
+}
+
+\makerule{Tinjr}{T-inj\rulesubscript{2}}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{e}{\tau_2}
+}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{\expInjr{e}}{\typeSum{\tau_1}{\tau_2}}
+}
+
+\makerule{Tmatch}{T-match}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{e}{\typeSum{\tau_1}{\tau_2}}
+    \and
+    \typerel{\Xi}{\Gamma, \hastype{x}{\tau_1}}{\Sigma}{e_1}{\tau}
+    \and
+    \typerel{\Xi}{\Gamma, \hastype{x}{\tau_2}}{\Sigma}{e_2}{\tau}
+}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{\expMatch{e}{x}{e_1}{e_2}}{\tau}
+}
+
+\makerule{Tlam}{T-lam}{
+    \typerel{\Xi}{\Gamma, \hastype{x}{\tau_1}}{\Sigma}{e}{\tau_2}
+}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{\expLam{x}{e}}{\typeFunc{\tau_1}{\tau_2}}
+}
+
+\makerule{Trec}{T-rec}{
+    \typerel{\Xi}{\Gamma, \hastype{f}{\typeFunc{\tau_1}{\tau_2}}, \hastype{x}{\tau_1}}{\Sigma}{e}{\tau_2}
+}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{\expRec{f}{x}{e}}{\typeFunc{\tau_1}{\tau_2}}
+}
+
+\makerule{Tapp}{T-app}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{e_1}{\tau_1}
+    \and
+    \typerel{\Xi}{\Gamma}{\Sigma}{e_2}{\typeFunc{\tau_1}{\tau_2}}
+}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{\expApp{e_2}{e_1}}{\tau_2}
+}
+
+\makerule{TTlam}{T-Tlam}{
+    \typerel{\Xi,\alpha}{\Gamma}{\Sigma}{e}{\tau}
+    \and
+    \alpha \not\in \freeTvar{\Gamma} % TODO define this
+    \and
+    \alpha \not\in \freeTvar{\Sigma}
+}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{\expForall{\alpha}{e}}{\typeForall{\alpha}{\tau}}
+}
+
+\makerule{TTapp}{T-Tapp}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{e}{\typeForall{\alpha}{\tau}}
+    \and
+    \wellformed{\Xi}{\tau'}
+}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{\expTapp{e}{\alpha}}{\tau[\tau'/\alpha]}
+}
+
+\makerule{Tpack}{T-pack}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{e}{\tau[\tau'/\alpha]}
+}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{\expPack{e}}{\typeExists{\alpha}{\tau}}
+}
+
+\makerule{Tunpack}{T-unpack}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{e_1}{\typeExists{\alpha}{\tau}}
+    \and
+    \typerel{\Xi,\alpha}{\Gamma,\hastype{x}{\tau}}{\Sigma}{e_2}{\tau'}
+}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{\expUnpack{e_1}{x}{e_2}}{\tau'}
+}
+
+% TODO fold unfold
+
+\makerule{Tfold}{T-fold}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{e}{\tau[\typeRec{\alpha}{\tau}/\alpha]}
+}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{\expFold{e}}{\typeRec{\alpha}{\tau}}
+}
+
+\makerule{Tunfold}{T-unfold}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{e}{\typeRec{\alpha}{\tau}}
+}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{\expUnfold{e}}{\tau[\typeRec{\alpha}{\tau}/\alpha]}
+}
+
+\makerule{Tloc}{T-loc}{
+    \wellformed{\Xi}{\Gamma}
+    \and
+    \wellformed{\Xi}{\Sigma}
+    \and
+    l \in \dom{\Sigma}
+}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{l}{\typeRef{\Sigma(l)}}
+}
+
+\makerule{Talloc}{T-alloc}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{e}{\tau}
+}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{\expRef{e}}{\typeRef{\tau}}
+}
+
+\makerule{Tstore}{T-store}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{e_1}{\typeRef{\tau}}
+    \and
+    \typerel{\Xi}{\Gamma}{\Sigma}{e_2}{\tau}
+}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{\expAss{e_1}{e_2}}{\typeUnit}
+}
+
+\makerule{Tload}{T-load}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{e}{\typeRef{\tau}}
+}{
+    \typerel{\Xi}{\Gamma}{\Sigma}{\expLoad{e}}{\tau}
+}
+
+\makerule{Eprojl}{E-proj\rulesubscript{1}}{ }{
+    \expProjl{\expPair{v_1}{v_2}} \purestep v_1
+}
+
+\makerule{Eprojr}{E-proj\rulesubscript{2}}{ }{
+    \expProjr{\expPair{v_1}{v_2}} \purestep v_2
+}
+
+\makerule{Ematchinjl}{E-match-inj\rulesubscript{1}}{ }{
+    \expMatch{\expInjl{v}}{x}{e_1}{e_2} \purestep e_1[v/x]
+}
+
+\makerule{Ematchinjr}{E-match-inj\rulesubscript{2}}{ }{
+    \expMatch{\expInjr{v}}{x}{e_1}{e_2} \purestep e_2[v/x]
+}
+
+\makerule{Elamapp}{E-lam-app}{ }{
+    \expApp{\expLam*{x}{e}}{v} \purestep e[v/x]
+}
+
+\makerule{Erecapp}{E-rec-app}{ }{
+    \expApp{\expRec*{f}{x}{e}}{v} \purestep e[\expRec*{f}{x}{e}/f][v/x]
+}
+
+\makerule{Etapptlam}{E-tapp-tlam}{ }{
+    \expTapp{\expForall*{\alpha}{e}}{\alpha} \purestep e
+}
+
+\makerule{Eunpackpack}{E-unpack-pack}{ }{
+    \expUnpack{\expPack{v}}{x}{e} \purestep e[v/x]
+}
+
+\makerule{Eunfoldfold}{E-unfold-fold}{ }{
+    \expUnfold{\expFold*{v}} \purestep v
+}
+
+\makerule{Epure}{E-pure}{
+    e \purestep e'
+}{
+    (\sigma, e) \headstep (\sigma, e')
+}
+
+\makerule{Ealloc}{E-alloc}{
+    l \not\in \dom\sigma
+}{
+    (\sigma, \expRef{v}) \headstep (\sigma[l \mapsto v], l)
+}
+
+\makerule{Estore}{E-store}{
+    l \in \dom\sigma
+}{
+    (\sigma, \expAss{l}{v}) \headstep (\sigma[l \mapsto v], \expUnit)
+}
+
+\makerule{Eload}{E-load}{
+    \sigma(l) = v
+}{
+    (\sigma, \expLoad{l}) \headstep (\sigma, v)
+}
+
+\makerule{Ehead}{E-head}{
+    (\sigma, e) \headstep (\sigma', e')
+}{
+    (\sigma, E[e]) \step (\sigma', E[e'])
+}
+
+\newcommand{\typeindrelforrules}[6]{#1 \mid #2 \vdash #3\mathrel{#4}#5 : #6}
+
+\makerule{Rvar}{R-var}{
+    \wellformed{\Xi}{\Gamma}
+    \and
+    \Gamma(x) = \tau % TODO is \Gamma(x) = \tau better? If so, replace throughout report
+}{
+    \typeindrelforrules{\Xi}{\Gamma}{x}{\calR}{x}{\tau}
+}
+
+\makerule{Runit}{R-unit}{
+     % \wellformed{\Xi}{\Gamma}
+}{
+    \typeindrelforrules{\Xi}{\Gamma}{\expUnit}{\calR}{\expUnit}{\typeUnit}
+}
+
+\makerule{Rpair}{R-pair}{
+    \typeindrelforrules{\Xi}{\Gamma}{e_1}{\calR}{e_1'}{\tau_1}
+    \and
+    \typeindrelforrules{\Xi}{\Gamma}{e_2}{\calR}{e_2'}{\tau_2}
+}{
+    \typeindrelforrules{\Xi}{\Gamma}{\expPair{e_1}{e_2}}{\calR}{\expPair{e_1'}{e_2'}}{\typeProd{\tau_1}{\tau_2}}
+}
+
+\makerule{Rprojl}{R-proj\rulesubscript{1}}{
+    \typeindrelforrules{\Xi}{\Gamma}{e}{\calR}{e'}{\typeProd{\tau_1}{\tau_2}}
+}{
+    \typeindrelforrules{\Xi}{\Gamma}{\expProjl{e}}{\calR}{\expProjl{e'}}{\tau_1}
+}
+
+\makerule{Rprojr}{R-proj\rulesubscript{2}}{
+    \typeindrelforrules{\Xi}{\Gamma}{e}{\calR}{e'}{\typeProd{\tau_1}{\tau_2}}
+}{
+    \typeindrelforrules{\Xi}{\Gamma}{\expProjr{e}}{\calR}{\expProjr{e'}}{\tau_2}
+}
+
+\makerule{Rinjl}{R-inj\rulesubscript{1}}{
+    \typeindrelforrules{\Xi}{\Gamma}{e}{\calR}{e'}{\tau_1}
+}{
+    \typeindrelforrules{\Xi}{\Gamma}{\expInjl{e}}{\calR}{\expInjr{e'}}{\typeSum{\tau_1}{\tau_2}}
+}
+
+\makerule{Rinjr}{R-inj\rulesubscript{2}}{
+    \typeindrelforrules{\Xi}{\Gamma}{e}{\calR}{e'}{\tau_2}
+}{
+    \typeindrelforrules{\Xi}{\Gamma}{\expInjr{e}}{\calR}{\expInjr{e'}}{\typeSum{\tau_1}{\tau_2}}
+}
+
+\makerule{Rmatch}{R-match}{
+    \typeindrelforrules{\Xi}{\Gamma}{e}{\calR}{e'}{\typeSum{\tau_1}{\tau_2}}
+    \and
+    \typeindrelforrules{\Xi}{\Gamma, \hastype{x}{\tau_1}}{e_1}{\calR}{e_1'}{\tau}
+    \and
+    \typeindrelforrules{\Xi}{\Gamma, \hastype{x}{\tau_2}}{e_2}{\calR}{e_2'}{\tau}
+}{
+    \typeindrelforrules{\Xi}{\Gamma}{\expMatch{e}{x}{e_1}{e_2}}{\calR}{\expMatch{e'}{x}{e_1'}{e_2'}}{\tau}
+}
+
+\makerule{Rlam}{R-lam}{
+    \typeindrelforrules{\Xi}{\Gamma, \hastype{x}{\tau_1}}{e}{\calR}{e'}{\tau_2}
+}{
+    \typeindrelforrules{\Xi}{\Gamma}{\expLam{x}{e}}{\calR}{\expLam{x}{e'}}{\typeFunc{\tau_1}{\tau_2}}
+}
+
+\makerule{Rapp}{R-app}{
+    \typeindrelforrules{\Xi}{\Gamma}{e_1}{\calR}{e_1'}{\tau_1}
+    \and
+    \typeindrelforrules{\Xi}{\Gamma}{e_2}{\calR}{e_2'}{\typeFunc{\tau_1}{\tau_2}}
+}{
+    \typeindrelforrules{\Xi}{\Gamma}{\expApp{e_2}{e_1}}{\calR}{\expApp{e_2'}{e_1'}}{\tau_2}
+}
+
+\makerule{RTlam}{R-Tlam}{
+    \typeindrelforrules{\Xi,\alpha}{\Gamma}{e}{\calR}{e'}{\tau}
+    \and
+    \alpha \not\in \freeTvar{\Gamma}
+}{
+    \typeindrelforrules{\Xi}{\Gamma}{\expForall{\alpha}{e}}{\calR}{\expForall{\alpha}{e'}}{\typeForall{\alpha}{\tau}}
+}
+
+\makerule{RTapp}{R-Tapp}{
+    \typeindrelforrules{\Xi}{\Gamma}{e}{\calR}{e'}{\typeForall{\alpha}{\tau}}
+    \and
+    \wellformed{\Xi}{\tau'}
+}{
+    \typeindrelforrules{\Xi}{\Gamma}{\expTapp{e}{\tau'}}{\calR}{\expTapp{e'}{\tau'}}{\tau[\tau'/\alpha]}
+}
+
+
+\newcommand{\setVar}{\mathit{Var}}
+\newcommand{\ptofin}{\pto_\omega}
+
+\makeatletter
+\def\hastype{\@ifstar\@hastype\@@hastype}
+\newcommand{\@hastype}[2]{(#1 : #2)}
+\newcommand{\@@hastype}[2]{#1 : #2}
+\makeatother
+
+
+\newcommand{\typerel}[5]{%
+    \ifstrempty{#1}%
+        {%
+            \ifstrempty{#2}%
+            {%
+                #3 \vdash #4 : #5%
+            }{%
+                #2 \mid #3 \vdash #4 : #5%
+            }%
+        }{%
+            \ifstrempty{#2}%
+            {%
+                #1 \mid \emptyset \mid #3 \vdash #4 : #5%
+            }{%
+                #1 \mid #2 \mid #3 \vdash #4 : #5%
+            }%
+        }%
+}
+
+\makeatletter
+\newcommand{\purestep}{\to_p}
+\newcommand{\headstep}{\to_h}
+
+\newcommand{\expProj}[2]{\expcolor{\pi_{#1}}\,#2}
+\def\expProjl{\@ifstar\@expProjl\@@expProjl}
+\newcommand{\@expProjl}[1]{(\expcolor{\pi_1}\,#1)}
+\newcommand{\@@expProjl}[1]{\expcolor{\pi_1}\,#1}
+\def\expProjr{\@ifstar\@expProjr\@@expProjr}
+\newcommand{\@expProjr}[1]{(\expcolor{\pi_2}\,#1)}
+\newcommand{\@@expProjr}[1]{\expcolor{\pi_2}\,#1}
+\def\expInjl{\@ifstar\@expInjl\@@expInjl}
+\newcommand{\@expInjl}[1]{(\expcolor{\iota_1}\,#1)}
+\newcommand{\@@expInjl}[1]{\expcolor{\iota_1}\,#1}
+\def\expInjr{\@ifstar\@expInjr\@@expInjr}
+\newcommand{\@expInjr}[1]{(\expcolor{\iota_2}\,#1)}
+\newcommand{\@@expInjr}[1]{\expcolor{\iota_2}\,#1}
+
+\def\expLam{\@ifstar\@expLam\@@expLam}
+\newcommand{\@expLam}[2]{(\expcolor{\lambda\oparg{#1}.\oparg{#2}})}
+\newcommand{\@@expLam}[2]{\expcolor{\lambda\oparg{#1}.\oparg{#2}}}
+\makeatother
+
+
+\newcommand{\setCVal}{\mathit{ClVal}}
+\newcommand{\expRef}[1]{\expr{ref}\expspace#1}
+\newcommand{\step}{\to}
+
+\newcommand{\expFalse}{\expr{false}}
+\newcommand{\expTrue}{\expr{true}}
+\newcommand{\typeBool}{\typ{Bool}}
+\newcommand{\expIf}[3]{\expr{if}\expspace#1\expspace\expr{then}\expspace#2\expspace\expr{else}\expspace#3}
+
+\newcommand{\typeOpt}[1]{\typ{Opt}\expspace#1}
+\newcommand{\expNothing}{\expr{none}}
+\newcommand{\expJust}[1]{\expr{just}\expspace#1}
+\newcommand{\expWhich}[4]{\expr{which}(#1,#2,#3,#4)}
+
+\newcommand{\typeEmpty}{\typ{0}}
+
+
+
+\newcommand{\stotype}[4]{%
+    \ifstrempty{#1}%
+        {%
+            \ifstrempty{#2}%
+            {%
+                #3 \vdash #4%
+            }{%
+                #2 \mid #3 \vdash #4%
+            }%
+        }{%
+            \ifstrempty{#2}%
+            {%
+                #1 \mid \emptyset \mid #3 \vdash #4%
+            }{%
+                #1 \mid #2 \mid #3 \vdash #4%
+            }%
+        }%
+}
+
+
+\renewcommand{\scat}{\mathbf}
+\newcommand{\fieldF}{\mathbb{F}}
+\newcommand{\catSet}{\scat{Set}}
+\newcommand{\catTop}{\scat{Top}}
+\newcommand{\catPre}{\scat{Pre}}
+
+\makeatletter
+\def\dualcat{\@ifstar\@dualcat\@@dualcat}
+\def\@dualcat#1{(#1)^{\mathit{op}}}
+\def\@@dualcat#1{#1^{\mathit{op}}}
+\makeatother
+
+% \includeonly{language-fundamentals}
+
+
+\newcommand{\classfont}[1]{\textit{\textsf{#1}}}
+\newcommand{\packagefont}[1]{\textsf{#1}}
+
+\usepackage{multicol} % Automatically loaded by imakeidx
+
+\newcommand{\titlefontbig}{\scshape\bfseries\color{titlered}}
+\newcommand{\titlefontsmall}{\normalfont\itshape\color{black!70}}
+
+\newcommand*\TikZ{\textup{Ti\textit{k}Z}}
+
+\makeatletter
+\renewcommand{\maketitle}{
+\begin{titlingpage*}
+	% Front page
+	% \calccentering{\unitlength}
+	% \begin{adjustwidth*}{\unitlength}{-\unitlength}
+    \begin{adjustwidth}{0cm}{-5cm}
+		% \begin{adjustwidth}{-0.5cm}{-0.5cm}
+		\centering
+		\thispagestyle{empty}
+		{%
+			\large%
+			{\Huge {\titlefontbig Type Safety} {\titlefontsmall and} {\titlefontbig Logical Relations}}\par
+			% \vspace*{0.5\onelineskip}%
+			\rule{10cm}{1pt}\par
+			\vspace*{0.5\onelineskip}%
+			{\LARGE\itshape Typesikkerhed og logiske relationer}\par
+			\vspace*{4\onelineskip}\par
+			\includegraphics[width=8cm]{ausegl_sort.png}\par
+			\vspace*{4\onelineskip}%
+			Bachelor Project in Computer Science\par
+			Danny Nygård Hansen~~{\footnotesize\textbullet}~~201605113\par
+		}%
+		\vfill
+		\vspace*{2\onelineskip}
+		Supervisor: Lars Birkedal\hfill
+		10th June 2024\par
+		\vspace*{2\onelineskip}%
+		\small%
+		Department of Computer Science\par
+		Aarhus University\par~\par
+		%\emph{Må gerne offentliggøres}%
+		\enlargethispage{2\onelineskip}
+		% \end{adjustwidth}
+	\end{adjustwidth}
+	\newpage
+	%
+	% Colophon
+    \thispagestyle{empty}
+    \small%
+    \strut\vfill
+    \begin{adjustwidth}{-5cm}{0cm}
+        \begin{flushleft}
+            Copyright \copyright\ Danny Nygård Hansen 2024
+
+            \plainbreak{1}
+
+            Layout and typography by the author \par
+            Font: 10\,pt KP Serif | 8.5\,pt \textsf{Bera Sans} | 8.5\,pt \texttt{Bera Mono} \par
+            Typeset using \textsc{pdf}\LaTeX{} and the \classfont{memoir} class \par
+            All figures generated using \TikZ
+
+            \plainbreak{1}
+
+            Used packages:
+            %
+            \begin{multicols}{4}
+                \sffamily
+                \raggedcolumns
+                \begin{itemize}[label={}]
+                    % \item adforn
+                    \item array
+                    \item babel
+                    \item beramono
+                    \item berasans
+                    \item biblatex
+                    % \item biolinum
+                    \item caption
+                    % \item changepage % for sanscolour
+                    \item cleveref
+                    \item csquotes
+                    \item enumitem
+                    % \item eufrak
+                    % \item FiraMono
+                    \item fontenc
+                    % \item geometry % for sanscolour
+                    \item graphicx
+                    \item hyperref
+                    \item imakeidx
+                    % \item inconsolata
+                    \item inputenc
+                    \item kpfonts
+                    % \item listings
+                    % \item longtable
+                    \item mathpartir
+                    \item mathtools
+                    \item microtype
+                    \item multicol
+                    \item ntheorem
+                    \item pgffor
+                    % \item subcaption
+                    % \item tcolorbox % for sanscolour
+                    \item tikz
+                    \item tikz-cd
+                    \item xcolor
+                \end{itemize}
+            \end{multicols}
+            %
+            The source code for this project is available on \href{https://github.com/dnhansen/cs-bachelor-project}{GitHub}.
+        \end{flushleft}
+    \end{adjustwidth}
+    \newpage
+\end{titlingpage*}
+}
+
+
+
+
+
+
+
+
+
+\newcommand{\langrecref}{\ensuremath{\mathbf{F}_{\exists,\mu,\mathrm{ref}}}}
+\newcommand{\langpure}{\ensuremath{\mathbf{F}}}
+
+
+
+
+\begin{document}
+
+\frontmatter
+
+% \begin{titlingpage}
+%     \calccentering{\unitlength}
+%     \begin{adjustwidth*}{\unitlength}{-\unitlength}
+%     \maketitle
+%     \end{adjustwidth*}
+%     \end{titlingpage}
+\maketitle
+
+\begin{otherlanguage}{danish}
+    \begin{abstract}
+        \noindent I denne opgave studerer vi typesikkerhed af en udgave af System $\mathbf{F}$ med referencer og rekursive funktioner og typer. Vi tager først den klassiske tilgang, idet vi beviser sætninger om progress og preservation som medfører typesikkerhed for dette sprog.
+
+        For et fragment af dette sprog uden referencer og rekursion beviser vi også typesikkerhed ved hjælp af et logisk prædikat, og vi definerer en binær logisk relation som kan benyttes til at vise kontekstuel ækvivalens af programmer.
+    \end{abstract}
+    \end{otherlanguage}
+    \begin{abstract}
+        \noindent In this report we study type safety of a version of System $\mathbf{F}$ with references and recursive functions and types. We first take the classical approach, proving progress and preservation theorems which imply type safety for this language.
+
+        For a fragment of this language without references and recursion we also prove type safety using a logical predicate, and we define a binary logical relation which can be used to show contextual equivalence of programs.
+    \end{abstract}
+    
+    \cleardoublepage
+    
+    \tableofcontents
+    \cleardoublepage
+
+\include{preface}
+
+
+\mainmatter
+
+\include{preliminaries}
+
+\include{language-fundamentals}
+
+\include{progress-preservation}
+
+\include{logical-predicates}
+
+\include{logical-relations}
+
+
+\appendix
+
+\include{order-theory}
+
+\include{syntax-semantics}
+
+
+% \nocite{*}
+\nocite{
+    baader-nipkow-term-rewriting,
+    curry-combinatory
+}
+
+% Create our own bibliography link in the ToC
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{\bibname}
+\printbibliography
+
+\cleardoublepage
+\phantomsection
+\markboth{\memUChead{Index of notation}}{\memUChead{Index of notation}} % https://tex.stackexchange.com/questions/359886/change-of-chapters-head-title-within-that-chapter-memoir
+\addcontentsline{toc}{chapter}{Index of notation}
+\printindex[notation]
+
+\cleardoublepage
+\phantomsection
+\markboth{\memUChead{Index}}{\memUChead{Index}}
+\addcontentsline{toc}{chapter}{Index}
+\printindex[subject]
+
+
+\end{document}

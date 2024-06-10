@@ -1,0 +1,265 @@
+\chapter[Syntax and semantics][Syntax and semantics]{Syntax {\titlefontsmall and} Semantics}\label{app:syntax-semantics}
+
+\renewcommand{\typerel}[5]{%
+    \ifstrempty{#1}%
+        {%
+            \ifstrempty{#2}%
+            {%
+                #3 \vdash #4 : #5%
+            }{%
+                #2 \mid #3 \vdash #4 : #5%
+            }%
+        }{%
+            \ifstrempty{#2}%
+            {%
+                #1 \mid \emptyset \mid #3 \vdash #4 : #5%
+            }{%
+                #1 \mid #2 \mid #3 \vdash #4 : #5%
+            }%
+        }%
+}
+
+\section{Syntax}\label{sec:syntax}
+
+\begin{adjustwidth}{0cm}{-5cm}
+\begin{equation*}
+    \begin{array}{lrclR}
+            & x,f & \in & \setVar & \multicolumn{1}{c}{} \\
+            & l & \in & \setLoc & \multicolumn{1}{c}{} \\
+            & \alpha & \in & \setTVar & \multicolumn{1}{c}{} \\
+        \setExp 
+            & e & \Coloneqq & \expUnit       & unit value \\
+            &   & \mid      & x              & variables \\
+            &   & \mid      & \expPair{e}{e}
+                              \mid \expProjl{e}
+                              \mid \expProjr{e}   & products \\
+            &   & \mid      & \expInjl{e}
+                              \mid \expInjr{e}
+                              \mid \expMatch{e}{x}{e}{e} & sums \\
+            &   & \mid      & \expLam{x}{e}
+                              \mid \expRec{f}{x}{e}
+                              \mid \expApp{e}{e} & functions \\
+            &   & \mid      & \expForall{\alpha}{e}
+                              \mid \expTapp{e}{\alpha}
+                              \mid \expPack{e}
+                              \mid \expUnpack{e}{x}{e} & polymorphism \\
+            &   & \mid      & \expFold{e}
+                              \mid \expUnfold{e} & recursion \\
+            &   & \mid      & l
+                              \mid \expRef{e}
+                              \mid \expAss{e}{e}
+                              \mid \expLoad{e} & references \\
+        \setVal
+            & v & \Coloneqq & \expUnit       & unit value \\
+            &   & \mid      & \expPair{v}{v} & value pairs \\
+            &   & \mid      & \expInjl{v}
+                              \mid \expInjr{v} & sum values \\
+            &   & \mid      & \expLam{x}{e}
+                              \mid \expRec{f}{x}{e} & function values \\
+            &   & \mid      & \expForall{\alpha}{e}
+                              \mid \expPack{v} & polymorphic values \\
+            &   & \mid      & \expFold{v} & recursive values \\
+            &   & \mid      & l & reference values \\
+        \setType
+            & \tau & \Coloneqq & \typeUnit       & unit type \\
+            &   & \mid      & \alpha & type variables \\
+            &   & \mid      & \typeProd{\tau}{\tau} & product types \\
+            &   & \mid      & \typeSum{\tau}{\tau} & sum types \\
+            &   & \mid      & \typeFunc{\tau}{\tau} & function types \\
+            &   & \mid      & \typeForall{\alpha}{\tau}
+                              \mid \typeExists{\alpha}{\tau} & polymorphic types \\
+            &   & \mid      & \typeRec{\alpha}{\tau} & recursive types \\
+            &   & \mid      & \typeRef{\tau} & reference types \\
+        \setECtx
+            & E & \Coloneqq & \hole & hole \\
+            &   & \mid      & \expPair{E}{e}
+                              \mid \expPair{v}{E}
+                              \mid \expProjl{E}
+                              \mid \expProjr{E}   & products \\
+            &   & \mid      & \expInjl{E}
+                              \mid \expInjr{E}
+                              \mid \expMatch{E}{x}{e}{e} & sums \\
+            &   & \mid      & \expApp{E}{e}
+                              \mid \expApp{v}{E} & function application \\
+            &   & \mid      & \expTapp{E}{\alpha}
+                              \mid \expPack{E}
+                              \mid \expUnpack{E}{x}{e} & polymorphism \\
+            &   & \mid      & \expFold{E}
+                              \mid \expUnfold{E} & recursion \\
+            &   & \mid      & l
+                              \mid \expRef{E}
+                              \mid \expAss{E}{e}
+                              \mid \expAss{v}{E}
+                              \mid \expLoad{E} & references
+    \end{array}    
+\end{equation*}
+\end{adjustwidth}
+
+
+\clearpage
+\begin{adjustwidth}{-5cm}{0cm}
+\section{Static semantics}\label{sec:static-semantics}
+
+\subsection{Basic features}
+
+\begin{mathparpagebreakable}
+    \ruleTvar
+    \and
+    \ruleTunit
+    \and
+    \ruleTpair
+    \and
+    \ruleTprojl
+    \and
+    \ruleTprojr
+    \and
+    \ruleTinjl
+    \and
+    \ruleTinjr
+    \and
+    \ruleTmatch
+    \and
+    \ruleTlam
+    \and
+    \ruleTapp
+\end{mathparpagebreakable}
+
+
+\subsection{Polymorphism}
+
+\begin{mathparpagebreakable}
+    \ruleTTlam
+    \and
+    \ruleTTapp
+    \and
+    \ruleTpack
+    \and
+    \ruleTunpack
+\end{mathparpagebreakable}
+
+
+\subsection{Recursive functions and types}
+
+\begin{mathparpagebreakable}
+    \ruleTrec
+    \and
+    \ruleTfold
+    \and
+    \ruleTunfold
+\end{mathparpagebreakable}
+
+
+\subsection{References}
+
+\begin{mathparpagebreakable}
+    \ruleTloc
+    \and
+    \ruleTalloc
+    \and
+    \ruleTstore
+    \and
+    \ruleTload
+\end{mathparpagebreakable}
+
+\end{adjustwidth}
+
+
+% \begin{tcolorbox}[hbox,coltitle=black,fonttitle={\sffamily\bfseries},title=References]
+%     \begin{mathpar}
+%         \ruleTloc
+%         \and
+%         \ruleTalloc
+%         \and
+%         \ruleTstore
+%         \and
+%         \ruleTload
+%     \end{mathpar}
+% \end{tcolorbox}
+
+
+\clearpage
+
+\section{Dynamic semantics}\label{app:dynamic-semantics}
+
+\subsection{Pure head reductions}
+
+\begin{adjustwidth}{0cm}{-5cm}
+\begin{mathparpagebreakable}
+    \ruleEprojl
+    \and
+    \ruleEprojr
+    \and
+    \ruleEmatchinjl
+    \and
+    \ruleEmatchinjr
+    \and
+    \ruleElamapp
+    \and
+    \ruleErecapp
+    \and
+    \ruleEtapptlam
+    \and
+    \ruleEunpackpack
+    \and
+    \ruleEunfoldfold
+\end{mathparpagebreakable}
+\end{adjustwidth}
+
+
+\subsection{Impure head reductions}
+
+\begin{adjustwidth}{0cm}{-5cm}
+\begin{mathparpagebreakable}
+    \ruleEpure
+    \and
+    \ruleEalloc
+    \and
+    \ruleEstore
+    \and
+    \ruleEload
+\end{mathparpagebreakable}
+\end{adjustwidth}
+
+
+\subsection{Evaluation contexts}
+
+\begin{adjustwidth}{0cm}{-5cm}
+\begin{mathparpagebreakable}
+    \ruleEhead
+\end{mathparpagebreakable}
+\end{adjustwidth}
+
+
+
+
+
+\clearpage
+
+\begin{adjustwidth}{-5cm}{0cm}
+\section{Compatibility rules}\label{sec:compatibility-rules}
+\begin{mathparpagebreakable}
+    \ruleRvar
+    \and
+    \ruleRunit
+    \and
+    \ruleRpair
+    \and
+    \ruleRprojl
+    \and
+    \ruleRprojr
+    \and
+    \ruleRinjl
+    \and
+    \ruleRinjr
+    \and
+    \ruleRmatch
+    \and
+    \ruleRlam
+    \and
+    \ruleRapp
+    \and
+    \ruleRTlam
+    \and
+    \ruleRTapp
+\end{mathparpagebreakable}
+\end{adjustwidth}
