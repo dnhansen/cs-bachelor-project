@@ -193,11 +193,16 @@
 
 
 % Bibliography
-\usepackage[backend=biber, style=authoryear, maxcitenames=2, useprefix]{biblatex}
+\usepackage[backend=biber, style=authoryear, maxcitenames=2, useprefix, backref]{biblatex}
 \nobibintoc % We create our own bibliography link in the ToC
 \addbibresource{references.bib}
 \DeclareFieldFormat[online]{title}{\enquote{#1}}
 \DeclareNumChars*{+} % https://tex.stackexchange.com/questions/16904/xiv-pages-in-page-counts
+
+\DefineBibliographyStrings{english}{
+    backrefpage={cited on p.},
+    backrefpages={cited on pp.}
+}
 
 
 \usepackage{tikz}
